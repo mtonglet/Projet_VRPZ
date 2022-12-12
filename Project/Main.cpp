@@ -186,18 +186,24 @@ int main(int argc, char* argv[])
 
 	const std::string sourceVMirror = "#version 330 core\n"
 		"in vec3 position; \n"
+
+		"in vec2 texcoord; \n"
+		"out vec2 v_tex; \n"
+
 		"uniform mat4 M; \n"
 		"uniform mat4 V; \n"
 		"uniform mat4 P; \n"
 		" void main(){ \n"
 		"gl_Position = P*V*M*vec4(position, 1.0);\n"
+		"v_tex = texcoord; \n"
 		"}\n";
 	const std::string sourceFMirror = "#version 330 core\n"
 		"out vec4 FragColor;"
 		"precision mediump float; \n"
-		
+		"in vec2 v_tex; \n"
+		"uniform sampler2D tex0; \n"
 		"void main() { \n"
-		"FragColor = vec4(1.0,0.0,0.0,1.0); \n"
+		"FragColor = texture(tex0, v_tex); \n"
 		"} \n";
 
 	Shader shaderMirror(sourceVMirror, sourceFMirror);
@@ -253,14 +259,14 @@ int main(int argc, char* argv[])
 	//mirror object 
 	// First object!
 	const float positionsData[] = {
-		// vertices		  
-		2.0, 1.0, 1.0,		
-		 2.0, -1.0, 1.0,	
-		 2.0,  1.0, -1.0,	
+		// vertices				//color
+		-1.0, 0.0, -1.0,		0.0, 0.0,// 1.0,
+		 1.0, 0.0, -1.0,		100.0, 0.0,// 0.0,
+		 -1.0,  0.0, 1.0,		0.0, 100.0, //0.0,
 
-		 2.0, 1.0, -1.0,	
-		 2.0, -1.0, 1.0,	
-		 2.0,  -1.0, -1.0,	
+		 1.0, 0.0, 1.0,			100.0, 100.0,// 0.0,
+		 1.0, 0.0, -1.0,		100.0, 0.0, //0.0,
+		 -1.0,  0.0, 1.0,		0.0, 100.0 //0.0
 	};
 
 
@@ -275,10 +281,14 @@ int main(int argc, char* argv[])
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(positionsData), positionsData, GL_STATIC_DRAW);
 
-	auto attribute = glGetAttribLocation(shader.ID, "position");
+	auto attribute = glGetAttribLocation(shaderMirror.ID, "position");
 	glEnableVertexAttribArray(attribute);
-	glVertexAttribPointer(attribute, 3, GL_FLOAT, false, 3 * sizeof(float), (void*)0);
+	glVertexAttribPointer(attribute, 3, GL_FLOAT, false, 5 * sizeof(float), (void*)0);
 
+	//5. VertexAttribPointer also read the texture coordinates
+	auto att_tex = glGetAttribLocation(shaderMirror.ID, "texcoord");
+	glEnableVertexAttribArray(att_tex);
+	glVertexAttribPointer(att_tex, 2, GL_FLOAT, false, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 
 	//desactive the buffer
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -304,11 +314,19 @@ int main(int argc, char* argv[])
 
 
 	glm::vec3 light_pos = glm::vec3(1.0, 2.0, 1.5);
-	glm::mat4 model = glm::mat4(1.0);
-	model = glm::translate(model, glm::vec3(0.0, 0.0, -2.0));
-	model = glm::scale(model, glm::vec3(0.5, 0.5, 0.5));
+	glm::mat4 modelS = glm::mat4(1.0);
+	modelS = glm::translate(modelS, glm::vec3(0.0, 1.0, -2.0));
+	modelS = glm::scale(modelS, glm::vec3(0.5, 0.5, 0.5));
 
-	glm::mat4 inverseModel = glm::transpose(glm::inverse(model));
+	glm::mat4 inverseModelS = glm::transpose(glm::inverse(modelS));
+
+
+	glm::mat4 modelSol = glm::mat4(1.0);
+	modelSol = glm::translate(modelSol, glm::vec3(0.0, 0.0, 0.0));
+	modelSol = glm::scale(modelSol, glm::vec3(100, 100, 100));
+
+	glm::mat4 inverseModelSol = glm::transpose(glm::inverse(modelSol));
+	
 
 	glm::mat4 view = camera.GetViewMatrix();
 	glm::mat4 perspective = camera.GetProjectionMatrix();
@@ -332,8 +350,8 @@ int main(int argc, char* argv[])
 	shader.setFloat("light.quadratic", 0.07);
 
 
-
-
+	
+	stbi_set_flip_vertically_on_load(false);
 	GLuint cubeMapTexture;
 	glGenTextures(1, &cubeMapTexture);
 	glActiveTexture(GL_TEXTURE0);
@@ -351,17 +369,56 @@ int main(int argc, char* argv[])
 	std::string pathToCubeMap = PATH_TO_TEXTURE "/cubemaps/yokohama3/";
 
 	std::map<std::string, GLenum> facesToLoad = {
-		{pathToCubeMap + "posx.jpg",GL_TEXTURE_CUBE_MAP_POSITIVE_X},
-		{pathToCubeMap + "posy.jpg",GL_TEXTURE_CUBE_MAP_POSITIVE_Y},
-		{pathToCubeMap + "posz.jpg",GL_TEXTURE_CUBE_MAP_POSITIVE_Z},
-		{pathToCubeMap + "negx.jpg",GL_TEXTURE_CUBE_MAP_NEGATIVE_X},
-		{pathToCubeMap + "negy.jpg",GL_TEXTURE_CUBE_MAP_NEGATIVE_Y},
-		{pathToCubeMap + "negz.jpg",GL_TEXTURE_CUBE_MAP_NEGATIVE_Z},
+		{pathToCubeMap + "sky2.jpg",GL_TEXTURE_CUBE_MAP_POSITIVE_X},
+		{pathToCubeMap + "sky2_1.jpg",GL_TEXTURE_CUBE_MAP_POSITIVE_Y},
+		{pathToCubeMap + "sky2_2.jpg",GL_TEXTURE_CUBE_MAP_POSITIVE_Z},
+		{pathToCubeMap + "sky2_3.jpg",GL_TEXTURE_CUBE_MAP_NEGATIVE_X},
+		{pathToCubeMap + "sky2_4.jpg",GL_TEXTURE_CUBE_MAP_NEGATIVE_Y},
+		{pathToCubeMap + "sky2_5.jpg",GL_TEXTURE_CUBE_MAP_NEGATIVE_Z},
 	};
 	//load the six faces
 	for (std::pair<std::string, GLenum> pair : facesToLoad) {
 		loadCubemapFace(pair.first.c_str(), pair.second);
 	}
+
+
+	GLuint GNDTexture;
+	glGenTextures(1, &GNDTexture);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, GNDTexture);
+
+	// texture parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	//stbi_set_flip_vertically_on_load(true);
+
+	// Stores the width, height, and the number of color channels of the image
+	int widthImg, heightImg, numColCh;
+	// Flips the image so it appears right side up
+	stbi_set_flip_vertically_on_load(true);
+	// Reads the image from a file and stores it in bytes
+
+	char imfile[128] = PATH_TO_TEXTURE "/Sand.jpg";
+	unsigned char* data = stbi_load(imfile, &widthImg, &heightImg, &numColCh, 0);
+
+	// Assigns the image to the OpenGL Texture object
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, widthImg, heightImg, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	// Generates MipMaps
+	glGenerateMipmap(GL_TEXTURE_2D);
+	
+	// Deletes the image data as it is already in the OpenGL Texture object
+	stbi_image_free(data);
+	// Unbinds the OpenGL Texture object so that it can't accidentally be modified
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	// Gets the location of the uniform
+	GLuint texUni = glGetUniformLocation(shaderMirror.ID, "tex0");
+	// Shader needs to be activated before changing the value of a uniform
+	// Sets the value of the uniform
+	glUniform1i(texUni, 0);
 
 	/*
 	Refraction indices:
@@ -386,8 +443,8 @@ int main(int argc, char* argv[])
 
 		shader.use();
 
-		shader.setMatrix4("M", model);
-		shader.setMatrix4("itM", inverseModel);
+		shader.setMatrix4("M", modelS);
+		shader.setMatrix4("itM", inverseModelS);
 		shader.setMatrix4("V", view);
 		shader.setMatrix4("P", perspective);
 		shader.setVector3f("u_view_pos", camera.Position);
@@ -418,14 +475,18 @@ int main(int argc, char* argv[])
 
 		//2. Use the shader Class to send the uniform
 		shaderMirror.use();
+		
 
-		shaderMirror.setMatrix4("M", model);
+		shaderMirror.setMatrix4("M", modelSol);
 		shaderMirror.setMatrix4("V", view);
 		shaderMirror.setMatrix4("P", perspective);
+		glUniform1i(texUni, 0);
 
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, GNDTexture);
 
-		glDrawArrays(GL_TRIANGLES, 0, 12);
-
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		fps(now);
 		glfwSwapBuffers(window);
 	}
