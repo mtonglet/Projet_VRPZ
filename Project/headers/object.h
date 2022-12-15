@@ -195,6 +195,8 @@ public:
 
 	}
 
+
+	//bind the VAO and draw the arrays of triangle
 	void draw() {
 
 		glBindVertexArray(this->VAO);

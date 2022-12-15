@@ -8,15 +8,21 @@
 #include<glm/gtc/matrix_transform.hpp>
 #include<glm/gtc/type_ptr.hpp>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 
 #include <map>
 
-#include "camera.h"
-#include "shader.h"
-#include "object.h"
+#include "headers/Texture.h"
+#include "headers/camera.h"
+#include "headers/shader.h"
+#include "headers/object.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+
+#define FLIP true
+#define DONT_FLIP false
+GLuint currentTextSlot = 0;
 
 const int width = 1000;
 const int height = 1000;
@@ -140,110 +146,21 @@ int main(int argc, char* argv[])
 	}
 #endif
 
-	const std::string sourceV = "#version 330 core\n"
-		"in vec3 position; \n"
-		"in vec2 tex_coords; \n"
-		"in vec3 normal; \n"
+	//shader files read, shader initialised , linked and compiled
 
-		"out vec3 v_frag_coord; \n"
-		"out vec3 v_normal; \n"
-
-		"uniform mat4 M; \n"
-		"uniform mat4 itM; \n"
-		"uniform mat4 V; \n"
-		"uniform mat4 P; \n"
+	char pathSourceF[] = PATH_TO_SHADER "/source.frag";
+	char pathSourceV[] = PATH_TO_SHADER "/source.vert";
+	Shader shader(pathSourceV,pathSourceF);
 
 
-		" void main(){ \n"
-		"vec4 frag_coord = M*vec4(position, 1.0); \n"
-		"gl_Position = P*V*frag_coord; \n"
-		"v_normal = vec3(itM * vec4(normal, 1.0)); \n"
-		"v_frag_coord = frag_coord.xyz; \n"
-		"\n"
-		"}\n";
-
-	const std::string sourceF = "#version 400 core\n"
-		"out vec4 FragColor;\n"
-		"precision mediump float; \n"
-
-		"in vec3 v_frag_coord; \n"
-		"in vec3 v_normal; \n"
-
-		"uniform vec3 u_view_pos; \n"
-
-		"uniform samplerCube cubemapSampler; \n"
-		"uniform float refractionIndice;\n"
-
-		"void main() { \n"
-		"float ratio = 1.00 / refractionIndice;\n"
-		"vec3 N = normalize(v_normal);\n"
-		"vec3 V = normalize(u_view_pos - v_frag_coord); \n"
-		"vec3 R = refract(-V,N,ratio); \n"
-		"FragColor = texture(cubemapSampler,R); \n"
-		"} \n";
-
-	Shader shader(sourceV, sourceF);
-
-	const std::string sourceVMirror = "#version 330 core\n"
-		"in vec3 position; \n"
-
-		"in vec2 texcoord; \n"
-		"out vec2 v_tex; \n"
-
-		"uniform mat4 M; \n"
-		"uniform mat4 V; \n"
-		"uniform mat4 P; \n"
-		" void main(){ \n"
-		"gl_Position = P*V*M*vec4(position, 1.0);\n"
-		"v_tex = texcoord; \n"
-		"}\n";
-	const std::string sourceFMirror = "#version 330 core\n"
-		"out vec4 FragColor;"
-		"precision mediump float; \n"
-		"in vec2 v_tex; \n"
-		"uniform sampler2D tex0; \n"
-		"void main() { \n"
-		"FragColor = texture(tex0, v_tex); \n"
-		"} \n";
-
-	Shader shaderMirror(sourceVMirror, sourceFMirror);
-
-	const std::string sourceVCubeMap = "#version 330 core\n"
-		"in vec3 position; \n"
-		"in vec2 tex_coords; \n"
-		"in vec3 normal; \n"
-
-		//only P and V are necessary
-		"uniform mat4 V; \n"
-		"uniform mat4 P; \n"
-
-		"out vec3 texCoord_v; \n"
-
-		" void main(){ \n"
-		"texCoord_v = position;\n"
-		//remove translation info from view matrix to only keep rotation
-		"mat4 V_no_rot = mat4(mat3(V)) ;\n"
-		"vec4 pos = P * V_no_rot * vec4(position, 1.0); \n"
-		// the positions xyz are divided by w after the vertex shader
-		// the z component is equal to the depth value
-		// we want a z always equal to 1.0 here, so we set z = w!
-		// Remember: z=1.0 is the MAXIMUM depth value ;)
-		"gl_Position = pos.xyww;\n"
-		"\n"
-		"}\n";
-
-	const std::string sourceFCubeMap =
-		"#version 330 core\n"
-		"out vec4 FragColor;\n"
-		"precision mediump float; \n"
-		"uniform samplerCube cubemapSampler; \n"
-		"in vec3 texCoord_v; \n"
-		"void main() { \n"
-		"FragColor = texture(cubemapSampler,texCoord_v); \n"
-		"} \n";
+	char pathSourceFMirror[] = PATH_TO_SHADER "/sourceMirror.frag";
+	char pathSourceVMirror[] = PATH_TO_SHADER "/sourceMirror.vert";
+	Shader shaderMirror(pathSourceVMirror, pathSourceFMirror);
 
 
-	Shader cubeMapShader = Shader(sourceVCubeMap, sourceFCubeMap);
+	char pathCubemapF[] = PATH_TO_SHADER "/cubemap.frag";
+	char pathCubemapV[] = PATH_TO_SHADER "/cubemap.vert";
+	Shader cubeMapShader = Shader(pathCubemapV, pathCubemapF);
 
 	char path[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
 
@@ -338,6 +255,7 @@ int main(int argc, char* argv[])
 	glm::vec3 materialColour = glm::vec3(0.5f, 0.6, 0.8);
 
 	//Rendering
+	// /!\ dont .use() another shader before having put all uniforms on this one
 
 	shader.use();
 	shader.setFloat("shininess", 32.0f);
@@ -348,9 +266,23 @@ int main(int argc, char* argv[])
 	shader.setFloat("light.constant", 1.0);
 	shader.setFloat("light.linear", 0.14);
 	shader.setFloat("light.quadratic", 0.07);
+/*	Refraction indices :
+	Air:      1.0	|	Water:    1.33	|
+	Ice:      1.309	|	Glass:    1.52	|	Diamond:  2.42*/
+	shader.setFloat("refractionIndice", 1.52);
 
 
+
+	//Texture object generation for the ground 
+	char pathim[] = PATH_TO_TEXTURE "/Sand.jpg";
+	Texture GNDTex(pathim, GL_TEXTURE_2D, currentTextSlot);
+	currentTextSlot = currentTextSlot + 1; // this is incremented at each new Texture
+
+	//associate the texture to shader mirror
+	GNDTex.texUnit(shaderMirror, "tex0"); //the unit is the texture slot at instantiation if not said otherwize
 	
+
+	//cubemap texture 
 	stbi_set_flip_vertically_on_load(false);
 	GLuint cubeMapTexture;
 	glGenTextures(1, &cubeMapTexture);
@@ -380,55 +312,8 @@ int main(int argc, char* argv[])
 	for (std::pair<std::string, GLenum> pair : facesToLoad) {
 		loadCubemapFace(pair.first.c_str(), pair.second);
 	}
-
-
-	GLuint GNDTexture;
-	glGenTextures(1, &GNDTexture);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, GNDTexture);
-
-	// texture parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	//stbi_set_flip_vertically_on_load(true);
-
-	// Stores the width, height, and the number of color channels of the image
-	int widthImg, heightImg, numColCh;
-	// Flips the image so it appears right side up
-	stbi_set_flip_vertically_on_load(true);
-	// Reads the image from a file and stores it in bytes
-
-	char imfile[128] = PATH_TO_TEXTURE "/Sand.jpg";
-	unsigned char* data = stbi_load(imfile, &widthImg, &heightImg, &numColCh, 0);
-
-	// Assigns the image to the OpenGL Texture object
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, widthImg, heightImg, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-	// Generates MipMaps
-	glGenerateMipmap(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	
-	// Deletes the image data as it is already in the OpenGL Texture object
-	stbi_image_free(data);
-	// Unbinds the OpenGL Texture object so that it can't accidentally be modified
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	// Gets the location of the uniform
-	GLuint texUni = glGetUniformLocation(shaderMirror.ID, "tex0");
-	// Shader needs to be activated before changing the value of a uniform
-	// Sets the value of the uniform
-	glUniform1i(texUni, 0);
-
-	/*
-	Refraction indices:
-	Air:      1.0
-	Water:    1.33
-	Ice:      1.309
-	Glass:    1.52
-	Diamond:  2.42
-*/
-	shader.setFloat("refractionIndice", 1.52);
 
 	glfwSwapInterval(1);
 
@@ -456,8 +341,9 @@ int main(int argc, char* argv[])
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
+		shader.setInteger("cubemapTexture", 0);
 		cubeMapShader.setInteger("cubemapTexture", 0);
-
+		
 
 		glDepthFunc(GL_LEQUAL);
 		sphere1.draw();
@@ -472,19 +358,19 @@ int main(int argc, char* argv[])
 		glDepthFunc(GL_LESS);
 
 		glBindVertexArray(VAO);
-
+		
 		//2. Use the shader Class to send the uniform
 		shaderMirror.use();
-		
 
 		shaderMirror.setMatrix4("M", modelSol);
 		shaderMirror.setMatrix4("V", view);
 		shaderMirror.setMatrix4("P", perspective);
-		glUniform1i(texUni, 0);
+		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
+		GNDTex.texUnit(shaderMirror, "tex0");
+		// Binds texture so that is appears in rendering
+		GNDTex.Bind();
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, GNDTexture);
-
+		//glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		fps(now);
