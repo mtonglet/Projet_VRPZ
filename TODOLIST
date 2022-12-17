@@ -1,0 +1,38 @@
+IDEA : salon de Noël 
+
+OBJECTIFS :
+            - 1. Pièce  
+            TÂCHES : 
+                    - 4 murs + plafond + sol
+                    - fenêtre
+            - 2. Lumières   
+            TÂCHES :
+                    - reflets
+                    - émition
+                    - blooming (vfx)
+                    - shadows (vfx)
+            - 3. IMPORTER LES OBJETS 
+            TÂCHES :
+                    - lune
+                    - sapin + guirlandes
+                    - boules de noêl
+                    - canapé
+                    - fenêtre
+                    - petit train + rail
+            - 4.  COLLISION DETECTION
+            TÂCHES :
+                    - bullet
+                    - cinétique
+            - 5.  PARTICLES SYSTEMS
+            TÂCHES : 
+                    - feu
+                    - neige 
+            - 6.  BUMP MAPPING :
+            TÂCHES :
+                    - pour les murs
+            - 7.  TRAIN ANIMATION :
+            TÂCHES :
+                    - animation
+            
+                
+                    
