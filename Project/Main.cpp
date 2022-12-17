@@ -148,8 +148,8 @@ int main(int argc, char* argv[])
 	Shader shader(pathSourceV,pathSourceF);
 
 
-	char pathSourceFMirror[] = PATH_TO_SHADER "/sourceMirror.frag";
-	char pathSourceVMirror[] = PATH_TO_SHADER "/sourceMirror.vert";
+	char pathSourceFMirror[] = PATH_TO_SHADER "/texture2D.frag";
+	char pathSourceVMirror[] = PATH_TO_SHADER "/texture2D.vert";
 	Shader shaderMirror(pathSourceVMirror, pathSourceFMirror);
 
 
@@ -157,8 +157,15 @@ int main(int argc, char* argv[])
 	char pathCubemapV[] = PATH_TO_SHADER "/cubemap.vert";
 	Shader cubeMapShader = Shader(pathCubemapV, pathCubemapF);
 
-	char path[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
+	char pathglassF[] = PATH_TO_SHADER "/glass.frag";
+	char pathglassV[] = PATH_TO_SHADER "/glass.vert";
+	Shader glassShader = Shader(pathglassV, pathglassF);
 
+	char pathclassicF[] = PATH_TO_SHADER "/classic.frag";
+	char pathclassicV[] = PATH_TO_SHADER "/classic.vert";
+	Shader classicShader = Shader(pathclassicV, pathclassicF);
+
+	char path[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
 	Object sphere1(path);
 	sphere1.makeObject(shader);
 
@@ -166,12 +173,48 @@ int main(int argc, char* argv[])
 	Object cubeMap(pathCube);
 	cubeMap.makeObject(cubeMapShader);
 
+	char pathSalon[] = PATH_TO_OBJECTS "/2cubesv2.obj";
+	Object salon(pathSalon);
+	salon.makeObject(classicShader);
+
+	//mirror object 
+	// First object!
+	const float positionsData1[] = {
+		// vertices				//texture
+		-1.0, 0.0, -1.0,		
+		 1.0, 0.0, -1.0,		
+		 -1.0,  0.0, 1.0,		
+
+		 1.0, 0.0, 1.0,			
+		 1.0, 0.0, -1.0,		
+		 -1.0,  0.0, 1.0,		
+	};
+	//Create the buffer
+	GLuint VBO1, VAO1;
+	//define VBO and VAO as active buffer and active vertex array
+	
+	//generate the buffer and the vertex array
+	glGenVertexArrays(1, &VAO1);
+	glGenBuffers(1, &VBO1);
+
+	glBindVertexArray(VAO1);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO1);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(positionsData1), positionsData1, GL_STATIC_DRAW);
+
+	auto attribute = glGetAttribLocation(glassShader.ID, "position");
+	glEnableVertexAttribArray(attribute);
+	glVertexAttribPointer(attribute, 3, GL_FLOAT, false, 3 * sizeof(float), (void*)0);
+
+	
+	//desactive the buffer
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 
 
 	//mirror object 
 	// First object!
 	const float positionsData[] = {
-		// vertices				//color
+		// vertices				//texture
 		-1.0, 0.0, -1.0,		0.0, 0.0,// 1.0,
 		 1.0, 0.0, -1.0,		100.0, 0.0,// 0.0,
 		 -1.0,  0.0, 1.0,		0.0, 100.0, //0.0,
@@ -193,14 +236,14 @@ int main(int argc, char* argv[])
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(positionsData), positionsData, GL_STATIC_DRAW);
 
-	auto attribute = glGetAttribLocation(shaderMirror.ID, "position");
-	glEnableVertexAttribArray(attribute);
-	glVertexAttribPointer(attribute, 3, GL_FLOAT, false, 5 * sizeof(float), (void*)0);
+	auto attribute1 = glGetAttribLocation(shaderMirror.ID, "position");
+	glEnableVertexAttribArray(attribute1);
+	glVertexAttribPointer(attribute1, 3, GL_FLOAT, false, 5 * sizeof(float), (void*)0);
 
 	//5. VertexAttribPointer also read the texture coordinates
-	auto att_tex = glGetAttribLocation(shaderMirror.ID, "texcoord");
-	glEnableVertexAttribArray(att_tex);
-	glVertexAttribPointer(att_tex, 2, GL_FLOAT, false, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	auto att_tex1 = glGetAttribLocation(shaderMirror.ID, "texcoord");
+	glEnableVertexAttribArray(att_tex1);
+	glVertexAttribPointer(att_tex1, 2, GL_FLOAT, false, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 
 	//desactive the buffer
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -309,7 +352,8 @@ int main(int argc, char* argv[])
 	}
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	
-
+	//specify how we want the transparency to be computed (here ColorOut= Cfrag * alphaf + Cprev * (1-alphaf)  )
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glfwSwapInterval(1);
 
 	while (!glfwWindowShouldClose(window)) {
@@ -368,6 +412,20 @@ int main(int argc, char* argv[])
 		//glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		
+		classicShader.use();
+
+		classicShader.setMatrix4("M", modelS);
+		classicShader.setMatrix4("V", view);
+		classicShader.setMatrix4("P", perspective);
+
+		//enable transparency 
+		glEnable(GL_BLEND);
+		glDisable(GL_DEPTH_TEST);
+		salon.draw();
+		glDisable(GL_BLEND);
+		glEnable(GL_DEPTH_TEST);
+
 		fps(now);
 		glfwSwapBuffers(window);
 	}

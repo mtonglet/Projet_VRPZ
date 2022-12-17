@@ -91,9 +91,9 @@ public:
 				n = f1.substr(0, f1.find("/"));
 
 
-				v1.Position = positions.at(std::stof(p) - 1);
-				v1.Normal = normals.at(std::stof(n) - 1);
-				v1.Texture = textures.at(std::stof(t) - 1);
+				v1.Position = positions.at(float(std::stod(p)) - 1);
+				v1.Normal = normals.at(float(std::stod(n)) - 1);
+				v1.Texture = textures.at(float(std::stod(t)) - 1);
 				vertices.push_back(v1);
 
 				//for face 12
@@ -108,9 +108,9 @@ public:
 				n = f2.substr(0, f2.find("/"));
 
 
-				v2.Position = positions.at(std::stof(p) - 1);
-				v2.Normal = normals.at(std::stof(n) - 1);
-				v2.Texture = textures.at(std::stof(t) - 1);
+				v2.Position = positions.at(float(std::stod(p)) - 1);
+				v2.Normal = normals.at(float(std::stod(n)) - 1);
+				v2.Texture = textures.at(float(std::stod(t)) - 1);
 				vertices.push_back(v2);
 
 				//for face 3
@@ -125,9 +125,9 @@ public:
 				n = f3.substr(0, f3.find("/"));
 
 
-				v3.Position = positions.at(std::stof(p) - 1);
-				v3.Normal = normals.at(std::stof(n) - 1);
-				v3.Texture = textures.at(std::stof(t) - 1);
+				v3.Position = positions.at(float(std::stod(p)) - 1);
+				v3.Normal = normals.at(float(std::stod(n)) - 1);
+				v3.Texture = textures.at(float(std::stod(t)) - 1);
 				vertices.push_back(v3);
 			}
 		}
