@@ -407,7 +407,6 @@ void processInput(GLFWwindow* window) {
 		camera.ProcessKeyboardMovement(LEFT, 0.1);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		camera.ProcessKeyboardMovement(RIGHT, 0.1);
-
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		camera.ProcessKeyboardMovement(FORWARD, 0.1);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -417,17 +416,17 @@ void processInput(GLFWwindow* window) {
 		camera.ProcessKeyboardRotation(1, 0.0, 1);
 	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
 		camera.ProcessKeyboardRotation(-1, 0.0, 1);
-
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
 		camera.ProcessKeyboardRotation(0.0, 1.0, 1);
 	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		camera.ProcessKeyboardRotation(0.0, -1.0, 1);
+
+	//Pressing C (des)activate the camera folowing the mouse
 	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
-		camera.MouseSwitchActivation( false, window);
-	}
+		camera.MouseSwitchActivation(false, window);}
 	else {
-		camera.MouseSwitchActivation(true, window);}
-}
+		camera.MouseSwitchActivation(true, window);}}
+
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
