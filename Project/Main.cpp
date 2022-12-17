@@ -19,17 +19,12 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-
-#define FLIP true
-#define DONT_FLIP false
 GLuint currentTextSlot = 0;
 
 const int width = 1000;
 const int height = 1000;
 
 
-GLuint compileShader(std::string shaderCode, GLenum shaderType);
-GLuint compileProgram(GLuint vertexShader, GLuint fragmentShader);
 void processInput(GLFWwindow* window);
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
@@ -427,8 +422,11 @@ void processInput(GLFWwindow* window) {
 		camera.ProcessKeyboardRotation(0.0, 1.0, 1);
 	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		camera.ProcessKeyboardRotation(0.0, -1.0, 1);
-
-
+	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
+		camera.MouseSwitchActivation( false, window);
+	}
+	else {
+		camera.MouseSwitchActivation(true, window);}
 }
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)

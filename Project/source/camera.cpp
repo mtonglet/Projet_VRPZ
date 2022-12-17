@@ -77,23 +77,24 @@ void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constr
     * You can draw inspiration from the ProcessKeyboardMovement function
     */
 
+    if (useMouse) {
+        float YawRot = SENSITIVITY * xoffset;
+        float PitchRot = SENSITIVITY * yoffset;
 
-    float YawRot = SENSITIVITY * xoffset;
-    float PitchRot = SENSITIVITY * yoffset;
-
-    this->Yaw += YawRot;
-    this->Pitch += PitchRot;
+        this->Yaw += YawRot;
+        this->Pitch += PitchRot;
 
 
-    // Make sure that when pitch is out of bounds, screen doesn't get flipped
-    if (constrainPitch)
-    {
-        if (this->Pitch > 89.0f)
-            this->Pitch = 89.0f;
-        if (this->Pitch < -89.0f)
-            this->Pitch = -89.0f;
+        // Make sure that when pitch is out of bounds, screen doesn't get flipped
+        if (constrainPitch)
+        {
+            if (this->Pitch > 89.0f)
+                this->Pitch = 89.0f;
+            if (this->Pitch < -89.0f)
+                this->Pitch = -89.0f;
+        }
+        updateCameraVectors();
     }
-    updateCameraVectors();
 }
 
 // processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
@@ -120,3 +121,16 @@ void Camera::updateCameraVectors()
     Up = glm::normalize(glm::cross(Right, Front));
 }
 
+void Camera::MouseSwitchActivation(bool released, GLFWwindow* window) {
+    if (Creleased && !released) {
+        useMouse = !useMouse;
+        if (useMouse) {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        }
+        else {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        }
+    }
+    Creleased = released;
+
+}
