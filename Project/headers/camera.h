@@ -47,7 +47,7 @@ public:
     bool Creleased = true; 
     
     // constructor with vectors
-    Camera(glm::vec3 position = glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH);
+    Camera(glm::vec3 position = glm::vec3(0.0f, 0.5f, -0.5f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH);
     // constructor with scalar values
     Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch);
 
@@ -55,6 +55,8 @@ public:
     glm::mat4 GetViewMatrix();
 
     glm::mat4 GetProjectionMatrix(float fov = 45.0, float ratio = 1.0, float near = 0.01, float far = 100.0);
+
+    glm::mat4 GetReflectionMatrix(glm::vec3 mirrorP, glm::vec3 mirrorN);
 
     // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
     void ProcessKeyboardMovement(Camera_Movement direction, float deltaTime);

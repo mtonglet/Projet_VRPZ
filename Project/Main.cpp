@@ -83,7 +83,7 @@ void APIENTRY glDebugOutput(GLenum source,
 }
 #endif
 
-Camera camera(glm::vec3(0.0, 0.0, 0.1));
+Camera camera(glm::vec3(0.0, 0.5, 0.2));
 
 
 int main(int argc, char* argv[])
@@ -148,9 +148,9 @@ int main(int argc, char* argv[])
 	Shader shader(pathSourceV,pathSourceF);
 
 
-	char pathSourceFMirror[] = PATH_TO_SHADER "/texture2D.frag";
-	char pathSourceVMirror[] = PATH_TO_SHADER "/texture2D.vert";
-	Shader shaderMirror(pathSourceVMirror, pathSourceFMirror);
+	char pathSourceFGND[] = PATH_TO_SHADER "/texture2D.frag";
+	char pathSourceVGND[] = PATH_TO_SHADER "/texture2D.vert";
+	Shader shaderGND(pathSourceVGND, pathSourceFGND);
 
 
 	char pathCubemapF[] = PATH_TO_SHADER "/cubemap.frag";
@@ -165,50 +165,21 @@ int main(int argc, char* argv[])
 	char pathclassicV[] = PATH_TO_SHADER "/classic.vert";
 	Shader classicShader = Shader(pathclassicV, pathclassicF);
 
-	char path[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
-	Object sphere1(path);
+	char pathS[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
+	Object sphere1(pathS);
 	sphere1.makeObject(shader);
+
+	char pathB[] = PATH_TO_OBJECTS "/bunny_small.obj";
+	Object bunny(pathB);
+	bunny.makeObject(classicShader);
 
 	char pathCube[] = PATH_TO_OBJECTS "/cube.obj";
 	Object cubeMap(pathCube);
 	cubeMap.makeObject(cubeMapShader);
 
-	char pathSalon[] = PATH_TO_OBJECTS "/2cubesv2.obj";
-	Object salon(pathSalon);
-	salon.makeObject(classicShader);
-
-	//mirror object 
-	// First object!
-	const float positionsData1[] = {
-		// vertices				//texture
-		-1.0, 0.0, -1.0,		
-		 1.0, 0.0, -1.0,		
-		 -1.0,  0.0, 1.0,		
-
-		 1.0, 0.0, 1.0,			
-		 1.0, 0.0, -1.0,		
-		 -1.0,  0.0, 1.0,		
-	};
-	//Create the buffer
-	GLuint VBO1, VAO1;
-	//define VBO and VAO as active buffer and active vertex array
-	
-	//generate the buffer and the vertex array
-	glGenVertexArrays(1, &VAO1);
-	glGenBuffers(1, &VBO1);
-
-	glBindVertexArray(VAO1);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO1);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(positionsData1), positionsData1, GL_STATIC_DRAW);
-
-	auto attribute = glGetAttribLocation(glassShader.ID, "position");
-	glEnableVertexAttribArray(attribute);
-	glVertexAttribPointer(attribute, 3, GL_FLOAT, false, 3 * sizeof(float), (void*)0);
-
-	
-	//desactive the buffer
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
+	char pathplane[] = PATH_TO_OBJECTS "/planeYZ.obj";
+	Object mirror(pathplane);
+	mirror.makeObject(glassShader);
 
 
 	//mirror object 
@@ -236,12 +207,12 @@ int main(int argc, char* argv[])
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(positionsData), positionsData, GL_STATIC_DRAW);
 
-	auto attribute1 = glGetAttribLocation(shaderMirror.ID, "position");
+	auto attribute1 = glGetAttribLocation(shaderGND.ID, "position");
 	glEnableVertexAttribArray(attribute1);
 	glVertexAttribPointer(attribute1, 3, GL_FLOAT, false, 5 * sizeof(float), (void*)0);
 
 	//5. VertexAttribPointer also read the texture coordinates
-	auto att_tex1 = glGetAttribLocation(shaderMirror.ID, "texcoord");
+	auto att_tex1 = glGetAttribLocation(shaderGND.ID, "texcoord");
 	glEnableVertexAttribArray(att_tex1);
 	glVertexAttribPointer(att_tex1, 2, GL_FLOAT, false, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 
@@ -269,22 +240,38 @@ int main(int argc, char* argv[])
 
 
 	glm::vec3 light_pos = glm::vec3(1.0, 2.0, 1.5);
-	glm::mat4 modelS = glm::mat4(1.0);
-	modelS = glm::translate(modelS, glm::vec3(0.0, 1.0, -2.0));
-	modelS = glm::scale(modelS, glm::vec3(0.5, 0.5, 0.5));
 
+
+	glm::mat4 modelS = glm::mat4(1.0);
+	modelS = glm::translate(modelS, glm::vec3(0.0, 4.0, -10.0)); // position of the object
+	modelS = glm::scale(modelS, glm::vec3(0.8, 0.8, 0.8));	
 	glm::mat4 inverseModelS = glm::transpose(glm::inverse(modelS));
+
+
+	glm::mat4 modelBunny = glm::mat4(1.0);
+	modelBunny = glm::translate(modelBunny, glm::vec3(0.0, 4.0, -5.0)); // position of the object
+	modelBunny = glm::scale(modelBunny, glm::vec3(0.8, 0.8, 0.8));
+	glm::mat4 inverseModelBunny = glm::transpose(glm::inverse(modelBunny));
+
+
+	glm::vec3 mirrorPos =  glm::vec3(2.0, 2.0, -2.5);
+	glm::mat4 modelPlane = glm::mat4(1.0);
+	modelPlane = glm::translate(modelPlane, mirrorPos );
+	modelPlane = glm::scale(modelPlane, glm::vec3(1.0f, 1.0f, 1.0f));
+	glm::mat4 inverseModelPlane = glm::transpose(glm::inverse(modelPlane));
 
 
 	glm::mat4 modelSol = glm::mat4(1.0);
 	modelSol = glm::translate(modelSol, glm::vec3(0.0, 0.0, 0.0));
 	modelSol = glm::scale(modelSol, glm::vec3(100, 100, 100));
-
 	glm::mat4 inverseModelSol = glm::transpose(glm::inverse(modelSol));
-	
+
 
 	glm::mat4 view = camera.GetViewMatrix();
 	glm::mat4 perspective = camera.GetProjectionMatrix();
+
+	glm::vec3 mirrorCenter = mirrorPos; 
+	glm::mat4 reflection = camera.GetReflectionMatrix(mirrorCenter, glm::vec3(1.0,0.0,0.0));
 
 	float ambient = 0.1;
 	float diffuse = 0.5;
@@ -317,7 +304,7 @@ int main(int argc, char* argv[])
 	currentTextSlot = currentTextSlot + 1; // this is incremented at each new Texture
 
 	//associate the texture to shader mirror
-	GNDTex.texUnit(shaderMirror, "tex0"); //the unit is the texture slot at instantiation if not said otherwize
+	GNDTex.texUnit(shaderGND, "tex0"); //the unit is the texture slot at instantiation if not said otherwize
 	
 
 	//cubemap texture 
@@ -354,6 +341,11 @@ int main(int argc, char* argv[])
 	
 	//specify how we want the transparency to be computed (here ColorOut= Cfrag * alphaf + Cprev * (1-alphaf)  )
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	// Enables the Depth Buffer
+	//glEnable(GL_DEPTH_TEST);
+	
+
 	glfwSwapInterval(1);
 
 	while (!glfwWindowShouldClose(window)) {
@@ -363,17 +355,29 @@ int main(int argc, char* argv[])
 		double now = glfwGetTime();
 		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		
+		//draw bunny
+		classicShader.use();
 
+		classicShader.setMatrix4("M", modelBunny);
+		classicShader.setMatrix4("V", view);
+		classicShader.setMatrix4("P", perspective);
+		classicShader.setMatrix4("R", reflection);
 
+		bunny.draw();
+
+		//refraction sphere
 		shader.use();
 
 		shader.setMatrix4("M", modelS);
 		shader.setMatrix4("itM", inverseModelS);
 		shader.setMatrix4("V", view);
 		shader.setMatrix4("P", perspective);
+		shader.setMatrix4("R", reflection);
 		shader.setVector3f("u_view_pos", camera.Position);
 
-
+		//moving light
 		auto delta = light_pos + glm::vec3(0.0, 0.0, 2 * std::sin(now));
 
 
@@ -382,8 +386,7 @@ int main(int argc, char* argv[])
 		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
 		shader.setInteger("cubemapTexture", 0);
 		cubeMapShader.setInteger("cubemapTexture", 0);
-		
-
+	
 		glDepthFunc(GL_LEQUAL);
 		sphere1.draw();
 
@@ -395,37 +398,51 @@ int main(int argc, char* argv[])
 
 		cubeMap.draw();
 		glDepthFunc(GL_LESS);
+		
 
 		glBindVertexArray(VAO);
 		
-		//2. Use the shader Class to send the uniform
-		shaderMirror.use();
+		
+		//mirror transparent
+		shaderGND.use();
 
-		shaderMirror.setMatrix4("M", modelSol);
-		shaderMirror.setMatrix4("V", view);
-		shaderMirror.setMatrix4("P", perspective);
+		shaderGND.setMatrix4("M", modelSol);
+		shaderGND.setMatrix4("V", view);
+		shaderGND.setMatrix4("P", perspective);
+		
 		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
-		GNDTex.texUnit(shaderMirror, "tex0");
+		GNDTex.texUnit(shaderGND, "tex0");
 		// Binds texture so that is appears in rendering
 		GNDTex.Bind();
 
 		//glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		// Enables the Stencil Buffer
 		
-		classicShader.use();
+		
 
-		classicShader.setMatrix4("M", modelS);
-		classicShader.setMatrix4("V", view);
-		classicShader.setMatrix4("P", perspective);
+		
+
+		glassShader.use();
+
+		glassShader.setMatrix4("M", modelPlane);
+		glassShader.setMatrix4("V", view);
+		glassShader.setMatrix4("P", perspective);
+		glassShader.setMatrix4("R", reflection);
 
 		//enable transparency 
 		glEnable(GL_BLEND);
-		glDisable(GL_DEPTH_TEST);
-		salon.draw();
+		//glDisable(GL_DEPTH_TEST);
+		mirror.draw();
 		glDisable(GL_BLEND);
-		glEnable(GL_DEPTH_TEST);
+		//glEnable(GL_DEPTH_TEST);
 
+
+		
+		
+		// Enable the depth buffer
+		glEnable(GL_DEPTH_TEST);
 		fps(now);
 		glfwSwapBuffers(window);
 	}
@@ -456,6 +473,7 @@ void loadCubemapFace(const char* path, const GLenum& targetFace)
 }
 
 
+//could be sent to camera.cpp
 void processInput(GLFWwindow* window) {
 	//3. Use the cameras class to change the parameters of the camera
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
