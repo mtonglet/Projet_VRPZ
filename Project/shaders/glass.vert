@@ -1,6 +1,6 @@
 #version 330 core
 	in vec3 position; 
-	in vec2 tex_coords;
+	in vec2 tex_coord;
 	in vec3 normal; 
 
 	out vec2 TexCoords;
@@ -12,6 +12,7 @@
 	void main()
 	{ 
 		gl_Position = P*V*M*vec4(position, 1.0);
-		TexCoords = (gl_Position.xy)/2+0.5;
+		//TexCoords = (gl_Position.xy)/2+0.5;
+		TexCoords = tex_coord; 
 	}
 

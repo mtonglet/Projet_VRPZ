@@ -166,10 +166,6 @@ int main(int argc, char* argv[])
 	char pathclassicV[] = PATH_TO_SHADER "/classic.vert";
 	Shader classicShader = Shader(pathclassicV, pathclassicF);
 
-	//char pathQuadShaderF[] = PATH_TO_SHADER "/quad.frag";
-	//char pathQuadShaderV[] = PATH_TO_SHADER "/quad.vert";
-	//Shader quadShader = Shader(pathQuadShaderV, pathQuadShaderF);
-
 	char pathS[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
 	Object sphere1(pathS);
 	sphere1.makeObject(shader);
@@ -177,6 +173,9 @@ int main(int argc, char* argv[])
 	char pathB[] = PATH_TO_OBJECTS "/bunny_small.obj";
 	Object bunny(pathB);
 	bunny.makeObject(classicShader);
+
+	Object bunnyText(pathB);
+	bunnyText.makeObject(shaderGND);
 
 	char pathCube[] = PATH_TO_OBJECTS "/cube.obj";
 	Object cubeMap(pathCube);
@@ -191,47 +190,11 @@ int main(int argc, char* argv[])
 	
 	Object pinkmirror(pathplane);
 	pinkmirror.makeObject(classicShader);
+
+	char pathplaneH[] = PATH_TO_OBJECTS "/planeH.obj";
+	Object ground(pathplaneH);
+	ground.makeObject(shaderGND,true);
 	
-
-	//GND object 
-	// First object!
-	const float positionsData[] = {
-		// vertices				//texture
-		-1.0, 0.0, -1.0,		0.0, 0.0,// 1.0,
-		 1.0, 0.0, -1.0,		100.0, 0.0,// 0.0,
-		 -1.0,  0.0, 1.0,		0.0, 100.0, //0.0,
-
-		 1.0, 0.0, 1.0,			100.0, 100.0,// 0.0,
-		 1.0, 0.0, -1.0,		100.0, 0.0, //0.0,
-		 -1.0,  0.0, 1.0,		0.0, 100.0 //0.0
-	};
-
-
-	//Create the buffer
-	GLuint gndVBO, gndVAO;
-	//generate the buffer and the vertex array
-	glGenVertexArrays(1, &gndVAO);
-	glGenBuffers(1, &gndVBO);
-
-	//define VBO and VAO as active buffer and active vertex array
-	glBindVertexArray(gndVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, gndVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(positionsData), positionsData, GL_STATIC_DRAW);
-
-	auto attribute1 = glGetAttribLocation(shaderGND.ID, "position");
-	glEnableVertexAttribArray(attribute1);
-	glVertexAttribPointer(attribute1, 3, GL_FLOAT, false, 5 * sizeof(float), (void*)0);
-
-	//5. VertexAttribPointer also read the texture coordinates
-	auto att_tex1 = glGetAttribLocation(shaderGND.ID, "texcoord");
-	glEnableVertexAttribArray(att_tex1);
-	glVertexAttribPointer(att_tex1, 2, GL_FLOAT, false, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-
-	//desactive the buffer
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-
-
 
 
 	double prev = 0;
@@ -264,6 +227,10 @@ int main(int argc, char* argv[])
 	modelBunny = glm::scale(modelBunny, glm::vec3(0.8, 0.8, 0.8));
 	glm::mat4 inverseModelBunny = glm::transpose(glm::inverse(modelBunny));
 
+	glm::mat4 modelBunnyText = glm::mat4(1.0);
+	modelBunnyText = glm::translate(modelBunnyText, glm::vec3(-10.0, 4.0, 0.0)); // position of the object
+	modelBunnyText = glm::scale(modelBunnyText, glm::vec3(0.8, 0.8, 0.8));
+	glm::mat4 inverseModelBunnyText = glm::transpose(glm::inverse(modelBunnyText));
 
 	
 	glm::mat4 modelPlane = glm::mat4(1.0);
@@ -360,7 +327,7 @@ int main(int argc, char* argv[])
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// Enables the Depth Buffer
-	//glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
 	
 
 	glfwSwapInterval(1);
@@ -422,7 +389,7 @@ int main(int argc, char* argv[])
 		glDepthFunc(GL_LESS);
 		
 
-		glBindVertexArray(gndVAO);
+		//glBindVertexArray(gndVAO);
 		//ground 
 		shaderGND.use();
 
@@ -435,9 +402,8 @@ int main(int argc, char* argv[])
 		// Binds texture so that is appears in rendering
 		GNDTex.Bind();
 
-		//glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-
+		ground.draw();
+		
 		classicShader.use();
 
 		classicShader.setMatrix4("M", modelPlane);
@@ -446,25 +412,7 @@ int main(int argc, char* argv[])
 		classicShader.setMatrix4("R", glm::mat4(1.0));
 
 		pinkmirror.draw();
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		// Enables the Stencil Buffer
-		/*
-
-		glassShader.use();
-
-		glassShader.setMatrix4("M", modelPlane);
-		glassShader.setMatrix4("V", view);
-		glassShader.setMatrix4("P", perspective);
-		glassShader.setMatrix4("R", reflection);
-
-		//enable transparency 
-		glEnable(GL_BLEND);
-		//glDisable(GL_DEPTH_TEST);
-		mirror.draw();
-		glDisable(GL_BLEND);
-		//glEnable(GL_DEPTH_TEST);
-		*/
-
+		
 		// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 		framebufferMirror.Unbind();
 		
@@ -515,11 +463,11 @@ int main(int argc, char* argv[])
 		glDepthFunc(GL_LESS);
 
 
-		glBindVertexArray(gndVAO);
+		
 		//ground 
 		shaderGND.use();
 
-		shaderGND.setMatrix4("M", modelSol);
+		shaderGND.setMatrix4("M", modelBunnyText);
 		shaderGND.setMatrix4("V", view);
 		shaderGND.setMatrix4("P", perspective);
 
@@ -527,12 +475,15 @@ int main(int argc, char* argv[])
 		GNDTex.texUnit(shaderGND, "tex0");
 		// Binds texture so that is appears in rendering
 		GNDTex.Bind();
+		
+		bunnyText.draw();
 
-		//glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		shaderGND.setMatrix4("M", modelSol);
+
+		ground.draw();
 		
 		// now draw the mirror quad with screen texture
-	   // --------------------------------------------
+	    // --------------------------------------------
 		/*
 		glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
 
@@ -566,9 +517,9 @@ int main(int argc, char* argv[])
 	}
 
 	//clean up ressource
-	glDeleteVertexArrays(1, &gndVAO);
+	
 	framebufferMirror.Delete();
-	glDeleteBuffers(1, &gndVBO);
+	
 	glfwDestroyWindow(window);
 	glfwTerminate();
 
