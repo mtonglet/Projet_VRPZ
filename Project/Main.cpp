@@ -166,9 +166,9 @@ int main(int argc, char* argv[])
 	char pathclassicV[] = PATH_TO_SHADER "/classic.vert";
 	Shader classicShader = Shader(pathclassicV, pathclassicF);
 
-	char pathQuadShaderF[] = PATH_TO_SHADER "/quad.frag";
-	char pathQuadShaderV[] = PATH_TO_SHADER "/quad.vert";
-	Shader quadShader = Shader(pathQuadShaderV, pathQuadShaderF);
+	//char pathQuadShaderF[] = PATH_TO_SHADER "/quad.frag";
+	//char pathQuadShaderV[] = PATH_TO_SHADER "/quad.vert";
+	//Shader quadShader = Shader(pathQuadShaderV, pathQuadShaderF);
 
 	char pathS[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
 	Object sphere1(pathS);
@@ -185,7 +185,13 @@ int main(int argc, char* argv[])
 	char pathplane[] = PATH_TO_OBJECTS "/planeYZ.obj";
 	Object mirror(pathplane);
 	mirror.makeObject(glassShader);
+	glm::vec3 mirrorPos = glm::vec3(2.0, 2.0, -2.5);
+	glm::vec3 mirrorNorm = glm::vec3(1.0, 0.0, 0.0);
 
+	
+	Object pinkmirror(pathplane);
+	pinkmirror.makeObject(classicShader);
+	
 
 	//GND object 
 	// First object!
@@ -259,7 +265,7 @@ int main(int argc, char* argv[])
 	glm::mat4 inverseModelBunny = glm::transpose(glm::inverse(modelBunny));
 
 
-	glm::vec3 mirrorPos =  glm::vec3(2.0, 2.0, -2.5);
+	
 	glm::mat4 modelPlane = glm::mat4(1.0);
 	modelPlane = glm::translate(modelPlane, mirrorPos );
 	modelPlane = glm::scale(modelPlane, glm::vec3(1.0f, 1.0f, 1.0f));
@@ -276,7 +282,7 @@ int main(int argc, char* argv[])
 	glm::mat4 perspective = camera.GetProjectionMatrix();
 
 	glm::vec3 mirrorCenter = mirrorPos; 
-	glm::mat4 reflection = camera.GetReflectionMatrix(mirrorCenter, glm::vec3(1.0,0.0,0.0));
+	glm::mat4 reflection = camera.GetReflectionMatrix(mirrorCenter, mirrorNorm);
 
 	float ambient = 0.1;
 	float diffuse = 0.5;
@@ -344,28 +350,7 @@ int main(int argc, char* argv[])
 	}
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	
-	// quad VAO 
-	float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
-		// positions   // texCoords
-		-1.0f,  1.0f,  0.0f, 1.0f,
-		-1.0f, -1.0f,  0.0f, 0.0f,
-		 1.0f, -1.0f,  1.0f, 0.0f,
-
-		-1.0f,  1.0f,  0.0f, 1.0f,
-		 1.0f, -1.0f,  1.0f, 0.0f,
-		 1.0f,  1.0f,  1.0f, 1.0f
-	};
-	// screen quad VAO
-	unsigned int quadVAO, quadVBO;
-	glGenVertexArrays(1, &quadVAO);
-	glGenBuffers(1, &quadVBO);
-	glBindVertexArray(quadVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+	
 	
 	//Frame buffer creation for mirror
 	FrameBuffer framebufferMirror(width, height);
@@ -395,7 +380,7 @@ int main(int argc, char* argv[])
 		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//Draw reversed Scene
+		//First pass: Draw reversed Scene + pink mirror
 		// 
 		//draw bunny
 		classicShader.use();
@@ -452,9 +437,18 @@ int main(int argc, char* argv[])
 
 		//glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		classicShader.use();
+
+		classicShader.setMatrix4("M", modelPlane);
+		classicShader.setMatrix4("V", view);
+		classicShader.setMatrix4("P", perspective);
+		classicShader.setMatrix4("R", glm::mat4(1.0));
+
+		pinkmirror.draw();
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		// Enables the Stencil Buffer
-		
+		/*
 
 		glassShader.use();
 
@@ -469,21 +463,101 @@ int main(int argc, char* argv[])
 		mirror.draw();
 		glDisable(GL_BLEND);
 		//glEnable(GL_DEPTH_TEST);
-
+		*/
 
 		// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 		framebufferMirror.Unbind();
-		glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+		
 		// clear all relevant buffers
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
-		// render the texture from previous framebuffer on to the quad
-		quadShader.use();
-		glBindVertexArray(quadVAO);
-		glBindTexture(GL_TEXTURE_2D, framebufferMirror.textureColorbufferID);	// use the color attachment texture as the texture of the quad plane
-		glDrawArrays(GL_TRIANGLES, 0, 6);
 
+		// Second pass : draw normal scene + mirror with texture from 1st pass
+		// 
+		//draw bunny
+		
+		classicShader.use();
+
+		classicShader.setMatrix4("M", modelBunny);
+		classicShader.setMatrix4("V", view);
+		classicShader.setMatrix4("P", perspective);
+		classicShader.setMatrix4("R", glm::mat4(1.0));
+
+		bunny.draw();
+
+		//refraction sphere
+		shader.use();
+
+		shader.setMatrix4("M", modelS);
+		shader.setMatrix4("itM", inverseModelS);
+		shader.setMatrix4("V", view);
+		shader.setMatrix4("P", perspective);
+		shader.setMatrix4("R", glm::mat4(1.0));
+		shader.setVector3f("u_view_pos", camera.Position);
+
+
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
+		shader.setInteger("cubemapTexture", 0);
+		cubeMapShader.setInteger("cubemapTexture", 0);
+
+		glDepthFunc(GL_LEQUAL);
+		sphere1.draw();
+
+
+		cubeMapShader.use();
+		cubeMapShader.setMatrix4("V", view);
+		cubeMapShader.setMatrix4("P", perspective);
+		cubeMapShader.setInteger("cubemapTexture", 0);
+
+		cubeMap.draw();
+		glDepthFunc(GL_LESS);
+
+
+		glBindVertexArray(gndVAO);
+		//ground 
+		shaderGND.use();
+
+		shaderGND.setMatrix4("M", modelSol);
+		shaderGND.setMatrix4("V", view);
+		shaderGND.setMatrix4("P", perspective);
+
+		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
+		GNDTex.texUnit(shaderGND, "tex0");
+		// Binds texture so that is appears in rendering
+		GNDTex.Bind();
+
+		//glBindVertexArray(VAO);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		
+		// now draw the mirror quad with screen texture
+	   // --------------------------------------------
+		/*
+		glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+
+		screenShader.use();
+		glBindVertexArray(quadVAO);
+		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);	// use the color attachment texture as the texture of the quad plane
+		glDrawArrays(GL_TRIANGLES, 0, 6);*/
+
+		glassShader.use();
+
+		glassShader.setMatrix4("M", modelPlane);
+		glassShader.setMatrix4("V", view);
+		glassShader.setMatrix4("P", perspective);
+		glassShader.setInteger("screenTexture", 0);
+
+		glBindVertexArray(mirror.VAO);
+		glBindTexture(GL_TEXTURE_2D, framebufferMirror.textureColorbufferID);
+		mirror.draw();
+
+		//enable transparency 
+		//glEnable(GL_BLEND);
+		//glDisable(GL_DEPTH_TEST);
+		//mirror.draw();
+		//glDisable(GL_BLEND);
+		//glEnable(GL_DEPTH_TEST);
 
 		// Enable the depth buffer
 		glEnable(GL_DEPTH_TEST);
@@ -492,11 +566,9 @@ int main(int argc, char* argv[])
 	}
 
 	//clean up ressource
-	glDeleteVertexArrays(1, &quadVAO);
 	glDeleteVertexArrays(1, &gndVAO);
 	framebufferMirror.Delete();
 	glDeleteBuffers(1, &gndVBO);
-	glDeleteBuffers(1, &quadVBO);
 	glfwDestroyWindow(window);
 	glfwTerminate();
 
