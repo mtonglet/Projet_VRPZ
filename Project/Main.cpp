@@ -15,6 +15,7 @@
 #include "headers/camera.h"
 #include "headers/shader.h"
 #include "headers/object.h"
+#include "headers/FrameBuffer.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -165,6 +166,10 @@ int main(int argc, char* argv[])
 	char pathclassicV[] = PATH_TO_SHADER "/classic.vert";
 	Shader classicShader = Shader(pathclassicV, pathclassicF);
 
+	char pathQuadShaderF[] = PATH_TO_SHADER "/quad.frag";
+	char pathQuadShaderV[] = PATH_TO_SHADER "/quad.vert";
+	Shader quadShader = Shader(pathQuadShaderV, pathQuadShaderF);
+
 	char pathS[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
 	Object sphere1(pathS);
 	sphere1.makeObject(shader);
@@ -182,7 +187,7 @@ int main(int argc, char* argv[])
 	mirror.makeObject(glassShader);
 
 
-	//mirror object 
+	//GND object 
 	// First object!
 	const float positionsData[] = {
 		// vertices				//texture
@@ -197,14 +202,14 @@ int main(int argc, char* argv[])
 
 
 	//Create the buffer
-	GLuint VBO, VAO;
+	GLuint gndVBO, gndVAO;
 	//generate the buffer and the vertex array
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
+	glGenVertexArrays(1, &gndVAO);
+	glGenBuffers(1, &gndVBO);
 
 	//define VBO and VAO as active buffer and active vertex array
-	glBindVertexArray(VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBindVertexArray(gndVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, gndVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(positionsData), positionsData, GL_STATIC_DRAW);
 
 	auto attribute1 = glGetAttribLocation(shaderGND.ID, "position");
@@ -339,6 +344,33 @@ int main(int argc, char* argv[])
 	}
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	
+	// quad VAO 
+	float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+		// positions   // texCoords
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		-1.0f, -1.0f,  0.0f, 0.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+		 1.0f,  1.0f,  1.0f, 1.0f
+	};
+	// screen quad VAO
+	unsigned int quadVAO, quadVBO;
+	glGenVertexArrays(1, &quadVAO);
+	glGenBuffers(1, &quadVBO);
+	glBindVertexArray(quadVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+	
+	//Frame buffer creation for mirror
+	FrameBuffer framebufferMirror(width, height);
+	
+
 	//specify how we want the transparency to be computed (here ColorOut= Cfrag * alphaf + Cprev * (1-alphaf)  )
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -353,10 +385,18 @@ int main(int argc, char* argv[])
 		view = camera.GetViewMatrix();
 		glfwPollEvents();
 		double now = glfwGetTime();
+		//moving light
+		auto delta = light_pos + glm::vec3(0.0, 0.0, 2 * std::sin(now));
+
+		//bind the frambuffer for the reversed scene
+		framebufferMirror.Bind();
+		glEnable(GL_DEPTH_TEST);
+		//clear framebuffer contents
 		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
-		
+
+		//Draw reversed Scene
+		// 
 		//draw bunny
 		classicShader.use();
 
@@ -377,10 +417,7 @@ int main(int argc, char* argv[])
 		shader.setMatrix4("R", reflection);
 		shader.setVector3f("u_view_pos", camera.Position);
 
-		//moving light
-		auto delta = light_pos + glm::vec3(0.0, 0.0, 2 * std::sin(now));
-
-
+		
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
@@ -400,10 +437,8 @@ int main(int argc, char* argv[])
 		glDepthFunc(GL_LESS);
 		
 
-		glBindVertexArray(VAO);
-		
-		
-		//mirror transparent
+		glBindVertexArray(gndVAO);
+		//ground 
 		shaderGND.use();
 
 		shaderGND.setMatrix4("M", modelSol);
@@ -419,9 +454,6 @@ int main(int argc, char* argv[])
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		// Enables the Stencil Buffer
-		
-		
-
 		
 
 		glassShader.use();
@@ -439,8 +471,20 @@ int main(int argc, char* argv[])
 		//glEnable(GL_DEPTH_TEST);
 
 
+		// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
+		framebufferMirror.Unbind();
+		glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+		// clear all relevant buffers
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		
+		// render the texture from previous framebuffer on to the quad
+		quadShader.use();
+		glBindVertexArray(quadVAO);
+		glBindTexture(GL_TEXTURE_2D, framebufferMirror.textureColorbufferID);	// use the color attachment texture as the texture of the quad plane
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+
 		// Enable the depth buffer
 		glEnable(GL_DEPTH_TEST);
 		fps(now);
@@ -448,11 +492,19 @@ int main(int argc, char* argv[])
 	}
 
 	//clean up ressource
+	glDeleteVertexArrays(1, &quadVAO);
+	glDeleteVertexArrays(1, &gndVAO);
+	framebufferMirror.Delete();
+	glDeleteBuffers(1, &gndVBO);
+	glDeleteBuffers(1, &quadVBO);
 	glfwDestroyWindow(window);
 	glfwTerminate();
 
 	return 0;
 }
+
+
+
 
 void loadCubemapFace(const char* path, const GLenum& targetFace)
 {
