@@ -404,14 +404,14 @@ int main(int argc, char* argv[])
 
 		ground.draw();
 		
-		classicShader.use();
+		/*classicShader.use();
 
 		classicShader.setMatrix4("M", modelPlane);
 		classicShader.setMatrix4("V", view);
 		classicShader.setMatrix4("P", perspective);
 		classicShader.setMatrix4("R", glm::mat4(1.0));
 
-		pinkmirror.draw();
+		pinkmirror.draw();*/
 		
 		// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 		framebufferMirror.Unbind();
@@ -501,13 +501,13 @@ int main(int argc, char* argv[])
 
 		glBindVertexArray(mirror.VAO);
 		glBindTexture(GL_TEXTURE_2D, framebufferMirror.textureColorbufferID);
-		mirror.draw();
+		//mirror.draw();
 
 		//enable transparency 
-		//glEnable(GL_BLEND);
+		glEnable(GL_BLEND);
 		//glDisable(GL_DEPTH_TEST);
-		//mirror.draw();
-		//glDisable(GL_BLEND);
+		mirror.draw();
+		glDisable(GL_BLEND);
 		//glEnable(GL_DEPTH_TEST);
 
 		// Enable the depth buffer

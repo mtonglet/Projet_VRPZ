@@ -12,7 +12,8 @@
 	void main()
 	{ 
 		gl_Position = P*V*M*vec4(position, 1.0);
-		//TexCoords = (gl_Position.xy)/2+0.5;
-		TexCoords = tex_coord; 
+		//TexCoords = (P*V*M*vec4(position, 1.0)).xy/2+0.5;
+		TexCoords = (gl_Position.xy / gl_Position.w +1.0)/2.0;///2+0.5;
+		//TexCoords = tex_coord; 
 	}
 

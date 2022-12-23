@@ -15,7 +15,7 @@ OBJECTIFS :
             TÂCHES :
                     - lune
                     - sapin + guirlandes
-                    - boules de noêl
+                    - boules de noêl (opaque, paillette et )
                     - canapé
                     - fenêtre
                     - petit train + rail
@@ -33,6 +33,13 @@ OBJECTIFS :
             - 7.  TRAIN ANIMATION :
             TÂCHES :
                     - animation
+            - 8.  Cubemap rendering
+
+            - 9.  mutlitexturing 
+
+            - 10. Blooming 
+
+            - terrain forming
             
                 
                     
