@@ -1,19 +1,21 @@
 IDEA : salon de Noël 
 
 OBJECTIFS :
-            - 1. Pièce  
+            - 1. Pièce  GILLES
             TÂCHES : 
                     - 4 murs + plafond + sol
                     - fenêtre
-            - 2. Lumières   
+            - 2. Lumières       
             TÂCHES :
-                    - reflets
+                    - la base       Morgan + Antoine (plusieurs sources)
+                    - reflets       
                     - émition
-                    - blooming (vfx)
-                    - shadows (vfx)
-            - 3. IMPORTER LES OBJETS 
+                    - blooming (vfx) 
+                    - shadows (vfx)  Morgan
+
+            - 3. IMPORTER LES OBJETS  Gilles + tout le monde
             TÂCHES :
-                    - lune
+                    - lune          Morgan
                     - sapin + guirlandes
                     - boules de noêl (opaque, paillette et )
                     - canapé
@@ -23,23 +25,24 @@ OBJECTIFS :
             TÂCHES :
                     - bullet
                     - cinétique
-            - 5.  PARTICLES SYSTEMS
+            - 5.  PARTICLES SYSTEMS Gilles + Idil
             TÂCHES : 
                     - feu
                     - neige 
-            - 6.  BUMP MAPPING :
+            - 6.  BUMP MAPPING :    Gilles + Idil
             TÂCHES :
                     - pour les murs
             - 7.  TRAIN ANIMATION :
             TÂCHES :
                     - animation
-            - 8.  Cubemap rendering
+            - 8.  Cubemap rendering     Antoine
 
             - 9.  mutlitexturing 
 
-            - 10. Blooming 
+            - 10. Blooming Framebuffer  Idil 
 
-            - terrain forming
+            - 11 terrain forming  IDil
+            (- 12 cubemap dynamic)
             
                 
                     
