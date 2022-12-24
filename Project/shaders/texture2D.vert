@@ -1,7 +1,8 @@
 #version 330 core
 	in vec3 position; 
-
 	in vec2 tex_coord; 
+	
+
 	out vec2 v_tex; 
 
 	uniform mat4 M; 

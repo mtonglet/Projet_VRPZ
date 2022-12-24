@@ -8,15 +8,18 @@
 
 #include "stb_image.h"
 
+
 class Texture
 {
+	
 public:
 	GLuint ID;
 	GLenum type;
 	//unit is the number of the texture for TEXTURE_0,...
 	GLuint unit;
+	static GLuint currentslot;
 
-	Texture(const char* image, GLenum texType, GLuint slot);
+	Texture(const char* image, GLenum texType);
 
 	// Assigns a texture unit to a texture
 	void texUnit(Shader& shader, const char* uniform, GLuint unit );
@@ -28,5 +31,7 @@ public:
 	void Unbind();
 	// Deletes a texture
 	void Delete();
+ 
+	
 };
 #endif

@@ -144,10 +144,13 @@ int main(int argc, char* argv[])
 
 	//shader files read, shader initialised , linked and compiled
 
-	char pathSourceF[] = PATH_TO_SHADER "/source.frag";
-	char pathSourceV[] = PATH_TO_SHADER "/source.vert";
+	char pathSourceF[] = PATH_TO_SHADER "/reflective.frag";
+	char pathSourceV[] = PATH_TO_SHADER "/reflective.vert";
 	Shader shader(pathSourceV,pathSourceF);
 
+	char pathBumpF[] = PATH_TO_SHADER "/textureBump.frag";
+	char pathBumpV[] = PATH_TO_SHADER "/textureBump.vert";
+	Shader shaderBump(pathBumpV, pathBumpF);
 
 	char pathSourceFGND[] = PATH_TO_SHADER "/texture2D.frag";
 	char pathSourceVGND[] = PATH_TO_SHADER "/texture2D.vert";
@@ -165,6 +168,7 @@ int main(int argc, char* argv[])
 	char pathclassicF[] = PATH_TO_SHADER "/classic.frag";
 	char pathclassicV[] = PATH_TO_SHADER "/classic.vert";
 	Shader classicShader = Shader(pathclassicV, pathclassicF);
+
 
 	char pathS[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
 	Object sphere1(pathS);
@@ -194,6 +198,10 @@ int main(int argc, char* argv[])
 	char pathplaneH[] = PATH_TO_OBJECTS "/planeH.obj";
 	Object ground(pathplaneH);
 	ground.makeObject(shaderGND,true);
+
+	char pathRoom[] = PATH_TO_OBJECTS "/salon_wood.obj";
+	Object room(pathRoom);
+	room.makeObject(shaderBump);
 	
 
 
@@ -232,6 +240,11 @@ int main(int argc, char* argv[])
 	modelBunnyText = glm::scale(modelBunnyText, glm::vec3(0.8, 0.8, 0.8));
 	glm::mat4 inverseModelBunnyText = glm::transpose(glm::inverse(modelBunnyText));
 
+	glm::mat4 modelBunnyText2 = glm::mat4(1.0);
+	modelBunnyText2 = glm::translate(modelBunnyText2, glm::vec3(5.0, 4.0, 5.0)); // position of the object
+	modelBunnyText2 = glm::scale(modelBunnyText2, glm::vec3(0.8, 0.8, 0.8));
+	glm::mat4 inverseModelBunnyText2 = glm::transpose(glm::inverse(modelBunnyText2));
+
 	
 	glm::mat4 modelPlane = glm::mat4(1.0);
 	modelPlane = glm::translate(modelPlane, mirrorPos );
@@ -260,15 +273,15 @@ int main(int argc, char* argv[])
 	//Rendering
 	// /!\ dont .use() another shader before having put all uniforms on this one
 
-	shader.use();
-	shader.setFloat("shininess", 32.0f);
-	shader.setVector3f("materialColour", materialColour);
-	shader.setFloat("light.ambient_strength", ambient);
-	shader.setFloat("light.diffuse_strength", diffuse);
-	shader.setFloat("light.specular_strength", specular);
-	shader.setFloat("light.constant", 1.0);
-	shader.setFloat("light.linear", 0.14);
-	shader.setFloat("light.quadratic", 0.07);
+	shaderBump.use();
+	shaderBump.setFloat("shininess", 32.0f);
+	shaderBump.setVector3f("materialColour", materialColour);
+	shaderBump.setFloat("light.ambient_strength", ambient);
+	shaderBump.setFloat("light.diffuse_strength", diffuse);
+	shaderBump.setFloat("light.specular_strength", specular);
+	shaderBump.setFloat("light.constant", 1.0);
+	shaderBump.setFloat("light.linear", 0.14);
+	shaderBump.setFloat("light.quadratic", 0.07);
 /*	Refraction indices :
 	Air:      1.0	|	Water:    1.33	|
 	Ice:      1.309	|	Glass:    1.52	|	Diamond:  2.42*/
@@ -278,12 +291,31 @@ int main(int argc, char* argv[])
 
 	//Texture object generation for the ground 
 	char pathim[] = PATH_TO_TEXTURE "/Sand.jpg";
-	Texture GNDTex(pathim, GL_TEXTURE_2D, currentTextSlot);
-	currentTextSlot = currentTextSlot + 1; // this is incremented at each new Texture
-
+	Texture GNDTex(pathim, GL_TEXTURE_2D);
+	
 	//associate the texture to shader mirror
 	GNDTex.texUnit(shaderGND, "tex0"); //the unit is the texture slot at instantiation if not said otherwize
+
+	//Texture object generation for the ground 
+	char pathimG[] = PATH_TO_TEXTURE "/GroundTex.png";
+	Texture GNDTexDirt(pathimG, GL_TEXTURE_2D);
+	 
+	//associate the texture to shader mirror
+	GNDTexDirt.texUnit(shaderGND, "tex0"); //the unit is the texture slot at instantiation if not said otherwize
 	
+	//Texture object generation for the ground 
+	char pathimW[] = PATH_TO_TEXTURE "/wood.png";
+	Texture roomTex(pathimW, GL_TEXTURE_2D);
+	 
+	//associate the texture to shader mirror
+	roomTex.texUnit(shaderBump, "tex0"); //the unit is the texture slot at instantiation if not said otherwize
+
+	//Texture object generation for the ground 
+	//char pathimWB[] = PATH_TO_TEXTURE "/woodBump.png";
+	//Texture roomNorm(pathimWB, GL_TEXTURE_2D);
+
+	//associate the texture to shader mirror
+	//roomNorm.texUnit(shaderGND, "texNorm"); //the unit is the texture slot at instantiation if not said otherwize
 
 	//cubemap texture 
 	stbi_set_flip_vertically_on_load(false);
@@ -417,7 +449,7 @@ int main(int argc, char* argv[])
 		framebufferMirror.Unbind();
 		
 		// clear all relevant buffers
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
+		glClearColor(0.6f, 0.6f, 0.6f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Second pass : draw normal scene + mirror with texture from 1st pass
@@ -482,33 +514,53 @@ int main(int argc, char* argv[])
 
 		ground.draw();
 		
+		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
+		GNDTexDirt.texUnit(shaderGND, "tex0");
+		// Binds texture so that is appears in rendering
+		GNDTexDirt.Bind();
+
+		shaderGND.setMatrix4("M", modelBunnyText2);
+
+		bunnyText.draw(); //same object with different texture and model uniforms
+
+
+		//room with bump mapping
+		shaderBump.use();
+		shaderBump.setMatrix4("M", glm::mat4(1.0));
+		shaderBump.setMatrix4("itM", glm::mat4(1.0));
+		shaderBump.setMatrix4("V", view);
+		shaderBump.setMatrix4("P", perspective);
+		shaderBump.setVector3f("u_view_pos", camera.Position);
+		shaderBump.setVector3f("light.light_pos", delta);
+
+		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
+		roomTex.texUnit(shaderBump, "tex0");
+		// Binds texture so that is appears in rendering
+		roomTex.Bind();
+
+		room.draw(); 
+
 		// now draw the mirror quad with screen texture
 	    // --------------------------------------------
-		/*
-		glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
-
-		screenShader.use();
-		glBindVertexArray(quadVAO);
-		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);	// use the color attachment texture as the texture of the quad plane
-		glDrawArrays(GL_TRIANGLES, 0, 6);*/
 
 		glassShader.use();
 
 		glassShader.setMatrix4("M", modelPlane);
 		glassShader.setMatrix4("V", view);
 		glassShader.setMatrix4("P", perspective);
-		glassShader.setInteger("screenTexture", 0);
 
-		glBindVertexArray(mirror.VAO);
+		//std::cout << framebufferMirror.unit << std::endl;
+		glassShader.setInteger("screenTexture", framebufferMirror.unit-1);  // need to check why need of - 1 (depends on previously bounded textures) 
+
+		
 		glBindTexture(GL_TEXTURE_2D, framebufferMirror.textureColorbufferID);
-		//mirror.draw();
+		
 
 		//enable transparency 
 		glEnable(GL_BLEND);
-		//glDisable(GL_DEPTH_TEST);
 		mirror.draw();
 		glDisable(GL_BLEND);
-		//glEnable(GL_DEPTH_TEST);
+		
 
 		// Enable the depth buffer
 		glEnable(GL_DEPTH_TEST);
