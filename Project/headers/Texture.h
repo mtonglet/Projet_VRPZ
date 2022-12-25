@@ -16,17 +16,12 @@ public:
 	GLuint ID;
 	GLenum type;
 	//unit is the number of the texture for TEXTURE_0,...
-	GLuint unit;
-	static GLuint currentslot;
+
 
 	Texture(const char* image, GLenum texType);
 
-	// Assigns a texture unit to a texture
-	void texUnit(Shader& shader, const char* uniform, GLuint unit );
-	// Assigns a texture unit to a texture
-	void texUnit(Shader& shader, const char* uniform);
 	// Binds a texture
-	void Bind();
+	void Bind(GLuint unit);
 	// Unbinds a texture
 	void Unbind();
 	// Deletes a texture

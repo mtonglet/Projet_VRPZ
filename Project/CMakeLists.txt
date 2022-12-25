@@ -1,6 +1,9 @@
 project("Project")
 
-set(SOURCES_EX_01 "Main.cpp" "source/shader.cpp" "source/camera.cpp" "source/Texture.cpp" "source/FrameBuffer.cpp" "headers/Texture.h" "headers/camera.h" "headers/shader.h" "headers/object.h" "headers/FrameBuffer.h")
+set(SOURCES_EX_01
+"Main.cpp" "source/shader.cpp" "source/camera.cpp" "source/Texture.cpp" "source/FrameBuffer.cpp" "source/CubeMap.cpp"
+"headers/Texture.h" "headers/camera.h" "headers/shader.h" "headers/object.h" "headers/FrameBuffer.h" "headers/CubeMap.h"
+)
 
 #These commands are there to specify the path to the folder containing the object and textures files as macro
 #With these you can just use PATH_TO_OBJECTS and PATH_TO_TEXTURE in your c++ code and the compiler will replace it by the correct expression

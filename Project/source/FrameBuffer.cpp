@@ -13,9 +13,8 @@ FrameBuffer::FrameBuffer(unsigned int width, unsigned int height, unsigned int n
 	// generate texture
 	
 	glGenTextures(1, &textureColorbufferID);
-	unit = Texture::currentslot;
-	Texture::currentslot++;
-	glActiveTexture(GL_TEXTURE0 + unit);
+	
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, textureColorbufferID);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, nbCol, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -44,8 +43,9 @@ FrameBuffer::FrameBuffer(unsigned int width, unsigned int height, unsigned int n
 
 
 
-void FrameBuffer::Bind()
+void FrameBuffer::Bind(GLuint unit)
 {
+	glActiveTexture(GL_TEXTURE0 + unit);
 	glBindFramebuffer(GL_FRAMEBUFFER, ID);
 }
 

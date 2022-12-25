@@ -29,6 +29,7 @@ public:
     void setVector3f(const GLchar* name, GLfloat x, GLfloat y, GLfloat z);
     void setVector3f(const GLchar* name, const glm::vec3& value);
     void setMatrix4(const GLchar* name, const glm::mat4& matrix);
+    void setTexUnit(const GLchar* name, GLuint unit);
 
 private:
     GLuint compileShader(std::string shaderCode, GLenum shaderType);

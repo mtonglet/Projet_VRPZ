@@ -73,7 +73,17 @@ void Shader::setVector3f(const GLchar* name, const glm::vec3& value) {
 void Shader::setMatrix4(const GLchar* name, const glm::mat4& matrix) {
     glUniformMatrix4fv(glGetUniformLocation(ID, name), 1, GL_FALSE, glm::value_ptr(matrix));
 } 
+// Assigns a texture unit to a texture 
 
+void Shader::setTexUnit(const GLchar* name, GLuint unit) {
+    // Gets the location of the uniform
+    GLuint texUni = glGetUniformLocation(ID, name);
+    // Shader needs to be activated before changing the value of a uniform
+    use();
+    // Sets the value of the uniform
+    glUniform1i(texUni, unit);
+
+}
 GLuint Shader::compileShader(std::string shaderCode, GLenum shaderType)
 {
     GLuint shader = glCreateShader(shaderType);

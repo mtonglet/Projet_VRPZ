@@ -16,6 +16,7 @@
 #include "headers/shader.h"
 #include "headers/object.h"
 #include "headers/FrameBuffer.h"
+#include "headers/CubeMap.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -185,15 +186,13 @@ int main(int argc, char* argv[])
 	Object cubeMap(pathCube);
 	cubeMap.makeObject(cubeMapShader);
 
-	char pathplane[] = PATH_TO_OBJECTS "/planeYZ.obj";
+	char pathplane[] = PATH_TO_OBJECTS "/window.obj";
 	Object mirror(pathplane);
 	mirror.makeObject(glassShader);
-	glm::vec3 mirrorPos = glm::vec3(2.0, 2.0, -2.5);
+	glm::vec3 mirrorPos = glm::vec3(9.0, 4.5, 0.0);
 	glm::vec3 mirrorNorm = glm::vec3(1.0, 0.0, 0.0);
 
 	
-	Object pinkmirror(pathplane);
-	pinkmirror.makeObject(classicShader);
 
 	char pathplaneH[] = PATH_TO_OBJECTS "/planeH.obj";
 	Object ground(pathplaneH);
@@ -203,6 +202,9 @@ int main(int argc, char* argv[])
 	Object room(pathRoom);
 	room.makeObject(shaderBump);
 	
+	char pathSapin[] = PATH_TO_OBJECTS "/sapin_maison.obj";
+	Object sapin(pathSapin);
+	sapin.makeObject(shaderBump);
 
 
 	double prev = 0;
@@ -257,6 +259,10 @@ int main(int argc, char* argv[])
 	modelSol = glm::scale(modelSol, glm::vec3(100, 100, 100));
 	glm::mat4 inverseModelSol = glm::transpose(glm::inverse(modelSol));
 
+	glm::mat4 modelRoom = glm::mat4(1.0);
+	modelRoom = glm::translate(modelRoom, glm::vec3(0.0, 0.0, 0.0));
+	modelRoom = glm::scale(modelRoom, glm::vec3(3.0, 3.0, 3.0));
+	glm::mat4 inverseModelRoom = glm::transpose(glm::inverse(modelRoom));
 
 	glm::mat4 view = camera.GetViewMatrix();
 	glm::mat4 perspective = camera.GetProjectionMatrix();
@@ -264,7 +270,7 @@ int main(int argc, char* argv[])
 	glm::vec3 mirrorCenter = mirrorPos; 
 	glm::mat4 reflection = camera.GetReflectionMatrix(mirrorCenter, mirrorNorm);
 
-	float ambient = 0.1;
+	float ambient = 0.2;
 	float diffuse = 0.5;
 	float specular = 0.8;
 
@@ -289,67 +295,30 @@ int main(int argc, char* argv[])
 
 
 
-	//Texture object generation for the ground 
+	//Texture objects generation
 	char pathim[] = PATH_TO_TEXTURE "/Sand.jpg";
 	Texture GNDTex(pathim, GL_TEXTURE_2D);
 	
-	//associate the texture to shader mirror
-	GNDTex.texUnit(shaderGND, "tex0"); //the unit is the texture slot at instantiation if not said otherwize
-
-	//Texture object generation for the ground 
 	char pathimG[] = PATH_TO_TEXTURE "/GroundTex.png";
 	Texture GNDTexDirt(pathimG, GL_TEXTURE_2D);
 	 
-	//associate the texture to shader mirror
-	GNDTexDirt.texUnit(shaderGND, "tex0"); //the unit is the texture slot at instantiation if not said otherwize
-	
-	//Texture object generation for the ground 
 	char pathimW[] = PATH_TO_TEXTURE "/wood.png";
 	Texture roomTex(pathimW, GL_TEXTURE_2D);
 	 
-	//associate the texture to shader mirror
-	roomTex.texUnit(shaderBump, "tex0"); //the unit is the texture slot at instantiation if not said otherwize
+	char pathimSapin[] = PATH_TO_TEXTURE "/sapin.png";
+	Texture sapinTex(pathimSapin, GL_TEXTURE_2D);
 
+	
 	//Texture object generation for the ground 
 	//char pathimWB[] = PATH_TO_TEXTURE "/woodBump.png";
 	//Texture roomNorm(pathimWB, GL_TEXTURE_2D);
 
-	//associate the texture to shader mirror
-	//roomNorm.texUnit(shaderGND, "texNorm"); //the unit is the texture slot at instantiation if not said otherwize
-
-	//cubemap texture 
-	stbi_set_flip_vertically_on_load(false);
-	GLuint cubeMapTexture;
-	glGenTextures(1, &cubeMapTexture);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
-
-	// texture parameters
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	//stbi_set_flip_vertically_on_load(true);
-
-	std::string pathToCubeMap = PATH_TO_TEXTURE "/cubemaps/yokohama3/";
-
-	std::map<std::string, GLenum> facesToLoad = {
-		{pathToCubeMap + "sky2.jpg",GL_TEXTURE_CUBE_MAP_POSITIVE_X},
-		{pathToCubeMap + "sky2_1.jpg",GL_TEXTURE_CUBE_MAP_POSITIVE_Y},
-		{pathToCubeMap + "sky2_2.jpg",GL_TEXTURE_CUBE_MAP_POSITIVE_Z},
-		{pathToCubeMap + "sky2_3.jpg",GL_TEXTURE_CUBE_MAP_NEGATIVE_X},
-		{pathToCubeMap + "sky2_4.jpg",GL_TEXTURE_CUBE_MAP_NEGATIVE_Y},
-		{pathToCubeMap + "sky2_5.jpg",GL_TEXTURE_CUBE_MAP_NEGATIVE_Z},
-	};
-	//load the six faces
-	for (std::pair<std::string, GLenum> pair : facesToLoad) {
-		loadCubemapFace(pair.first.c_str(), pair.second);
-	}
-	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	
 	
+	
+	std::string PathCM( PATH_TO_TEXTURE "/cubemaps/yokohama3/sky2_");
+	//cube map creation 
+	CubeMap skybox(PathCM);
 	
 	//Frame buffer creation for mirror
 	FrameBuffer framebufferMirror(width, height);
@@ -373,13 +342,13 @@ int main(int argc, char* argv[])
 		auto delta = light_pos + glm::vec3(0.0, 0.0, 2 * std::sin(now));
 
 		//bind the frambuffer for the reversed scene
-		framebufferMirror.Bind();
+		framebufferMirror.Bind(0);
 		glEnable(GL_DEPTH_TEST);
 		//clear framebuffer contents
 		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//First pass: Draw reversed Scene + pink mirror
+		//First pass: Draw reversed Scene 
 		// 
 		//draw bunny
 		classicShader.use();
@@ -403,8 +372,9 @@ int main(int argc, char* argv[])
 
 		
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
+		skybox.Bind(0);
 		shader.setInteger("cubemapTexture", 0);
 		cubeMapShader.setInteger("cubemapTexture", 0);
 	
@@ -421,7 +391,7 @@ int main(int argc, char* argv[])
 		glDepthFunc(GL_LESS);
 		
 
-		//glBindVertexArray(gndVAO);
+		
 		//ground 
 		shaderGND.use();
 
@@ -430,20 +400,34 @@ int main(int argc, char* argv[])
 		shaderGND.setMatrix4("P", perspective);
 		
 		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
-		GNDTex.texUnit(shaderGND, "tex0");
-		// Binds texture so that is appears in rendering
-		GNDTex.Bind();
+		shaderGND.setTexUnit("tex0", 0);
+		// Binds texture so that is appears in rendering to the right unit
+		GNDTex.Bind(0);
 
 		ground.draw();
+
+		//room with bump mapping
+		shaderBump.use();
+		shaderBump.setMatrix4("M", modelRoom);
+		shaderBump.setMatrix4("itM", inverseModelRoom); //should be modified with regards to R 
+		shaderBump.setMatrix4("R", reflection);
+		shaderBump.setMatrix4("V", view);
+		shaderBump.setMatrix4("P", perspective);
+		shaderBump.setVector3f("u_view_pos", camera.Position);
+		shaderBump.setVector3f("light.light_pos", delta);
+
+		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
+		shaderBump.setTexUnit("tex0", 0);
+		// Binds texture so that is appears in rendering to the right unit
+		roomTex.Bind(0);
+
+		room.draw();
+
+		// Binds texture so that is appears in rendering to the right unit
+		sapinTex.Bind(0);
+
+		sapin.draw();
 		
-		/*classicShader.use();
-
-		classicShader.setMatrix4("M", modelPlane);
-		classicShader.setMatrix4("V", view);
-		classicShader.setMatrix4("P", perspective);
-		classicShader.setMatrix4("R", glm::mat4(1.0));
-
-		pinkmirror.draw();*/
 		
 		// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 		framebufferMirror.Unbind();
@@ -451,6 +435,7 @@ int main(int argc, char* argv[])
 		// clear all relevant buffers
 		glClearColor(0.6f, 0.6f, 0.6f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 
 		// Second pass : draw normal scene + mirror with texture from 1st pass
 		// 
@@ -476,15 +461,12 @@ int main(int argc, char* argv[])
 		shader.setVector3f("u_view_pos", camera.Position);
 
 
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
+		skybox.Bind(0);
 		shader.setInteger("cubemapTexture", 0);
 		cubeMapShader.setInteger("cubemapTexture", 0);
 
 		glDepthFunc(GL_LEQUAL);
 		sphere1.draw();
-
 
 		cubeMapShader.use();
 		cubeMapShader.setMatrix4("V", view);
@@ -494,8 +476,6 @@ int main(int argc, char* argv[])
 		cubeMap.draw();
 		glDepthFunc(GL_LESS);
 
-
-		
 		//ground 
 		shaderGND.use();
 
@@ -504,20 +484,18 @@ int main(int argc, char* argv[])
 		shaderGND.setMatrix4("P", perspective);
 
 		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
-		GNDTex.texUnit(shaderGND, "tex0");
-		// Binds texture so that is appears in rendering
-		GNDTex.Bind();
-		
+		shaderGND.setTexUnit("tex0", 0);
+		// Binds texture so that is appears in rendering to the right unit
+		GNDTex.Bind(0);
+
 		bunnyText.draw();
 
 		shaderGND.setMatrix4("M", modelSol);
 
 		ground.draw();
 		
-		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
-		GNDTexDirt.texUnit(shaderGND, "tex0");
 		// Binds texture so that is appears in rendering
-		GNDTexDirt.Bind();
+		GNDTexDirt.Bind(0);
 
 		shaderGND.setMatrix4("M", modelBunnyText2);
 
@@ -526,31 +504,37 @@ int main(int argc, char* argv[])
 
 		//room with bump mapping
 		shaderBump.use();
-		shaderBump.setMatrix4("M", glm::mat4(1.0));
-		shaderBump.setMatrix4("itM", glm::mat4(1.0));
+		shaderBump.setMatrix4("M", modelRoom);
+		shaderBump.setMatrix4("itM", inverseModelRoom);
+		shaderBump.setMatrix4("R", glm::mat4(1.0));
 		shaderBump.setMatrix4("V", view);
 		shaderBump.setMatrix4("P", perspective);
 		shaderBump.setVector3f("u_view_pos", camera.Position);
 		shaderBump.setVector3f("light.light_pos", delta);
 
 		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
-		roomTex.texUnit(shaderBump, "tex0");
-		// Binds texture so that is appears in rendering
-		roomTex.Bind();
+		shaderBump.setTexUnit("tex0", 0);
+		// Binds texture so that is appears in rendering to the right unit
+		roomTex.Bind(0);
 
-		room.draw(); 
+		room.draw();
+
+		// Binds texture so that is appears in rendering to the right unit
+		sapinTex.Bind(0);
+
+		sapin.draw();
 
 		// now draw the mirror quad with screen texture
 	    // --------------------------------------------
 
 		glassShader.use();
 
-		glassShader.setMatrix4("M", modelPlane);
+		glassShader.setMatrix4("M", modelRoom);
 		glassShader.setMatrix4("V", view);
 		glassShader.setMatrix4("P", perspective);
 
 		//std::cout << framebufferMirror.unit << std::endl;
-		glassShader.setInteger("screenTexture", framebufferMirror.unit-1);  // need to check why need of - 1 (depends on previously bounded textures) 
+		glassShader.setInteger("screenTexture", 0);  // need to check why need of - 1 (depends on previously bounded textures) 
 
 		
 		glBindTexture(GL_TEXTURE_2D, framebufferMirror.textureColorbufferID);
@@ -624,6 +608,11 @@ void processInput(GLFWwindow* window) {
 	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		camera.ProcessKeyboardRotation(0.0, -1.0, 1);
 
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+		camera.MovementSpeed = 3.0;}
+	else {
+		camera.MovementSpeed = 0.75;
+	}
 	//Pressing C (des)activate the camera folowing the mouse
 	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
 		camera.MouseSwitchActivation(false, window);}

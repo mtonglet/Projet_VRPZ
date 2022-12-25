@@ -1,7 +1,6 @@
 #include "../headers/Texture.h"
 
 //initialisation
-GLuint Texture::currentslot = 1;
 
 Texture::Texture(const char* image, GLenum texType) {
 	
@@ -18,9 +17,7 @@ Texture::Texture(const char* image, GLenum texType) {
 	// Generates an OpenGL texture object
 	glGenTextures(1, &ID);
 	// Assigns the texture to a Texture Unit
-	unit = currentslot;
-	Texture::currentslot++;
-	glActiveTexture(GL_TEXTURE0 + unit);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, ID);
 
 	// Configures the type of algorithm that is used to make the image smaller or bigger
@@ -39,44 +36,13 @@ Texture::Texture(const char* image, GLenum texType) {
 
 	// Check what type of color channels the texture has and load it accordingly
 	if (numColCh == 4)
-		glTexImage2D
-		(
-			GL_TEXTURE_2D,
-			0,
-			GL_RGBA,
-			widthImg,
-			heightImg,
-			0,
-			GL_RGBA,
-			GL_UNSIGNED_BYTE,
-			bytes
-		);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, widthImg, heightImg, 0, GL_RGBA, GL_UNSIGNED_BYTE, bytes);
+
 	else if (numColCh == 3)
-		glTexImage2D
-		(
-			GL_TEXTURE_2D,
-			0,
-			GL_RGBA,
-			widthImg,
-			heightImg,
-			0,
-			GL_RGB,
-			GL_UNSIGNED_BYTE,
-			bytes
-		);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, widthImg, heightImg, 0, GL_RGB, GL_UNSIGNED_BYTE, bytes);
+
 	else if (numColCh == 1)
-		glTexImage2D
-		(
-			GL_TEXTURE_2D,
-			0,
-			GL_RGBA,
-			widthImg,
-			heightImg,
-			0,
-			GL_RED,
-			GL_UNSIGNED_BYTE,
-			bytes
-		);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, widthImg, heightImg, 0, GL_RED, GL_UNSIGNED_BYTE, bytes);
 	else
 		throw std::invalid_argument("Automatic Texture type recognition failed");
 
@@ -90,28 +56,10 @@ Texture::Texture(const char* image, GLenum texType) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-// Assigns a texture unit to a texture 
-void Texture::texUnit(Shader& shader, const char* uniform, GLuint unit) {
-	// Gets the location of the uniform
-	GLuint texUni = glGetUniformLocation(shader.ID, uniform);
-	// Shader needs to be activated before changing the value of a uniform
-	shader.use();
-	// Sets the value of the uniform
-	glUniform1i(texUni, unit);
 
-}
-// Assigns a texture unit to a texture 
-void Texture::texUnit(Shader& shader, const char* uniform) {
-	// Gets the location of the uniform
-	GLuint texUni = glGetUniformLocation(shader.ID, uniform);
-	// Shader needs to be activated before changing the value of a uniform
-	shader.use();
-	// Sets the value of the uniform
-	glUniform1i(texUni, unit);
 
-}
 
-void Texture::Bind()
+void Texture::Bind(GLuint unit)
 {
 	glActiveTexture(GL_TEXTURE0 + unit);
 	glBindTexture(GL_TEXTURE_2D, ID);
