@@ -150,8 +150,9 @@ int main(int argc, char* argv[])
 	Shader shader(pathSourceV,pathSourceF);
 
 	char pathBumpF[] = PATH_TO_SHADER "/textureBump.frag";
+	char pathBumpG[] = PATH_TO_SHADER "/textureBump.geom";
 	char pathBumpV[] = PATH_TO_SHADER "/textureBump.vert";
-	Shader shaderBump(pathBumpV, pathBumpF);
+	Shader shaderBump(pathBumpV, pathBumpG, pathBumpF);
 
 	char pathSourceFGND[] = PATH_TO_SHADER "/texture2D.frag";
 	char pathSourceVGND[] = PATH_TO_SHADER "/texture2D.vert";
@@ -169,6 +170,10 @@ int main(int argc, char* argv[])
 	char pathclassicF[] = PATH_TO_SHADER "/classic.frag";
 	char pathclassicV[] = PATH_TO_SHADER "/classic.vert";
 	Shader classicShader = Shader(pathclassicV, pathclassicF);
+
+	char pathLightF[] = PATH_TO_SHADER "/textureLight.frag";
+	char pathLightV[] = PATH_TO_SHADER "/textureLight.vert";
+	Shader lightShader = Shader(pathLightV, pathLightF);
 
 
 	char pathS[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
@@ -204,7 +209,7 @@ int main(int argc, char* argv[])
 	
 	char pathSapin[] = PATH_TO_OBJECTS "/sapin_maison.obj";
 	Object sapin(pathSapin);
-	sapin.makeObject(shaderBump);
+	sapin.makeObject(lightShader);
 
 
 	double prev = 0;
@@ -279,6 +284,7 @@ int main(int argc, char* argv[])
 	//Rendering
 	// /!\ dont .use() another shader before having put all uniforms on this one
 
+	//BUMP
 	shaderBump.use();
 	shaderBump.setFloat("shininess", 32.0f);
 	shaderBump.setVector3f("materialColour", materialColour);
@@ -291,23 +297,37 @@ int main(int argc, char* argv[])
 /*	Refraction indices :
 	Air:      1.0	|	Water:    1.33	|
 	Ice:      1.309	|	Glass:    1.52	|	Diamond:  2.42*/
+	shader.use();
 	shader.setFloat("refractionIndice", 1.52);
+
+	//LIGHT
+	lightShader.use();
+	lightShader.setFloat("shininess", 32.0f);
+	lightShader.setVector3f("materialColour", materialColour);
+	lightShader.setFloat("light.ambient_strength", ambient);
+	lightShader.setFloat("light.diffuse_strength", diffuse);
+	lightShader.setFloat("light.specular_strength", specular);
+	lightShader.setFloat("light.constant", 1.0);
+	lightShader.setFloat("light.linear", 0.14);
+	lightShader.setFloat("light.quadratic", 0.07);
 
 
 
 	//Texture objects generation
 	char pathim[] = PATH_TO_TEXTURE "/Sand.jpg";
-	Texture GNDTex(pathim, GL_TEXTURE_2D);
+	Texture GNDTex(pathim, "");
 	
 	char pathimG[] = PATH_TO_TEXTURE "/GroundTex.png";
-	Texture GNDTexDirt(pathimG, GL_TEXTURE_2D);
+	Texture GNDTexDirt(pathimG, "");
 	 
 	char pathimW[] = PATH_TO_TEXTURE "/wood.png";
-	Texture roomTex(pathimW, GL_TEXTURE_2D);
+	Texture roomTex(pathimW, "");
 	 
 	char pathimSapin[] = PATH_TO_TEXTURE "/sapinrep.jpg";
-	Texture sapinTex(pathimSapin, GL_TEXTURE_2D);
+	Texture sapinTex(pathimSapin, "");
 
+	char pathNormal[] = PATH_TO_TEXTURE "/woodBump.png";
+	Texture normalMap(pathNormal, "normal");
 	
 	//Texture object generation for the ground 
 	//char pathimWB[] = PATH_TO_TEXTURE "/woodBump.png";
@@ -342,7 +362,7 @@ int main(int argc, char* argv[])
 		glfwPollEvents();
 		double now = glfwGetTime();
 		//moving light
-		auto delta = light_pos + glm::vec3(0.0, 0.0, 2 * std::sin(now));
+		auto delta = light_pos + glm::vec3(0.0, 0.0, 6 * std::sin(now));
 
 		//draw the cube
 
@@ -412,7 +432,7 @@ int main(int argc, char* argv[])
 
 		ground.draw();
 
-		//room with bump mapping
+		//room (with bump mapping)
 		shaderBump.use();
 		shaderBump.setMatrix4("M", modelRoom);
 		shaderBump.setMatrix4("itM", inverseModelRoom); //should be modified with regards to R 
@@ -427,7 +447,24 @@ int main(int argc, char* argv[])
 		// Binds texture so that is appears in rendering to the right unit
 		roomTex.Bind(0);
 
+		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
+		shaderBump.setTexUnit("normal0", 1);
+		// Binds texture so that is appears in rendering to the right unit
+		normalMap.Bind(1);
+
 		room.draw();
+
+		//room (for objects without bump mapping)
+		lightShader.use();
+		lightShader.setMatrix4("M", modelRoom);
+		lightShader.setMatrix4("itM", inverseModelRoom); //should be modified with regards to R 
+		lightShader.setMatrix4("R", reflection);
+		lightShader.setMatrix4("V", view);
+		lightShader.setMatrix4("P", perspective);
+		lightShader.setVector3f("u_view_pos", camera.Position);
+		lightShader.setVector3f("light.light_pos", delta);
+
+		lightShader.setTexUnit("tex0", 0);
 
 		// Binds texture so that is appears in rendering to the right unit
 		sapinTex.Bind(0);
@@ -523,7 +560,24 @@ int main(int argc, char* argv[])
 		// Binds texture so that is appears in rendering to the right unit
 		roomTex.Bind(0);
 
+		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
+		shaderBump.setTexUnit("normal0", 1);
+		// Binds texture so that is appears in rendering to the right unit
+		normalMap.Bind(1);
+
 		room.draw();
+
+		//room (for objects without bump mapping)
+		lightShader.use();
+		lightShader.setMatrix4("M", modelRoom);
+		lightShader.setMatrix4("itM", inverseModelRoom); //should be modified with regards to R 
+		lightShader.setMatrix4("R", glm::mat4(1.0));
+		lightShader.setMatrix4("V", view);
+		lightShader.setMatrix4("P", perspective);
+		lightShader.setVector3f("u_view_pos", camera.Position);
+		lightShader.setVector3f("light.light_pos", delta);
+
+		lightShader.setTexUnit("tex0", 0);
 
 		// Binds texture so that is appears in rendering to the right unit
 		sapinTex.Bind(0);

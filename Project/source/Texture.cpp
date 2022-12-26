@@ -2,10 +2,7 @@
 
 //initialisation
 
-Texture::Texture(const char* image, GLenum texType) {
-	
-	//assign the type of texture (TEXTURE_2D,...)
-	type = texType;
+Texture::Texture(const char* image, const char* texType) {
 
 	// Stores the width, height, and the number of color channels of the image
 	int widthImg, heightImg, numColCh;
@@ -35,7 +32,10 @@ Texture::Texture(const char* image, GLenum texType) {
 	// glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, flatColor);
 
 	// Check what type of color channels the texture has and load it accordingly
-	if (numColCh == 4)
+	if (texType == "normal")
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, widthImg, heightImg, 0, GL_RGBA, GL_UNSIGNED_BYTE, bytes);
+
+	else if (numColCh == 4)
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, widthImg, heightImg, 0, GL_RGBA, GL_UNSIGNED_BYTE, bytes);
 
 	else if (numColCh == 3)

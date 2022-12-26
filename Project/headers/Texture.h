@@ -14,11 +14,10 @@ class Texture
 	
 public:
 	GLuint ID;
-	GLenum type;
 	//unit is the number of the texture for TEXTURE_0,...
 
 
-	Texture(const char* image, GLenum texType);
+	Texture(const char* image, const char* texType);
 
 	// Binds a texture
 	void Bind(GLuint unit);
