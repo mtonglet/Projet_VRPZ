@@ -563,27 +563,6 @@ int main(int argc, char* argv[])
 }
 
 
-
-
-void loadCubemapFace(const char* path, const GLenum& targetFace)
-{
-	int imWidth, imHeight, imNrChannels;
-	unsigned char* data = stbi_load(path, &imWidth, &imHeight, &imNrChannels, 0);
-	if (data)
-	{
-
-		glTexImage2D(targetFace, 0, GL_RGB, imWidth, imHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		//glGenerateMipmap(targetFace);
-	}
-	else {
-		std::cout << "Failed to Load texture" << std::endl;
-		const char* reason = stbi_failure_reason();
-		std::cout << reason << std::endl;
-	}
-	stbi_image_free(data);
-}
-
-
 //could be sent to camera.cpp
 void processInput(GLFWwindow* window) {
 	//3. Use the cameras class to change the parameters of the camera
