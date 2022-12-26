@@ -22,6 +22,8 @@ public:
     CubeMap(
         std::string sourceFile
     );
+    CubeMap();
+
     ~CubeMap();
 
     void Bind(GLenum unit = 0);

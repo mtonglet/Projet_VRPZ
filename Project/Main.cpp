@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
 	};
 
 
-	glm::vec3 light_pos = glm::vec3(1.0, 2.0, 1.5);
+	glm::vec3 light_pos = glm::vec3(2.0, 3.0, 2.0);
 
 
 	glm::mat4 modelS = glm::mat4(1.0);
@@ -305,7 +305,7 @@ int main(int argc, char* argv[])
 	char pathimW[] = PATH_TO_TEXTURE "/wood.png";
 	Texture roomTex(pathimW, GL_TEXTURE_2D);
 	 
-	char pathimSapin[] = PATH_TO_TEXTURE "/sapin.png";
+	char pathimSapin[] = PATH_TO_TEXTURE "/sapinrep.jpg";
 	Texture sapinTex(pathimSapin, GL_TEXTURE_2D);
 
 	
@@ -375,8 +375,8 @@ int main(int argc, char* argv[])
 		//glActiveTexture(GL_TEXTURE0);
 		//glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
 		skybox.Bind(0);
-		shader.setInteger("cubemapTexture", 0);
-		cubeMapShader.setInteger("cubemapTexture", 0);
+		shader.setTexUnit("cubemapTexture", 0);
+		cubeMapShader.setTexUnit("cubemapTexture", 0);
 	
 		glDepthFunc(GL_LEQUAL);
 		sphere1.draw();
@@ -385,7 +385,7 @@ int main(int argc, char* argv[])
 		cubeMapShader.use();
 		cubeMapShader.setMatrix4("V", view);
 		cubeMapShader.setMatrix4("P", perspective);
-		cubeMapShader.setInteger("cubemapTexture", 0);
+		cubeMapShader.setTexUnit("cubemapTexture", 0);
 
 		cubeMap.draw();
 		glDepthFunc(GL_LESS);
@@ -462,8 +462,8 @@ int main(int argc, char* argv[])
 
 
 		skybox.Bind(0);
-		shader.setInteger("cubemapTexture", 0);
-		cubeMapShader.setInteger("cubemapTexture", 0);
+		shader.setTexUnit("cubemapTexture", 0);
+		cubeMapShader.setTexUnit("cubemapTexture", 0);
 
 		glDepthFunc(GL_LEQUAL);
 		sphere1.draw();
@@ -471,7 +471,7 @@ int main(int argc, char* argv[])
 		cubeMapShader.use();
 		cubeMapShader.setMatrix4("V", view);
 		cubeMapShader.setMatrix4("P", perspective);
-		cubeMapShader.setInteger("cubemapTexture", 0);
+		cubeMapShader.setTexUnit("cubemapTexture", 0);
 
 		cubeMap.draw();
 		glDepthFunc(GL_LESS);
@@ -609,7 +609,7 @@ void processInput(GLFWwindow* window) {
 		camera.ProcessKeyboardRotation(0.0, -1.0, 1);
 
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-		camera.MovementSpeed = 3.0;}
+		camera.MovementSpeed = 4.0;}
 	else {
 		camera.MovementSpeed = 0.75;
 	}
