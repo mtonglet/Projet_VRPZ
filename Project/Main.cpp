@@ -322,7 +322,10 @@ int main(int argc, char* argv[])
 	
 	//Frame buffer creation for mirror
 	FrameBuffer framebufferMirror(width, height);
-	
+
+	//Framebuffer for cubemap
+	FrameBuffer framebufferCube(128, 128);
+
 
 	//specify how we want the transparency to be computed (here ColorOut= Cfrag * alphaf + Cprev * (1-alphaf)  )
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -340,6 +343,9 @@ int main(int argc, char* argv[])
 		double now = glfwGetTime();
 		//moving light
 		auto delta = light_pos + glm::vec3(0.0, 0.0, 2 * std::sin(now));
+
+		//draw the cube
+
 
 		//bind the frambuffer for the reversed scene
 		framebufferMirror.Bind(0);
