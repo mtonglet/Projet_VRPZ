@@ -23,6 +23,8 @@ public:
 
     Shader(std::string vShaderCode, std::string fShaderCode);
 
+    Shader(const char* vertexPath, const char* geometryPath, const char* fragmentPath);
+
     void use();
     void setInteger(const GLchar* name, GLint value);
     void setFloat(const GLchar* name, GLfloat value);
@@ -33,8 +35,8 @@ public:
 
 private:
     GLuint compileShader(std::string shaderCode, GLenum shaderType);
-    
     GLuint compileProgram(GLuint vertexShader, GLuint fragmentShader);
+    GLuint compileProgram(GLuint vertexShader, GLuint geometryShader, GLuint fragmentShader);
     
 };
 #endif

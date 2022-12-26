@@ -2,12 +2,13 @@
 	out vec4 FragColor;
 	precision mediump float;
 
-	in vec2 v_tex; 
-	in vec3 v_frag_coord;
-	in vec3 v_normal;
+	in vec2 texCoord; 
+	in vec3 fragCoord;
+	in vec3 Normal;
 
 	uniform vec3 u_view_pos;
 	uniform sampler2D tex0; 
+	uniform sampler2D normal0;
 
 	//In GLSL you can use structures to better organize your code
 	//light
@@ -34,14 +35,26 @@
 		return light.specular_strength * spec;
 	}
 
+	//void main() { 
+	//	vec3 N = normalize(Normal);
+	//	vec3 L = normalize(light.light_pos - fragCoord) ; 
+	//	vec3 V = normalize(u_view_pos - fragCoord); 
+	//	float specular = specularCalculation( N, L, V); 
+	//	float diffuse = light.diffuse_strength * max(dot(N,L),0.0);
+	//	float distance = length(light.light_pos - fragCoord) + length(u_view_pos - fragCoord);
+	//	float attenuation = 1 / (light.constant + light.linear * distance + light.quadratic * distance * distance);
+	//	float light = light.ambient_strength + attenuation * (diffuse + specular); 
+	//	FragColor = vec4(vec3(texture(tex0, texCoord)) * vec3(light), 1.0); 
+	//}
+
 	void main() { 
-	vec3 N = normalize(v_normal);
-	vec3 L = normalize(light.light_pos - v_frag_coord) ; 
-	vec3 V = normalize(u_view_pos - v_frag_coord); 
-	float specular = specularCalculation( N, L, V); 
-	float diffuse = light.diffuse_strength * max(dot(N,L),0.0);
-	float distance = length(light.light_pos - v_frag_coord) + length(u_view_pos - v_frag_coord);
-	float attenuation = 1 / (light.constant + light.linear * distance + light.quadratic * distance * distance);
-	float light = light.ambient_strength + attenuation * (diffuse + specular); 
-	FragColor = vec4(vec3(texture(tex0, v_tex)) * vec3(light), 1.0); 
+		vec3 N = normalize(texture(normal0, texCoord).xyz * 2.0f - 1.0f);
+		vec3 L = normalize(light.light_pos - fragCoord) ; 
+		vec3 V = normalize(u_view_pos - fragCoord); 
+		float specular = specularCalculation( N, L, V); 
+		float diffuse = light.diffuse_strength * max(dot(N,L),0.0);
+		float distance = length(light.light_pos - fragCoord) + length(u_view_pos - fragCoord);
+		float attenuation = 1 / (light.constant + light.linear * distance + light.quadratic * distance * distance);
+		float light = light.ambient_strength + attenuation * (diffuse + specular); 
+		FragColor = vec4(vec3(texture(tex0, texCoord)) * vec3(light), 1.0); 
 	}
