@@ -24,7 +24,7 @@ public:
     CubeMap(
         std::string sourceFile
     );
-    CubeMap(int ref);
+    CubeMap(int width, int height, int ref);
 
     //~CubeMap();
     //void operator=(const CubeMap& other) = delete;

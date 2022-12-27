@@ -69,7 +69,7 @@ CubeMap::CubeMap(
 
     std::cout << "CubeMap(Texture): Has init successfully : ID is"+ ID << std::endl;
 }
-CubeMap::CubeMap(int ref)
+CubeMap::CubeMap(int width, int height, int ref)
     : ID(0)
 {   
     reference = ref;
@@ -86,20 +86,20 @@ CubeMap::CubeMap(int ref)
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, 0);
 
-    std::vector<GLubyte> testData(CUBE_TEXTURE_SIZE * CUBE_TEXTURE_SIZE * 256, 128);
-    std::vector<GLubyte> xData(CUBE_TEXTURE_SIZE * CUBE_TEXTURE_SIZE * 256, 255);
+    std::vector<GLubyte> testData(width * height * 256, 128);
+    std::vector<GLubyte> xData(width * height * 256, 255);
 
     for (int loop = 0; loop < 6; ++loop)
     {
         if (loop)
         {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + loop, 0, GL_RGBA8,
-                CUBE_TEXTURE_SIZE, CUBE_TEXTURE_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, &testData[0]);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + loop, 0, GL_RGB,
+                width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, &testData[0]);
         }
         else
         {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + loop, 0, GL_RGBA8,
-                CUBE_TEXTURE_SIZE, CUBE_TEXTURE_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, &xData[0]);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + loop, 0, GL_RGB,
+                width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, &xData[0]);
         }
     }
 

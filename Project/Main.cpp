@@ -23,8 +23,8 @@
 
 GLuint currentTextSlot = 0;
 
-const int width = 1000;
-const int height = 1000;
+const int width = 1024;
+const int height = 1024;
 
 
 void processInput(GLFWwindow* window);
@@ -238,7 +238,7 @@ int main(int argc, char* argv[])
 
 
 	glm::mat4 modelBunny = glm::mat4(1.0);
-	modelBunny = glm::translate(modelBunny, glm::vec3(0.0, 4.0, -5.0)); // position of the object
+	modelBunny = glm::translate(modelBunny, glm::vec3(5.0, 4.0, -20.0)); // position of the object
 	modelBunny = glm::scale(modelBunny, glm::vec3(0.8, 0.8, 0.8));
 	glm::mat4 inverseModelBunny = glm::transpose(glm::inverse(modelBunny));
 
@@ -270,7 +270,7 @@ int main(int argc, char* argv[])
 	glm::mat4 inverseModelRoom = glm::transpose(glm::inverse(modelRoom));
 
 	glm::mat4 view = camera.GetViewMatrix();
-	glm::mat4 perspective = camera.GetProjectionMatrix();
+	glm::mat4 perspective = camera.GetProjectionMatrix(45.0f);
 
 	glm::vec3 mirrorCenter = mirrorPos; 
 	glm::mat4 reflection = camera.GetReflectionMatrix(mirrorCenter, mirrorNorm);
@@ -352,11 +352,12 @@ int main(int argc, char* argv[])
 	FrameBuffer framebufferMirror(width, height);
 
 	//Framebuffer for cubemap
-	CubeMap cubeRef = CubeMap(1);
-	FrameBuffer framebufferCube(128, 128);
+	CubeMap cubeRef = CubeMap(1024, 1024, 1);
+	FrameBuffer framebufferCube(1024,1024);
 
 	Camera cameraCube(glm::vec3(0.0, 4.0, -15.0));
-	glm::mat4 projectionCube = cameraCube.GetProjectionMatrix(90.0f, 1.0f);
+	glm::mat4 projectionCube = cameraCube.GetProjectionMatrix(90.0f, 1.0f, 0.01f, 100.0f);
+
 	glm::mat4 viewCube = cameraCube.GetViewCubeMatrix(0);
 
 	//specify how we want the transparency to be computed (here ColorOut= Cfrag * alphaf + Cprev * (1-alphaf)  )
@@ -377,7 +378,7 @@ int main(int argc, char* argv[])
 		auto delta = light_pos + glm::vec3(0.0, 0.0, 6 * std::sin(now));
 
 		if (firstLoop) {
-			//firstLoop = false;
+			firstLoop = false;
 			//draw the cubeMap 
 			framebufferCube.Bind(0);
 
@@ -405,12 +406,13 @@ int main(int argc, char* argv[])
 
 
 				glDepthFunc(GL_LEQUAL);
-
+				
 				cubeMapShader.use();
+				cubeMapShader.setTexUnit("cubemapSampler", 1);
 				cubeMapShader.setMatrix4("V", viewCube);
 				cubeMapShader.setMatrix4("P", projectionCube);
 				skybox.Bind(1);
-				cubeMapShader.setTexUnit("cubemapTexture", 1);
+				
 
 				cubeMap.draw();
 				glDepthFunc(GL_LESS);
@@ -502,7 +504,7 @@ int main(int argc, char* argv[])
 		//glActiveTexture(GL_TEXTURE0);
 		//glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
 		skybox.Bind(0);
-		shader.setTexUnit("cubemapTexture", 0);
+		shader.setTexUnit("cubemapSampler", 0);
 		
 	
 		glDepthFunc(GL_LEQUAL);
@@ -512,7 +514,7 @@ int main(int argc, char* argv[])
 		cubeMapShader.use();
 		cubeMapShader.setMatrix4("V", view);
 		cubeMapShader.setMatrix4("P", perspective);
-		cubeMapShader.setTexUnit("cubemapTexture", 0);
+		cubeMapShader.setTexUnit("cubemapSampler", 0);
 
 		cubeMap.draw();
 		glDepthFunc(GL_LESS);
@@ -606,12 +608,13 @@ int main(int argc, char* argv[])
 
 
 		cubeRef.Bind(0);
-		shader.setTexUnit("cubemapTexture", 0);
+		shader.setTexUnit("cubemapSampler", 0);
 
 		
 		glDepthFunc(GL_LEQUAL);
 		sphere1.draw();
 
+		skybox.Bind(0);
 		cubeMapShader.use();
 		cubeMapShader.setMatrix4("V", view);
 		cubeMapShader.setMatrix4("P", perspective);
@@ -697,7 +700,7 @@ int main(int argc, char* argv[])
 		//std::cout << framebufferMirror.unit << std::endl;
 		glassShader.setInteger("screenTexture", 0);  // need to check why need of - 1 (depends on previously bounded textures) 
 
-		
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, framebufferMirror.textureColorbufferID);
 		
 
