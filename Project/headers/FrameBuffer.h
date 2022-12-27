@@ -5,6 +5,7 @@
 
 #include "shader.h"
 #include "Texture.h"
+//#include "CubeMap.h"
 
 #include "stb_image.h"
 
@@ -20,6 +21,8 @@ public:
 	//constructor, bind an empty texture and  render buffer to the framebuffer
 	FrameBuffer(unsigned int width = 800, unsigned int height = 600, unsigned int nbCol = 0);
 
+	//constructor, bind an empty texture and  render buffer to the framebuffer
+	FrameBuffer(Texture& texture, unsigned int width = 800, unsigned int height = 600);
 	
 	// Binds the framebuffer
 	void Bind(GLuint unit);
@@ -27,5 +30,8 @@ public:
 	void Unbind();
 	// Deletes the framebuffer
 	void Delete();
+	void FrameBuffer::attachTex2D(Texture& texture);
+
+	void FrameBuffer::attachCubeFace(GLuint cubemapID, int iFace);
 };
 #endif

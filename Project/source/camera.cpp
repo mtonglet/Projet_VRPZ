@@ -27,6 +27,41 @@ glm::mat4 Camera::GetViewMatrix()
     return glm::lookAt(this->Position, this->Position + this->Front, this->Up);
 }
 
+glm::mat4 Camera::GetViewCubeMatrix(int faceId)
+{   
+    if (faceId == 0) {
+        this->Yaw = 90;
+        this->Pitch = 0;
+        this->updateCameraVectors();
+    }
+    else if (faceId == 1) {
+        this->Yaw = -90;
+        this->Pitch = 0;
+        this->updateCameraVectors();
+    }
+    else if (faceId == 2) {
+        this->Yaw = 180;
+        this->Pitch = -90;
+        this->updateCameraVectors();
+    }
+    else if (faceId == 3) {
+        this->Yaw = 180;
+        this->Pitch = 90;
+        this->updateCameraVectors();
+    }
+    else if (faceId == 4) {
+        this->Yaw = 0;
+        this->Pitch = 180;
+        this->updateCameraVectors();
+    }
+    else if (faceId == 5) {
+        this->Yaw = 0;
+        this->Pitch = 0;
+        this->updateCameraVectors();
+    }
+    return glm::lookAt(this->Position, this->Position + this->Front, this->Up);
+}
+
 glm::mat4 Camera::GetProjectionMatrix(float fov , float ratio , float near , float far)
 {
     return glm::perspective(fov, ratio, near, far);
@@ -75,7 +110,7 @@ void Camera::ProcessKeyboardMovement(Camera_Movement direction, float deltaTime)
         this->Position -= this->Right * velocity;
     if (direction == RIGHT)
         this->Position += this->Right * velocity;
-    if (this->Position.y <= 0.5)
+    if (this->Position.y <= 0.5 && useMouse)
         this->Position.y = 0.5;
 }
 

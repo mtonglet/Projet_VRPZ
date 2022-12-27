@@ -15,8 +15,8 @@
 #include "headers/camera.h"
 #include "headers/shader.h"
 #include "headers/object.h"
-#include "headers/FrameBuffer.h"
 #include "headers/CubeMap.h"
+#include "headers/FrameBuffer.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -232,7 +232,7 @@ int main(int argc, char* argv[])
 
 
 	glm::mat4 modelS = glm::mat4(1.0);
-	modelS = glm::translate(modelS, glm::vec3(0.0, 4.0, -10.0)); // position of the object
+	modelS = glm::translate(modelS, glm::vec3(0.0, 4.0, -15.0)); // position of the object
 	modelS = glm::scale(modelS, glm::vec3(0.8, 0.8, 0.8));	
 	glm::mat4 inverseModelS = glm::transpose(glm::inverse(modelS));
 
@@ -299,6 +299,14 @@ int main(int argc, char* argv[])
 	Ice:      1.309	|	Glass:    1.52	|	Diamond:  2.42*/
 	shader.use();
 	shader.setFloat("refractionIndice", 1.52);
+	shader.setFloat("shininess", 32.0f);
+	shader.setVector3f("materialColour", materialColour);
+	shader.setFloat("light.ambient_strength", ambient);
+	shader.setFloat("light.diffuse_strength", diffuse);
+	shader.setFloat("light.specular_strength", specular);
+	shader.setFloat("light.constant", 1.0);
+	shader.setFloat("light.linear", 0.14);
+	shader.setFloat("light.quadratic", 0.07);
 
 	//LIGHT
 	lightShader.use();
@@ -344,8 +352,12 @@ int main(int argc, char* argv[])
 	FrameBuffer framebufferMirror(width, height);
 
 	//Framebuffer for cubemap
+	CubeMap cubeRef = CubeMap(1);
 	FrameBuffer framebufferCube(128, 128);
 
+	Camera cameraCube(glm::vec3(0.0, 4.0, -15.0));
+	glm::mat4 projectionCube = cameraCube.GetProjectionMatrix(90.0f, 1.0f);
+	glm::mat4 viewCube = cameraCube.GetViewCubeMatrix(0);
 
 	//specify how we want the transparency to be computed (here ColorOut= Cfrag * alphaf + Cprev * (1-alphaf)  )
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -353,7 +365,7 @@ int main(int argc, char* argv[])
 	// Enables the Depth Buffer
 	glEnable(GL_DEPTH_TEST);
 	
-
+	bool firstLoop = true;
 	glfwSwapInterval(1);
 
 	while (!glfwWindowShouldClose(window)) {
@@ -364,8 +376,97 @@ int main(int argc, char* argv[])
 		//moving light
 		auto delta = light_pos + glm::vec3(0.0, 0.0, 6 * std::sin(now));
 
-		//draw the cube
+		if (firstLoop) {
+			//firstLoop = false;
+			//draw the cubeMap 
+			framebufferCube.Bind(0);
 
+			for (int loop = 0; loop < 6; ++loop) {
+				framebufferCube.attachCubeFace(cubeRef.ID, loop);
+
+				glEnable(GL_DEPTH_TEST);
+				//clear framebuffer contents
+				glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+				viewCube = cameraCube.GetViewCubeMatrix(loop);
+
+				//draw scene (simplified if possible) 
+				classicShader.use();
+
+				classicShader.setMatrix4("M", modelBunny);
+				classicShader.setMatrix4("V", viewCube);
+				classicShader.setMatrix4("P", projectionCube);
+				classicShader.setMatrix4("R", glm::mat4(1.0));
+
+				bunny.draw();
+
+
+
+
+				glDepthFunc(GL_LEQUAL);
+
+				cubeMapShader.use();
+				cubeMapShader.setMatrix4("V", viewCube);
+				cubeMapShader.setMatrix4("P", projectionCube);
+				skybox.Bind(1);
+				cubeMapShader.setTexUnit("cubemapTexture", 1);
+
+				cubeMap.draw();
+				glDepthFunc(GL_LESS);
+
+				//ground 
+				shaderGND.use();
+
+				shaderGND.setMatrix4("M", modelBunnyText);
+				shaderGND.setMatrix4("V", viewCube);
+				shaderGND.setMatrix4("P", projectionCube);
+
+				// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
+				shaderGND.setTexUnit("tex0", 1);
+				// Binds texture so that is appears in rendering to the right unit
+				GNDTex.Bind(1);
+
+				bunnyText.draw();
+
+				shaderGND.setMatrix4("M", modelSol);
+
+				ground.draw();
+
+				// Binds texture so that is appears in rendering
+				GNDTexDirt.Bind(0);
+
+				shaderGND.setMatrix4("M", modelBunnyText2);
+
+				bunnyText.draw(); //same object with different texture and model uniforms
+
+
+				//room with bump mapping
+				shaderBump.use();
+				shaderBump.setMatrix4("M", modelRoom);
+				shaderBump.setMatrix4("itM", inverseModelRoom);
+				shaderBump.setMatrix4("R", glm::mat4(1.0));
+				shaderBump.setMatrix4("V", viewCube);
+				shaderBump.setMatrix4("P", projectionCube);
+				shaderBump.setVector3f("u_view_pos", cameraCube.Position);
+				shaderBump.setVector3f("light.light_pos", delta);
+
+				// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
+				shaderBump.setTexUnit("tex0", 1);
+				// Binds texture so that is appears in rendering to the right unit
+				roomTex.Bind(1);
+
+				// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
+				shaderBump.setTexUnit("normal0", 2);
+				// Binds texture so that is appears in rendering to the right unit
+				normalMap.Bind(2);
+
+				room.draw();
+			}
+
+			framebufferCube.Unbind();
+		}
+		
 
 		//bind the frambuffer for the reversed scene
 		framebufferMirror.Bind(0);
@@ -402,7 +503,7 @@ int main(int argc, char* argv[])
 		//glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
 		skybox.Bind(0);
 		shader.setTexUnit("cubemapTexture", 0);
-		cubeMapShader.setTexUnit("cubemapTexture", 0);
+		
 	
 		glDepthFunc(GL_LEQUAL);
 		sphere1.draw();
@@ -496,7 +597,7 @@ int main(int argc, char* argv[])
 		//refraction sphere
 		shader.use();
 
-		shader.setMatrix4("M", modelS);
+		shader.setMatrix4("M",modelS);
 		shader.setMatrix4("itM", inverseModelS);
 		shader.setMatrix4("V", view);
 		shader.setMatrix4("P", perspective);
@@ -504,17 +605,17 @@ int main(int argc, char* argv[])
 		shader.setVector3f("u_view_pos", camera.Position);
 
 
-		skybox.Bind(0);
+		cubeRef.Bind(0);
 		shader.setTexUnit("cubemapTexture", 0);
-		cubeMapShader.setTexUnit("cubemapTexture", 0);
 
+		
 		glDepthFunc(GL_LEQUAL);
 		sphere1.draw();
 
 		cubeMapShader.use();
 		cubeMapShader.setMatrix4("V", view);
 		cubeMapShader.setMatrix4("P", perspective);
-		cubeMapShader.setTexUnit("cubemapTexture", 0);
+		//cubeMapShader.setTexUnit("cubemapTexture", 0);
 
 		cubeMap.draw();
 		glDepthFunc(GL_LESS);

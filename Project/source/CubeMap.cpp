@@ -17,7 +17,7 @@ static const GLenum GL_TEXTURE_CUBE_MAP_types[6] =
 CubeMap::CubeMap(
     std::string sourceFile
 )
-    : m_texture(0)
+    : ID(0)
 {
 
     m_fileNames[0] = sourceFile + "posx.jpg";
@@ -28,16 +28,17 @@ CubeMap::CubeMap(
     m_fileNames[5] = sourceFile + "negz.jpg";
 
 
-    glGenTextures(1, &m_texture);
+    glGenTextures(1, &ID);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, m_texture);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, ID);
 
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    
+    stbi_set_flip_vertically_on_load(false);
+
     for (unsigned i = 0; i < 6; ++i) {  //(sizeof(GL_TEXTURE_CUBE_MAP_types) / sizeof(GL_TEXTURE_CUBE_MAP_types[0]))
         int w, h, bytesPerPixel;
         unsigned char* data = stbi_load((m_fileNames[i].c_str()), &w, &h, &bytesPerPixel, 0);
@@ -66,15 +67,16 @@ CubeMap::CubeMap(
 
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
-    std::cout << "CubeMap(Texture): Has init successfully : ID is"+ m_texture << std::endl;
+    std::cout << "CubeMap(Texture): Has init successfully : ID is"+ ID << std::endl;
 }
-CubeMap::CubeMap()
-    : m_texture(0)
-{
+CubeMap::CubeMap(int ref)
+    : ID(0)
+{   
+    reference = ref;
 
-    glGenTextures(1, &m_texture);
+    glGenTextures(1, &ID);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, m_texture);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, ID);
 
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -103,20 +105,24 @@ CubeMap::CubeMap()
 
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
-    std::cout << "CubeMap(Texture): Has init successfully : ID is" + m_texture << std::endl;
+    std::cout << "CubeMap(Texture): Has init successfully : ID is" + ID << std::endl;
 }
 
 
-CubeMap::~CubeMap() {
-    if (m_texture != 0) {
-        glDeleteTextures(1, &m_texture);
-        std::cout << "CubeMap(Texture): Delete texture object successfully : ID was"+ m_texture << std::endl;
+/*CubeMap::~CubeMap() {
+    if (ID != 0) {
+        glDeleteTextures(1, &ID);
+        std::cout << "CubeMap(Texture): Delete texture object successfully : ID was"+ ID << std::endl;
     }
-}
+}*/
 
 
 void CubeMap::Bind(GLenum unit) {
     assert(unit >= 0 && unit <= GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS-GL_TEXTURE0-1);
     glActiveTexture(GL_TEXTURE0 + unit);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, m_texture);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, ID);
+}
+
+GLuint CubeMap::getID() {
+    return ID;
 }
