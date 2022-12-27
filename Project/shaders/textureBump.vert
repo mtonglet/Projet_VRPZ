@@ -13,6 +13,9 @@
 		vec2 texCoord;
 		vec3 fragCoord;
 		mat4 projection;
+		mat4 model;
+		vec3 u_view_pos;
+		vec3 lightPos;
 	} data_out;
 
 	uniform mat4 M; 
@@ -20,6 +23,8 @@
 	uniform mat4 V; 
 	uniform mat4 P; 
 	uniform mat4 itM;
+	uniform vec3 u_view_pos;
+	uniform vec3 lightPos;
 
 	//void main()
 	//{ 
@@ -37,4 +42,7 @@
 		data_out.texCoord = tex_coord;
 		data_out.fragCoord = gl_Position.xyz;
 		data_out.projection = P * V;
+		data_out.model = M;
+		data_out.lightPos = lightPos;
+		data_out.u_view_pos = u_view_pos;
 	}
