@@ -54,6 +54,8 @@ public:
     // returns the view matrix calculated using Euler Angles and the LookAt Matrix
     glm::mat4 GetViewMatrix();
 
+    glm::mat4 GetViewCubeMatrix(int faceId);
+
     glm::mat4 GetProjectionMatrix(float fov = 45.0, float ratio = 1.0, float near = 0.01, float far = 100.0);
 
     glm::mat4 GetReflectionMatrix(glm::vec3 mirrorP, glm::vec3 mirrorN);

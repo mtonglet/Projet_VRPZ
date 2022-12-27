@@ -19,18 +19,21 @@
 
 class CubeMap {
 public:
+    GLuint ID;
+    int reference = 0;
     CubeMap(
         std::string sourceFile
     );
-    CubeMap();
+    CubeMap(int width, int height, int ref);
 
-    ~CubeMap();
-
+    //~CubeMap();
+    //void operator=(const CubeMap& other) = delete;
+    //CubeMap(const CubeMap& other) = delete;
     void Bind(GLenum unit = 0);
 
-    void operator=(const CubeMap& other) = delete;
-    CubeMap(const CubeMap& other) = delete;
-    GLuint m_texture;
+    
+    
+    GLuint getID();
 private:
     
     std::string m_fileNames[6];

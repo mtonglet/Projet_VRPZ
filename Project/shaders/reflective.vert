@@ -1,6 +1,6 @@
 #version 330 core
 	in vec3 position; 
-	in vec2 tex_coords; 
+	in vec2 tex_coord; 
 	in vec3 normal; 
 
 	out vec3 v_frag_coord; 

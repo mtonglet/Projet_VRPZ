@@ -15,16 +15,16 @@
 #include "headers/camera.h"
 #include "headers/shader.h"
 #include "headers/object.h"
-#include "headers/FrameBuffer.h"
 #include "headers/CubeMap.h"
+#include "headers/FrameBuffer.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
 GLuint currentTextSlot = 0;
 
-const int width = 1000;
-const int height = 1000;
+const int width = 1024;
+const int height = 1024;
 
 
 void processInput(GLFWwindow* window);
@@ -232,13 +232,13 @@ int main(int argc, char* argv[])
 
 
 	glm::mat4 modelS = glm::mat4(1.0);
-	modelS = glm::translate(modelS, glm::vec3(0.0, 4.0, -10.0)); // position of the object
+	modelS = glm::translate(modelS, glm::vec3(0.0, 4.0, -15.0)); // position of the object
 	modelS = glm::scale(modelS, glm::vec3(0.8, 0.8, 0.8));	
 	glm::mat4 inverseModelS = glm::transpose(glm::inverse(modelS));
 
 
 	glm::mat4 modelBunny = glm::mat4(1.0);
-	modelBunny = glm::translate(modelBunny, glm::vec3(0.0, 4.0, -5.0)); // position of the object
+	modelBunny = glm::translate(modelBunny, glm::vec3(5.0, 4.0, -20.0)); // position of the object
 	modelBunny = glm::scale(modelBunny, glm::vec3(0.8, 0.8, 0.8));
 	glm::mat4 inverseModelBunny = glm::transpose(glm::inverse(modelBunny));
 
@@ -270,7 +270,7 @@ int main(int argc, char* argv[])
 	glm::mat4 inverseModelRoom = glm::transpose(glm::inverse(modelRoom));
 
 	glm::mat4 view = camera.GetViewMatrix();
-	glm::mat4 perspective = camera.GetProjectionMatrix();
+	glm::mat4 perspective = camera.GetProjectionMatrix(45.0f);
 
 	glm::vec3 mirrorCenter = mirrorPos; 
 	glm::mat4 reflection = camera.GetReflectionMatrix(mirrorCenter, mirrorNorm);
@@ -299,6 +299,14 @@ int main(int argc, char* argv[])
 	Ice:      1.309	|	Glass:    1.52	|	Diamond:  2.42*/
 	shader.use();
 	shader.setFloat("refractionIndice", 1.52);
+	shader.setFloat("shininess", 32.0f);
+	shader.setVector3f("materialColour", materialColour);
+	shader.setFloat("light.ambient_strength", ambient);
+	shader.setFloat("light.diffuse_strength", diffuse);
+	shader.setFloat("light.specular_strength", specular);
+	shader.setFloat("light.constant", 1.0);
+	shader.setFloat("light.linear", 0.14);
+	shader.setFloat("light.quadratic", 0.07);
 
 	//LIGHT
 	lightShader.use();
@@ -343,13 +351,22 @@ int main(int argc, char* argv[])
 	//Frame buffer creation for mirror
 	FrameBuffer framebufferMirror(width, height);
 
+	//Framebuffer for cubemap
+	CubeMap cubeRef = CubeMap(1024, 1024, 1);
+	FrameBuffer framebufferCube(1024,1024);
+
+	Camera cameraCube(glm::vec3(0.0, 4.0, -15.0));
+	glm::mat4 projectionCube = cameraCube.GetProjectionMatrix(90.0f, 1.0f, 0.01f, 100.0f);
+
+	glm::mat4 viewCube = cameraCube.GetViewCubeMatrix(0);
+
 	//specify how we want the transparency to be computed (here ColorOut= Cfrag * alphaf + Cprev * (1-alphaf)  )
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// Enables the Depth Buffer
 	glEnable(GL_DEPTH_TEST);
 	
-
+	bool firstLoop = true;
 	glfwSwapInterval(1);
 
 	while (!glfwWindowShouldClose(window)) {
@@ -358,8 +375,101 @@ int main(int argc, char* argv[])
 		glfwPollEvents();
 		double now = glfwGetTime();
 		//moving light
-		//auto delta = light_pos + glm::vec3(0.0, 0.0, 10 * std::sin(now));
-		auto delta = light_pos;
+		auto delta = light_pos + glm::vec3(0.0, 0.0, 6 * std::sin(now));
+
+		if (firstLoop) {
+			firstLoop = false;
+			//draw the cubeMap 
+			framebufferCube.Bind(0);
+
+			for (int loop = 0; loop < 6; ++loop) {
+				framebufferCube.attachCubeFace(cubeRef.ID, loop);
+
+				glEnable(GL_DEPTH_TEST);
+				//clear framebuffer contents
+				glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+				viewCube = cameraCube.GetViewCubeMatrix(loop);
+
+				//draw scene (simplified if possible) 
+				classicShader.use();
+
+				classicShader.setMatrix4("M", modelBunny);
+				classicShader.setMatrix4("V", viewCube);
+				classicShader.setMatrix4("P", projectionCube);
+				classicShader.setMatrix4("R", glm::mat4(1.0));
+
+				bunny.draw();
+
+
+
+
+				glDepthFunc(GL_LEQUAL);
+				
+				cubeMapShader.use();
+				cubeMapShader.setTexUnit("cubemapSampler", 1);
+				cubeMapShader.setMatrix4("V", viewCube);
+				cubeMapShader.setMatrix4("P", projectionCube);
+				skybox.Bind(1);
+				
+
+				cubeMap.draw();
+				glDepthFunc(GL_LESS);
+
+				//ground 
+				shaderGND.use();
+
+				shaderGND.setMatrix4("M", modelBunnyText);
+				shaderGND.setMatrix4("V", viewCube);
+				shaderGND.setMatrix4("P", projectionCube);
+
+				// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
+				shaderGND.setTexUnit("tex0", 1);
+				// Binds texture so that is appears in rendering to the right unit
+				GNDTex.Bind(1);
+
+				bunnyText.draw();
+
+				shaderGND.setMatrix4("M", modelSol);
+
+				ground.draw();
+
+				// Binds texture so that is appears in rendering
+				GNDTexDirt.Bind(0);
+
+				shaderGND.setMatrix4("M", modelBunnyText2);
+
+				bunnyText.draw(); //same object with different texture and model uniforms
+
+
+				//room with bump mapping
+				shaderBump.use();
+				shaderBump.setMatrix4("M", modelRoom);
+				shaderBump.setMatrix4("itM", inverseModelRoom);
+				shaderBump.setMatrix4("R", glm::mat4(1.0));
+				shaderBump.setMatrix4("V", viewCube);
+				shaderBump.setMatrix4("P", projectionCube);
+				shaderBump.setVector3f("u_view_pos", cameraCube.Position);
+				shaderBump.setVector3f("light.light_pos", delta);
+
+				// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
+				shaderBump.setTexUnit("tex0", 1);
+				// Binds texture so that is appears in rendering to the right unit
+				roomTex.Bind(1);
+
+				// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
+				shaderBump.setTexUnit("normal0", 2);
+				// Binds texture so that is appears in rendering to the right unit
+				normalMap.Bind(2);
+
+				room.draw();
+			}
+
+			framebufferCube.Unbind();
+		}
+		
+
 		//bind the frambuffer for the reversed scene
 		framebufferMirror.Bind(0);
 		glEnable(GL_DEPTH_TEST);
@@ -394,8 +504,8 @@ int main(int argc, char* argv[])
 		//glActiveTexture(GL_TEXTURE0);
 		//glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
 		skybox.Bind(0);
-		shader.setTexUnit("cubemapTexture", 0);
-		cubeMapShader.setTexUnit("cubemapTexture", 0);
+		shader.setTexUnit("cubemapSampler", 0);
+		
 	
 		glDepthFunc(GL_LEQUAL);
 		sphere1.draw();
@@ -404,7 +514,7 @@ int main(int argc, char* argv[])
 		cubeMapShader.use();
 		cubeMapShader.setMatrix4("V", view);
 		cubeMapShader.setMatrix4("P", perspective);
-		cubeMapShader.setTexUnit("cubemapTexture", 0);
+		cubeMapShader.setTexUnit("cubemapSampler", 0);
 
 		cubeMap.draw();
 		glDepthFunc(GL_LESS);
@@ -489,7 +599,7 @@ int main(int argc, char* argv[])
 		//refraction sphere
 		shader.use();
 
-		shader.setMatrix4("M", modelS);
+		shader.setMatrix4("M",modelS);
 		shader.setMatrix4("itM", inverseModelS);
 		shader.setMatrix4("V", view);
 		shader.setMatrix4("P", perspective);
@@ -497,17 +607,18 @@ int main(int argc, char* argv[])
 		shader.setVector3f("u_view_pos", camera.Position);
 
 
-		skybox.Bind(0);
-		shader.setTexUnit("cubemapTexture", 0);
-		cubeMapShader.setTexUnit("cubemapTexture", 0);
+		cubeRef.Bind(0);
+		shader.setTexUnit("cubemapSampler", 0);
 
+		
 		glDepthFunc(GL_LEQUAL);
 		sphere1.draw();
 
+		skybox.Bind(0);
 		cubeMapShader.use();
 		cubeMapShader.setMatrix4("V", view);
 		cubeMapShader.setMatrix4("P", perspective);
-		cubeMapShader.setTexUnit("cubemapTexture", 0);
+		//cubeMapShader.setTexUnit("cubemapTexture", 0);
 
 		cubeMap.draw();
 		glDepthFunc(GL_LESS);
@@ -589,7 +700,7 @@ int main(int argc, char* argv[])
 		//std::cout << framebufferMirror.unit << std::endl;
 		glassShader.setInteger("screenTexture", 0);  // need to check why need of - 1 (depends on previously bounded textures) 
 
-		
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, framebufferMirror.textureColorbufferID);
 		
 
@@ -613,27 +724,6 @@ int main(int argc, char* argv[])
 	glfwTerminate();
 
 	return 0;
-}
-
-
-
-
-void loadCubemapFace(const char* path, const GLenum& targetFace)
-{
-	int imWidth, imHeight, imNrChannels;
-	unsigned char* data = stbi_load(path, &imWidth, &imHeight, &imNrChannels, 0);
-	if (data)
-	{
-
-		glTexImage2D(targetFace, 0, GL_RGB, imWidth, imHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		//glGenerateMipmap(targetFace);
-	}
-	else {
-		std::cout << "Failed to Load texture" << std::endl;
-		const char* reason = stbi_failure_reason();
-		std::cout << reason << std::endl;
-	}
-	stbi_image_free(data);
 }
 
 
