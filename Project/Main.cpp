@@ -228,7 +228,7 @@ int main(int argc, char* argv[])
 	};
 
 
-	glm::vec3 light_pos = glm::vec3(2.0, 3.0, 2.0);
+	glm::vec3 light_pos = glm::vec3(-8.5, 3.0, 2.0);
 
 
 	glm::mat4 modelS = glm::mat4(1.0);
@@ -292,8 +292,8 @@ int main(int argc, char* argv[])
 	shaderBump.setFloat("light.diffuse_strength", diffuse);
 	shaderBump.setFloat("light.specular_strength", specular);
 	shaderBump.setFloat("light.constant", 1.0);
-	shaderBump.setFloat("light.linear", 0.14);
-	shaderBump.setFloat("light.quadratic", 0.07);
+	shaderBump.setFloat("light.linear", 0.00014);
+	shaderBump.setFloat("light.quadratic", 0.0007);
 /*	Refraction indices :
 	Air:      1.0	|	Water:    1.33	|
 	Ice:      1.309	|	Glass:    1.52	|	Diamond:  2.42*/
@@ -543,7 +543,7 @@ int main(int argc, char* argv[])
 		shaderBump.setMatrix4("V", view);
 		shaderBump.setMatrix4("P", perspective);
 		shaderBump.setVector3f("u_view_pos", camera.Position);
-		shaderBump.setVector3f("light.light_pos", delta);
+		shaderBump.setVector3f("lightPos", delta);
 
 		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
 		shaderBump.setTexUnit("tex0", 0);
@@ -657,7 +657,7 @@ int main(int argc, char* argv[])
 		shaderBump.setMatrix4("V", view);
 		shaderBump.setMatrix4("P", perspective);
 		shaderBump.setVector3f("u_view_pos", camera.Position);
-		shaderBump.setVector3f("light.light_pos", delta);
+		shaderBump.setVector3f("lightPos", delta);
 
 		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
 		shaderBump.setTexUnit("tex0", 0);
