@@ -356,7 +356,7 @@ int main(int argc, char* argv[])
 	FrameBuffer framebufferCube(1024,1024);
 
 	Camera cameraCube(glm::vec3(0.0, 4.0, -15.0));
-	glm::mat4 projectionCube = cameraCube.GetProjectionMatrix(90.0f, 1.0f, 0.01f, 100.0f);
+	glm::mat4 projectionCube = cameraCube.GetProjectionMatrix(50.0f, 1.0f, 0.01f, 100.0f);
 
 	glm::mat4 viewCube = cameraCube.GetViewCubeMatrix(0);
 
@@ -391,7 +391,7 @@ int main(int argc, char* argv[])
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 				viewCube = cameraCube.GetViewCubeMatrix(loop);
-
+				//viewCube = glm::mat4(1.0);
 				//draw scene (simplified if possible) 
 				classicShader.use();
 
@@ -614,7 +614,7 @@ int main(int argc, char* argv[])
 		glDepthFunc(GL_LEQUAL);
 		sphere1.draw();
 
-		skybox.Bind(0);
+		//skybox.Bind(0);
 		cubeMapShader.use();
 		cubeMapShader.setMatrix4("V", view);
 		cubeMapShader.setMatrix4("P", perspective);

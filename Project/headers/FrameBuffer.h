@@ -30,8 +30,8 @@ public:
 	void Unbind();
 	// Deletes the framebuffer
 	void Delete();
-	void FrameBuffer::attachTex2D(Texture& texture);
+	void attachTex2D(Texture& texture);
 
-	void FrameBuffer::attachCubeFace(GLuint cubemapID, int iFace);
+	void attachCubeFace(GLuint cubemapID, int iFace);
 };
 #endif
