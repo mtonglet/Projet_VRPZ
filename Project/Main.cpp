@@ -240,6 +240,7 @@ int main(int argc, char* argv[])
 	std::vector<glm::vec3> lights_positions = {
 		glm::vec3(-8.5, 3.0, 2.0),
 		glm::vec3(7.5, 2.0, 7.5),
+		glm::vec3(0.0,50.0,0.0)
 	};
 	std::vector<glm::vec3> deltas_lighpos;
 	const int lights_number = lights_positions.size();
@@ -333,6 +334,12 @@ int main(int argc, char* argv[])
 	lightShader.setLightsPos(lights_number,lights_positions);
 	lightShader.setFloat("shininess", 32.0f);
 	lightShader.setVector3f("materialColour", materialColour);
+	lightShader.setFloat("lights[2].constant", 1.0);
+	lightShader.setFloat("lights[2].linear", 0.0);
+	lightShader.setFloat("lights[2].quadratic", 0.0);
+	lightShader.setFloat("lights[2].specular_strength", 1.0);
+	lightShader.setFloat("lights[2].diffuse_strength", 0.1);
+
 
 
 	//Texture objects generation
@@ -378,22 +385,25 @@ int main(int argc, char* argv[])
 	glfwSwapInterval(1);
 
 	double init_now = glfwGetTime();
-	double moonSpeed = 0.5;
+	double moonSpeed = 0.2;
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
 		view = camera.GetViewMatrix();
 		glfwPollEvents();
 		double now = glfwGetTime();
+		//moving moon
+		glm::vec3 newMoonPos = glm::vec3(0.0, 50.0 * std::sin(moonSpeed * (now - init_now)), 50.0 * std::cos(moonSpeed * (now - init_now)));
+		modelMoon = glm::mat4(1.0);
+		modelMoon = glm::translate(modelMoon, newMoonPos);
+		modelMoon = glm::scale(modelMoon, glm::vec3(2.0, 2.0, 2.0));
 		//moving light
 
 		auto delta = light_pos + glm::vec3(0.0, 0.0, 6 * std::sin(now));
 		auto deltas = lights_positions;
 		deltas[0] += glm::vec3(0.0, 0.0, 6 * std::sin(now));
+		deltas[2] = newMoonPos;
 		
-		//moving moon
-		modelMoon= glm::mat4(1.0);
-		modelMoon = glm::translate(modelMoon, glm::vec3(0.0, 50.0 * std::sin(moonSpeed * (now - init_now)), 50.0 * std::cos(moonSpeed * (now - init_now))));
-		modelMoon = glm::scale(modelMoon, glm::vec3(2.0, 2.0, 2.0));
+
 
 
 		if (firstLoop) {
