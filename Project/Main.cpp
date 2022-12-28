@@ -182,11 +182,11 @@ int main(int argc, char* argv[])
 	sphere1.makeObject(shader);
 
 //	Element moon(pathS,shader);
-/*
+
 	Object moon(pathS);
 	moon.makeObject(lightShader);
 	glm::vec3 moonPos = glm::vec3(0.0,50.0,0.0);
-*/
+
 	char pathB[] = PATH_TO_OBJECTS "/bunny_small.obj";
 	Object bunny(pathB);
 	bunny.makeObject(classicShader);
@@ -256,7 +256,7 @@ int main(int argc, char* argv[])
 
 	glm::mat4 modelMoon = glm::mat4(1.0);
 	modelMoon = glm::translate(modelMoon, glm::vec3(0.0, 50.0, 0.0));
-	modelMoon = glm::scale(modelMoon, glm::vec3(20.0, 20.0, 20.0));
+	modelMoon = glm::scale(modelMoon, glm::vec3(2.0, 2.0, 2.0));
 
 	glm::mat4 modelBunny = glm::mat4(1.0);
 	modelBunny = glm::translate(modelBunny, glm::vec3(5.0, 4.0, -20.0)); // position of the pink bunny
@@ -415,10 +415,11 @@ int main(int argc, char* argv[])
 				classicShader.setVector3f("colorRGB", glm::vec3(1.0, 0.6, 0.0));
 
 				bunny.draw();
-				/*
+				
+				classicShader.setVector3f("colorRGB", glm::vec3(1.0, 1.0, 0.9));
 				classicShader.setMatrix4("M", modelMoon);
 				moon.draw();
-				*/
+				
 
 
 
@@ -528,10 +529,11 @@ int main(int argc, char* argv[])
 		classicShader.setVector3f("colorRGB", glm::vec3(1.0, 0.6, 0.0));
 
 		bunny.draw();
-		/*
+		
+		classicShader.setVector3f("colorRGB", glm::vec3(1.0, 1.0, 0.9));
 		classicShader.setMatrix4("M", modelMoon);
 		moon.draw();
-		*/
+		
 		//refraction sphere
 		shader.use();
 
@@ -628,10 +630,11 @@ int main(int argc, char* argv[])
 		classicShader.setVector3f("colorRGB", glm::vec3(1.0, 0.6, 0.0));
 
 		bunny.draw();
-		/*
+		
+		classicShader.setVector3f("colorRGB", glm::vec3(1.0, 1.0, 0.9));
 		classicShader.setMatrix4("M", modelMoon);
 		moon.draw();
-		*/
+		
 		//refraction sphere
 		shader.use();
 
