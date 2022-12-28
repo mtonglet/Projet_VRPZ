@@ -377,6 +377,8 @@ int main(int argc, char* argv[])
 	bool firstLoop = true;
 	glfwSwapInterval(1);
 
+	double init_now = glfwGetTime();
+	double moonSpeed = 0.5;
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
 		view = camera.GetViewMatrix();
@@ -387,6 +389,12 @@ int main(int argc, char* argv[])
 		auto delta = light_pos + glm::vec3(0.0, 0.0, 6 * std::sin(now));
 		auto deltas = lights_positions;
 		deltas[0] += glm::vec3(0.0, 0.0, 6 * std::sin(now));
+		
+		//moving moon
+		modelMoon= glm::mat4(1.0);
+		modelMoon = glm::translate(modelMoon, glm::vec3(0.0, 50.0 * std::sin(moonSpeed * (now - init_now)), 50.0 * std::cos(moonSpeed * (now - init_now))));
+		modelMoon = glm::scale(modelMoon, glm::vec3(2.0, 2.0, 2.0));
+
 
 		if (firstLoop) {
 			firstLoop = false;
