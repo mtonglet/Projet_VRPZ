@@ -3,6 +3,8 @@ out/
 .vs/
 build/
 CMakeSettings.json
+Project/CMakeCache.txt
+Project/CMakeFiles/
 
 # Prerequisites
 *.d
