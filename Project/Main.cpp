@@ -173,6 +173,9 @@ int main(int argc, char* argv[])
 	char pathLightV[] = PATH_TO_SHADER "/textureLight.vert";
 	Shader lightShader = Shader(pathLightV, pathLightF);
 
+	//char pathEmitterF[] = PATH_TO_SHADER "/emitter.frag";
+	//char pathEmitterV[] = PATH_TO_SHADER "/emitter.vert";
+	//Shader emitterShader = Shader(pathEmitterV, pathEmitterF);
 
 	char pathS[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
 	Object sphere1(pathS);
