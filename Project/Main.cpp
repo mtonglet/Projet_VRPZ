@@ -482,9 +482,9 @@ int main(int argc, char* argv[])
 				lightShader.setMatrix4("M", modelRoom);
 				lightShader.setMatrix4("itM", inverseModelRoom); //should be modified with regards to R 
 				lightShader.setMatrix4("R", reflection);
-				lightShader.setMatrix4("V", view);
-				lightShader.setMatrix4("P", perspective);
-				lightShader.setVector3f("u_view_pos", camera.Position);
+				lightShader.setMatrix4("V", viewCube);
+				lightShader.setMatrix4("P", projectionCube);
+				lightShader.setVector3f("u_view_pos", cameraCube.Position);
 				//lightShader.setVector3f("light.light_pos", delta);
 
 				lightShader.setLightsPos(lights_number, lights_positions);
