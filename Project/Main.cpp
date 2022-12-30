@@ -270,7 +270,7 @@ int main(int argc, char* argv[])
 	glm::mat4 inverseModelRoom = glm::transpose(glm::inverse(modelRoom));
 
 	glm::mat4 view = camera.GetViewMatrix();
-	glm::mat4 perspective = camera.GetProjectionMatrix(45.0f);
+	glm::mat4 perspective = camera.GetProjectionMatrixCube(45.0f, 0.01f, 100.0f);
 
 	glm::vec3 mirrorCenter = mirrorPos; 
 	glm::mat4 reflection = camera.GetReflectionMatrix(mirrorCenter, mirrorNorm);
@@ -356,7 +356,7 @@ int main(int argc, char* argv[])
 	FrameBuffer framebufferCube(1024,1024);
 
 	Camera cameraCube(glm::vec3(0.0, 4.0, -15.0));
-	glm::mat4 projectionCube = cameraCube.GetProjectionMatrix(50.0f, 1.0f, 0.01f, 100.0f);
+	glm::mat4 projectionCube = cameraCube.GetProjectionMatrixCube(90.0f, 0.01f, 100.0f);
 
 	glm::mat4 viewCube = cameraCube.GetViewCubeMatrix(0);
 
@@ -614,15 +614,15 @@ int main(int argc, char* argv[])
 		glDepthFunc(GL_LEQUAL);
 		sphere1.draw();
 
-		//skybox.Bind(0);
+		skybox.Bind(0);
 		cubeMapShader.use();
 		cubeMapShader.setMatrix4("V", view);
 		cubeMapShader.setMatrix4("P", perspective);
-		//cubeMapShader.setTexUnit("cubemapTexture", 0);
+		cubeMapShader.setTexUnit("cubemapTexture", 0);
 
 		cubeMap.draw();
 		glDepthFunc(GL_LESS);
-
+		
 		//ground 
 		shaderGND.use();
 
@@ -636,7 +636,7 @@ int main(int argc, char* argv[])
 		GNDTex.Bind(0);
 
 		bunnyText.draw();
-
+		
 		shaderGND.setMatrix4("M", modelSol);
 
 		ground.draw();

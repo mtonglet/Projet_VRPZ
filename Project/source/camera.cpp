@@ -87,6 +87,19 @@ glm::mat4 Camera::GetProjectionMatrix(float fov , float ratio , float near , flo
 {
     return glm::perspective(fov, ratio, near, far);
 }
+glm::mat4 Camera::GetProjectionMatrixCube(const float& angleOfView, const float& near, const float& far)
+{
+    // set the basic projection matrix
+    glm::mat4 M(1.0);
+    float scale = 1 / tan(angleOfView * 0.5 * 3.14 / 180);
+    M[0][0] = scale;  //scale the x coordinates of the projected point 
+    M[1][1] = scale;  //scale the y coordinates of the projected point 
+    M[2][2] = -far / (far - near);  //used to remap z to [0,1] 
+    M[3][2] = -far * near / (far - near);  //used to remap z [0,1] 
+    M[2][3] = -1;  //set w = -z 
+    M[3][3] = 0;
+    return M;
+}
 
 glm::mat4 Camera::GetReflectionMatrix(glm::vec3 mirrorP, glm::vec3 mirrorN) {
     glm::mat4 R = glm::mat4(1.0f);
