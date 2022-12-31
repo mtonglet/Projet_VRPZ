@@ -1,13 +1,18 @@
 #include "../headers/emitter.h"
-
+#include<iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 //Emitter model & construction
 
 Emitter::Emitter()
 {
-    particles.resize(100);
+    srand(static_cast <unsigned> (time(0)));
+    particles.resize(1000);
 
     for ( int i = 0 ; i < particles.size() ; ++i ) {
         particles[i].position = randomPos();
+        std::cout << particles[i].position.x << std::endl;
         particles[i].lifetime = randomLife();
     }
 
@@ -44,18 +49,18 @@ Emitter::Emitter()
 glm::vec3 Emitter::randomPos()
 {
     glm::vec3 randomPosition;
-    srand(time(NULL));
-    randomPosition.x = rand() % 10;
+    //srand(time(NULL));
+    randomPosition.x = static_cast <float> (rand()) / static_cast <float> (RAND_MAX)*100-50;
     randomPosition.y = 20;
-    randomPosition.z = rand() % 10;
+    randomPosition.z = static_cast <float> (rand()) / static_cast <float> (RAND_MAX)*100-50;
 
     return randomPosition;
 }
 
 float Emitter::randomLife()
 {
-    srand(time(NULL));
-    float lifeTime = rand() % 2 + 3;
+    //srand(time(NULL));
+    float lifeTime = static_cast <float> (rand()) / static_cast <float> (RAND_MAX)*13;
     return lifeTime;
 }
 

@@ -39,7 +39,7 @@ class Emitter
         };
         std::vector<Particle> particles;
 
-        float positions[400];
+        float positions[4000];
 
         GLuint vertexBuffer, positionBuffer;
 };

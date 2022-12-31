@@ -768,7 +768,7 @@ int main(int argc, char* argv[])
 		glDisable(GL_BLEND);
 
 		//EMITTER
-		emitter.update(0.5f);
+		emitter.update(0.01f);
 
 		emitterShader.use();
 		emitterShader.setMatrix4("P", perspective);
