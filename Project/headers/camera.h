@@ -58,6 +58,8 @@ public:
 
     glm::mat4 GetProjectionMatrix(float fov = 45.0, float ratio = 1.0, float near = 0.01, float far = 100.0);
 
+    glm::mat4 GetProjectionMatrixCube(const float& angleOfView, const float& near, const float& far);
+
     glm::mat4 GetReflectionMatrix(glm::vec3 mirrorP, glm::vec3 mirrorN);
 
     // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)

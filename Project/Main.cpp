@@ -1,5 +1,5 @@
 #include<iostream>
-
+#include<vector>
 //include glad before GLFW to avoid header conflict or define "#define GLFW_INCLUDE_NONE"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -13,11 +13,14 @@
 
 #include "headers/Texture.h"
 #include "headers/camera.h"
-#include "headers/shader.h"
-#include "headers/object.h"
 #include "headers/CubeMap.h"
 #include "headers/FrameBuffer.h"
 #include "headers/Emitter.h"
+#include "headers/shader.h"
+#include "headers/object.h"
+#include "headers/Element.h"
+
+
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -27,10 +30,10 @@ GLuint currentTextSlot = 0;
 const int width = 1024;
 const int height = 1024;
 
-
 void processInput(GLFWwindow* window);
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
+
 float lastX = width / 2.0f;
 float lastY = height / 2.0f;
 bool firstMouse = true;
@@ -91,11 +94,6 @@ Camera camera(glm::vec3(0.0, 0.5, 0.2));
 
 int main(int argc, char* argv[])
 {
-	std::cout << "Welcome to exercice 10: " << std::endl;
-	std::cout << "Implement refraction on an object\n"
-		"\n";
-
-
 	//Boilerplate
 	//Create the OpenGL context 
 	if (!glfwInit()) {
@@ -184,6 +182,12 @@ int main(int argc, char* argv[])
 	Object sphere1(pathS);
 	sphere1.makeObject(shader);
 
+//	Element moon(pathS,shader);
+
+	Object moon(pathS);
+	moon.makeObject(lightShader);
+	glm::vec3 moonPos = glm::vec3(0.0,50.0,0.0);
+
 	char pathB[] = PATH_TO_OBJECTS "/bunny_small.obj";
 	Object bunny(pathB);
 	bunny.makeObject(classicShader);
@@ -205,7 +209,7 @@ int main(int argc, char* argv[])
 
 	char pathplaneH[] = PATH_TO_OBJECTS "/planeH.obj";
 	Object ground(pathplaneH);
-	ground.makeObject(shaderGND,true);
+	ground.makeObject(lightShader,true);
 
 	char pathRoom[] = PATH_TO_OBJECTS "/salon_wood.obj";
 	Object room(pathRoom);
@@ -232,28 +236,43 @@ int main(int argc, char* argv[])
 		}
 	};
 
-
 	glm::vec3 light_pos = glm::vec3(-8.5, 3.0, 2.0);
+	//LIGHTS PARAMETERS
+	//must be less than MAX_LIGHTS_NUMBER defined in textureLight.frag
+	std::vector<glm::vec3> lights_positions = {
+		glm::vec3(-8.5, 3.0, 2.0),
+		glm::vec3(7.5, 2.0, 7.5),
+		glm::vec3(0.0,50.0,0.0)
+	};
+	std::vector<glm::vec3> deltas_lighpos;
+	const int lights_number = lights_positions.size();
 
+	float ambient = 0.2;
+	float diffuse = 0.5;
+	float specular = 0.8;
+	const float lights_params[] = { ambient, diffuse, specular, 1.0, 0.00014, 0.0007 };
 
 	glm::mat4 modelS = glm::mat4(1.0);
-	modelS = glm::translate(modelS, glm::vec3(0.0, 4.0, -15.0)); // position of the object
+	modelS = glm::translate(modelS, glm::vec3(0.0, 4.0, -15.0)); // position of the sphere
 	modelS = glm::scale(modelS, glm::vec3(0.8, 0.8, 0.8));	
 	glm::mat4 inverseModelS = glm::transpose(glm::inverse(modelS));
 
+	glm::mat4 modelMoon = glm::mat4(1.0);
+	modelMoon = glm::translate(modelMoon, glm::vec3(0.0, 50.0, 0.0));
+	modelMoon = glm::scale(modelMoon, glm::vec3(2.0, 2.0, 2.0));
 
 	glm::mat4 modelBunny = glm::mat4(1.0);
-	modelBunny = glm::translate(modelBunny, glm::vec3(5.0, 4.0, -20.0)); // position of the object
+	modelBunny = glm::translate(modelBunny, glm::vec3(5.0, 4.0, -20.0)); // position of the pink bunny
 	modelBunny = glm::scale(modelBunny, glm::vec3(0.8, 0.8, 0.8));
 	glm::mat4 inverseModelBunny = glm::transpose(glm::inverse(modelBunny));
 
 	glm::mat4 modelBunnyText = glm::mat4(1.0);
-	modelBunnyText = glm::translate(modelBunnyText, glm::vec3(-10.0, 4.0, 0.0)); // position of the object
+	modelBunnyText = glm::translate(modelBunnyText, glm::vec3(-10.0, 4.0, 0.0)); // position of the sand-textured bunny
 	modelBunnyText = glm::scale(modelBunnyText, glm::vec3(0.8, 0.8, 0.8));
 	glm::mat4 inverseModelBunnyText = glm::transpose(glm::inverse(modelBunnyText));
 
 	glm::mat4 modelBunnyText2 = glm::mat4(1.0);
-	modelBunnyText2 = glm::translate(modelBunnyText2, glm::vec3(5.0, 4.0, 5.0)); // position of the object
+	modelBunnyText2 = glm::translate(modelBunnyText2, glm::vec3(5.0, 4.0, 5.0)); // position of the bunny
 	modelBunnyText2 = glm::scale(modelBunnyText2, glm::vec3(0.8, 0.8, 0.8));
 	glm::mat4 inverseModelBunnyText2 = glm::transpose(glm::inverse(modelBunnyText2));
 
@@ -267,7 +286,7 @@ int main(int argc, char* argv[])
 	glm::mat4 modelSol = glm::mat4(1.0);
 	modelSol = glm::translate(modelSol, glm::vec3(0.0, 0.0, 0.0));
 	modelSol = glm::scale(modelSol, glm::vec3(100, 100, 100));
-	glm::mat4 inverseModelSol = glm::transpose(glm::inverse(modelSol));
+	glm::mat4 inverseModelSol = glm::transpose(glm::inverse(modelSol));//could be deleted since it is unused
 
 	glm::mat4 modelRoom = glm::mat4(1.0);
 	modelRoom = glm::translate(modelRoom, glm::vec3(0.0, 0.0, 0.0));
@@ -275,14 +294,11 @@ int main(int argc, char* argv[])
 	glm::mat4 inverseModelRoom = glm::transpose(glm::inverse(modelRoom));
 
 	glm::mat4 view = camera.GetViewMatrix();
-	glm::mat4 perspective = camera.GetProjectionMatrix(45.0f);
+	glm::mat4 perspective = camera.GetProjectionMatrixCube(45.0f, 0.01f, 100.0f);
 
 	glm::vec3 mirrorCenter = mirrorPos; 
 	glm::mat4 reflection = camera.GetReflectionMatrix(mirrorCenter, mirrorNorm);
 
-	float ambient = 0.2;
-	float diffuse = 0.5;
-	float specular = 0.8;
 
 	glm::vec3 materialColour = glm::vec3(0.5f, 0.6, 0.8);
 
@@ -299,7 +315,8 @@ int main(int argc, char* argv[])
 	shaderBump.setFloat("light.constant", 1.0);
 	shaderBump.setFloat("light.linear", 0.00014);
 	shaderBump.setFloat("light.quadratic", 0.0007);
-/*	Refraction indices :
+
+	/*	Refraction indices :
 	Air:      1.0	|	Water:    1.33	|
 	Ice:      1.309	|	Glass:    1.52	|	Diamond:  2.42*/
 	shader.use();
@@ -315,14 +332,15 @@ int main(int argc, char* argv[])
 
 	//LIGHT
 	lightShader.use();
+	lightShader.setLightsParams(10, lights_params);
+	lightShader.setLightsPos(lights_number,lights_positions);
 	lightShader.setFloat("shininess", 32.0f);
 	lightShader.setVector3f("materialColour", materialColour);
-	lightShader.setFloat("light.ambient_strength", ambient);
-	lightShader.setFloat("light.diffuse_strength", diffuse);
-	lightShader.setFloat("light.specular_strength", specular);
-	lightShader.setFloat("light.constant", 1.0);
-	lightShader.setFloat("light.linear", 0.14);
-	lightShader.setFloat("light.quadratic", 0.07);
+	lightShader.setFloat("lights[2].constant", 1.0);
+	lightShader.setFloat("lights[2].linear", 0.0);
+	lightShader.setFloat("lights[2].quadratic", 0.0);
+	lightShader.setFloat("lights[2].specular_strength", 1.0);
+	lightShader.setFloat("lights[2].diffuse_strength", 0.1);
 
 
 
@@ -342,12 +360,6 @@ int main(int argc, char* argv[])
 	char pathNormal[] = PATH_TO_TEXTURE "/woodBump.png";
 	Texture normalMap(pathNormal, "normal");
 	
-	//Texture object generation for the ground 
-	//char pathimWB[] = PATH_TO_TEXTURE "/woodBump.png";
-	//Texture roomNorm(pathimWB, GL_TEXTURE_2D);
-
-	
-	
 	
 	std::string PathCM( PATH_TO_TEXTURE "/cubemaps/yokohama3/sky2_");
 	//cube map creation 
@@ -361,7 +373,7 @@ int main(int argc, char* argv[])
 	FrameBuffer framebufferCube(1024,1024);
 
 	Camera cameraCube(glm::vec3(0.0, 4.0, -15.0));
-	glm::mat4 projectionCube = cameraCube.GetProjectionMatrix(50.0f, 1.0f, 0.01f, 100.0f);
+	glm::mat4 projectionCube = cameraCube.GetProjectionMatrixCube(90.0f, 0.01f, 100.0f);
 
 	glm::mat4 viewCube = cameraCube.GetViewCubeMatrix(0);
 
@@ -374,13 +386,27 @@ int main(int argc, char* argv[])
 	bool firstLoop = true;
 	glfwSwapInterval(1);
 
+	double init_now = glfwGetTime();
+	double moonSpeed = 0.2;
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
 		view = camera.GetViewMatrix();
 		glfwPollEvents();
 		double now = glfwGetTime();
+		//moving moon
+		glm::vec3 newMoonPos = glm::vec3(0.0, 50.0 * std::sin(moonSpeed * (now - init_now)), 50.0 * std::cos(moonSpeed * (now - init_now)));
+		modelMoon = glm::mat4(1.0);
+		modelMoon = glm::translate(modelMoon, newMoonPos);
+		modelMoon = glm::scale(modelMoon, glm::vec3(2.0, 2.0, 2.0));
 		//moving light
+
 		auto delta = light_pos + glm::vec3(0.0, 0.0, 6 * std::sin(now));
+		auto deltas = lights_positions;
+		deltas[0] += glm::vec3(0.0, 0.0, 6 * std::sin(now));
+		deltas[2] = newMoonPos;
+		
+
+
 
 		if (firstLoop) {
 			firstLoop = false;
@@ -405,19 +431,28 @@ int main(int argc, char* argv[])
 				classicShader.setMatrix4("P", projectionCube);
 				classicShader.setMatrix4("R", glm::mat4(1.0));
 
+				classicShader.setFloat("alpha", 0.5);
+				classicShader.setVector3f("colorRGB", glm::vec3(1.0, 0.6, 0.0));
+
 				bunny.draw();
+				
+				classicShader.setVector3f("colorRGB", glm::vec3(1.0, 1.0, 0.9));
+				classicShader.setMatrix4("M", modelMoon);
+				moon.draw();
+				
+
 
 
 
 
 				glDepthFunc(GL_LEQUAL);
-				
+
 				cubeMapShader.use();
 				cubeMapShader.setTexUnit("cubemapSampler", 1);
 				cubeMapShader.setMatrix4("V", viewCube);
 				cubeMapShader.setMatrix4("P", projectionCube);
 				skybox.Bind(1);
-				
+
 
 				cubeMap.draw();
 				glDepthFunc(GL_LESS);
@@ -436,17 +471,34 @@ int main(int argc, char* argv[])
 
 				bunnyText.draw();
 
-				shaderGND.setMatrix4("M", modelSol);
-
-				ground.draw();
-
 				// Binds texture so that is appears in rendering
-				GNDTexDirt.Bind(0);
+				GNDTexDirt.Bind(1);
 
 				shaderGND.setMatrix4("M", modelBunnyText2);
 
 				bunnyText.draw(); //same object with different texture and model uniforms
 
+
+				//room (for objects without bump mapping)
+				lightShader.use();
+				lightShader.setMatrix4("M", modelRoom);
+				lightShader.setMatrix4("itM", inverseModelRoom); //should be modified with regards to R 
+				lightShader.setMatrix4("R", reflection);
+				lightShader.setMatrix4("V", viewCube);
+				lightShader.setMatrix4("P", projectionCube);
+				lightShader.setVector3f("u_view_pos", cameraCube.Position);
+				//lightShader.setVector3f("light.light_pos", delta);
+
+				lightShader.setLightsPos(lights_number, lights_positions);
+				lightShader.setTexUnit("tex0", 1);
+
+				// Binds texture so that is appears in rendering to the right unit
+				sapinTex.Bind(1);
+				sapin.draw();
+
+				lightShader.setMatrix4("M", modelSol);
+				GNDTex.Bind(1);
+				ground.draw();
 
 				//room with bump mapping
 				shaderBump.use();
@@ -473,6 +525,7 @@ int main(int argc, char* argv[])
 
 			framebufferCube.Unbind();
 		}
+
 		
 
 		//bind the frambuffer for the reversed scene
@@ -492,8 +545,15 @@ int main(int argc, char* argv[])
 		classicShader.setMatrix4("P", perspective);
 		classicShader.setMatrix4("R", reflection);
 
-		bunny.draw();
+		classicShader.setFloat("alpha", 0.5);
+		classicShader.setVector3f("colorRGB", glm::vec3(1.0, 0.6, 0.0));
 
+		bunny.draw();
+		
+		classicShader.setVector3f("colorRGB", glm::vec3(1.0, 1.0, 0.9));
+		classicShader.setMatrix4("M", modelMoon);
+		moon.draw();
+		
 		//refraction sphere
 		shader.use();
 
@@ -525,21 +585,6 @@ int main(int argc, char* argv[])
 		glDepthFunc(GL_LESS);
 		
 
-		
-		//ground 
-		shaderGND.use();
-
-		shaderGND.setMatrix4("M", modelSol);
-		shaderGND.setMatrix4("V", view);
-		shaderGND.setMatrix4("P", perspective);
-		
-		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
-		shaderGND.setTexUnit("tex0", 0);
-		// Binds texture so that is appears in rendering to the right unit
-		GNDTex.Bind(0);
-
-		ground.draw();
-
 		//room (with bump mapping)
 		shaderBump.use();
 		shaderBump.setMatrix4("M", modelRoom);
@@ -570,16 +615,19 @@ int main(int argc, char* argv[])
 		lightShader.setMatrix4("V", view);
 		lightShader.setMatrix4("P", perspective);
 		lightShader.setVector3f("u_view_pos", camera.Position);
-		lightShader.setVector3f("light.light_pos", delta);
+		lightShader.setLightsPos(lights_number, deltas);
+
 
 		lightShader.setTexUnit("tex0", 0);
 
 		// Binds texture so that is appears in rendering to the right unit
 		sapinTex.Bind(0);
-
 		sapin.draw();
 		
-		
+		lightShader.setMatrix4("M", modelSol);
+		GNDTex.Bind(0);
+		ground.draw();
+
 		// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 		framebufferMirror.Unbind();
 		
@@ -593,14 +641,20 @@ int main(int argc, char* argv[])
 		//draw bunny
 		
 		classicShader.use();
-
 		classicShader.setMatrix4("M", modelBunny);
 		classicShader.setMatrix4("V", view);
 		classicShader.setMatrix4("P", perspective);
 		classicShader.setMatrix4("R", glm::mat4(1.0));
 
-		bunny.draw();
+		classicShader.setFloat("alpha", 0.5);
+		classicShader.setVector3f("colorRGB", glm::vec3(1.0, 0.6, 0.0));
 
+		bunny.draw();
+		
+		classicShader.setVector3f("colorRGB", glm::vec3(1.0, 1.0, 0.9));
+		classicShader.setMatrix4("M", modelMoon);
+		moon.draw();
+		
 		//refraction sphere
 		shader.use();
 
@@ -619,15 +673,15 @@ int main(int argc, char* argv[])
 		glDepthFunc(GL_LEQUAL);
 		sphere1.draw();
 
-		//skybox.Bind(0);
+		skybox.Bind(0);
 		cubeMapShader.use();
 		cubeMapShader.setMatrix4("V", view);
 		cubeMapShader.setMatrix4("P", perspective);
-		//cubeMapShader.setTexUnit("cubemapTexture", 0);
+		cubeMapShader.setTexUnit("cubemapTexture", 0);
 
 		cubeMap.draw();
 		glDepthFunc(GL_LESS);
-
+		
 		//ground 
 		shaderGND.use();
 
@@ -639,12 +693,8 @@ int main(int argc, char* argv[])
 		shaderGND.setTexUnit("tex0", 0);
 		// Binds texture so that is appears in rendering to the right unit
 		GNDTex.Bind(0);
-
 		bunnyText.draw();
 
-		shaderGND.setMatrix4("M", modelSol);
-
-		ground.draw();
 		
 		// Binds texture so that is appears in rendering
 		GNDTexDirt.Bind(0);
@@ -684,14 +734,17 @@ int main(int argc, char* argv[])
 		lightShader.setMatrix4("V", view);
 		lightShader.setMatrix4("P", perspective);
 		lightShader.setVector3f("u_view_pos", camera.Position);
-		lightShader.setVector3f("light.light_pos", delta);
+		lightShader.setLightsPos(lights_number, deltas);
 
 		lightShader.setTexUnit("tex0", 0);
 
 		// Binds texture so that is appears in rendering to the right unit
 		sapinTex.Bind(0);
-
 		sapin.draw();
+
+		lightShader.setMatrix4("M", modelSol);
+		GNDTex.Bind(0);
+		ground.draw();
 
 		// now draw the mirror quad with screen texture
 	    // --------------------------------------------

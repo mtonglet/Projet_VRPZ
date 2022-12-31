@@ -1,8 +1,8 @@
 project("Project")
 
 set(SOURCES_EX_01
-"Main.cpp" "source/shader.cpp" "source/camera.cpp" "source/Texture.cpp" "source/FrameBuffer.cpp" "source/CubeMap.cpp" "source/Emitter.cpp"
-"headers/Texture.h" "headers/camera.h" "headers/shader.h" "headers/object.h" "headers/FrameBuffer.h" "headers/CubeMap.h" "headers/Emitter.h"
+"Main.cpp" "source/shader.cpp" "source/camera.cpp" "source/Texture.cpp" "source/FrameBuffer.cpp" "source/CubeMap.cpp" "source/Emitter.cpp" "source/Element.cpp"
+"headers/Texture.h" "headers/camera.h" "headers/shader.h" "headers/object.h" "headers/FrameBuffer.h" "headers/CubeMap.h" "headers/Emitter.h" "headers/Element.h"
 )
 
 #These commands are there to specify the path to the folder containing the object and textures files as macro

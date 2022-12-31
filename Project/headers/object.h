@@ -15,6 +15,7 @@
 #include<glm/gtc/matrix_transform.hpp>
 
 
+
 /*Principe :
 * On donne le path du fichier -> on lit le fichier
 * 2 �tape
@@ -23,6 +24,7 @@
 * suivant la premi�re lettre : lit les valeur suivant et les met dans un vec puis push dans la bonne liste
 * en gros sotck les data dans une frome de tableau
 */
+
 
 struct Vertex {
 	glm::vec3 Position;
@@ -45,8 +47,12 @@ public:
 
 	glm::mat4 model = glm::mat4(1.0);
 
-
-	Object(const char* path) {
+/*
+	Object() {
+		Object(PATH_TO_OBJECTS "/sphere_smooth.obj");
+	}
+*/
+	Object(const char* path = PATH_TO_OBJECTS "/sphere_smooth.obj") {
 
 		std::ifstream infile(path);
 		//TODO Error management
@@ -193,7 +199,7 @@ public:
 		glBindVertexArray(0);
 		delete[] data;
 
-	}
+	};
 
 
 	//bind the VAO and draw the arrays of triangle

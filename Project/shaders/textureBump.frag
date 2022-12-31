@@ -27,8 +27,6 @@
 
 	uniform float shininess; 
 	
-
-
 	float specularCalculation(vec3 N, vec3 L, vec3 V ){ 
 		vec3 R = reflect (-L,N);  //reflect (-L,N) is  equivalent to //max (2 * dot(N,L) * N - L , 0.0) ;
 		float cosTheta = dot(R , V); 
@@ -59,3 +57,4 @@
 		float light = light.ambient_strength + attenuation * (diffuse + specular); 
 		FragColor = vec4(vec3(texture(tex0, texCoord)) * vec3(light), 1.0); 
 	}
+	

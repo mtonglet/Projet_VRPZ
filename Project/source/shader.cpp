@@ -43,6 +43,10 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
     ID = compileProgram(vertex, fragment);
 } 
 
+Shader::Shader():Shader("../shaders/classic.vert", "../shaders/classic.frag") {
+
+}
+
 //Constructor that takes the geometry shader into account.
 Shader::Shader(const char* vertexPath, const char* geometryPath, const char* fragmentPath)
 {
@@ -102,6 +106,14 @@ void Shader::use() {
     glUseProgram(ID);
 }
 
+
+//Unfinished
+//void Shader::drawElements() {
+//    this->use();
+//    for (Element e : this->attachedElements) {
+//        e.display();
+//    }
+//}
 void Shader::setInteger(const GLchar* name, GLint value) {
     glUniform1i(glGetUniformLocation(ID, name), value);
 }
@@ -116,6 +128,40 @@ void Shader::setVector3f(const GLchar* name, GLfloat x, GLfloat y, GLfloat z) {
 
 void Shader::setVector3f(const GLchar* name, const glm::vec3& value) {
     glUniform3f(glGetUniformLocation(ID, name), value.x, value.y, value.z);
+}
+
+
+void Shader::setLightsParams(const int maxLightsNumber, const float(&params)[6]) {
+    for (int i = 0; i < maxLightsNumber; i++) {
+        std::string name = "lights[" + std::to_string(i) + "].";
+
+        std::string param;
+        param = name + "ambient_strength";
+        this->setFloat(param.c_str(), params[0]);
+        param = name + "diffuse_strength";
+        this->setFloat(param.c_str(), params[1]);
+        param = name + "specular_strength";
+        this->setFloat(param.c_str(), params[2]);
+        param = name + "constant";
+        this->setFloat(param.c_str(), params[3]);
+        param = name + "linear";
+        this->setFloat(param.c_str(), params[4]);
+        param = name + "quadratic";
+        this->setFloat(param.c_str(), params[5]);
+    }
+}
+
+
+void Shader::setLightsPos(const int nLights, std::vector<glm::vec3> &array) {
+    this->setInteger("n_lights", nLights);
+    
+    for (int i = 0; i < nLights; i++) {
+        std::string name = "lights["+std::to_string(i)+"].";
+        
+        std::string param;
+        param = name + "light_pos";
+        this->setVector3f(param.c_str(), array[i]);
+    }   
 }
 
 void Shader::setMatrix4(const GLchar* name, const glm::mat4& matrix) {
@@ -143,8 +189,8 @@ void Shader::setUniformParticleSize(const float particleSize)
     this->uniform1f(this->u_particleSize, particleSize);
 }
 **/
-// Assigns a texture unit to a texture 
 
+// Assigns a texture unit to a texture 
 void Shader::setTexUnit(const GLchar* name, GLuint unit) {
     // Shader needs to be activated before changing the value of a uniform
     use();
