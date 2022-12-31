@@ -32,6 +32,7 @@ public:
     void setVector3f(const GLchar* name, const glm::vec3& value);
     void setMatrix4(const GLchar* name, const glm::mat4& matrix);
     void setTexUnit(const GLchar* name, GLuint unit);
+    void setUniformParticleSize(const GLchar* name, const float particleSize);
 
 private:
     GLuint compileShader(std::string shaderCode, GLenum shaderType);

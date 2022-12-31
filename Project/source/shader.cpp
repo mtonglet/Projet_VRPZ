@@ -121,6 +121,28 @@ void Shader::setVector3f(const GLchar* name, const glm::vec3& value) {
 void Shader::setMatrix4(const GLchar* name, const glm::mat4& matrix) {
     glUniformMatrix4fv(glGetUniformLocation(ID, name), 1, GL_FALSE, glm::value_ptr(matrix));
 } 
+
+void Shader::setUniformParticleSize(const GLchar* name, const float particleSize) {
+    glUniform1f(glGetUniformLocation(ID, name), particleSize);
+}
+
+//ParticleShader functions
+/**
+void Shader::setUniformViewMatrix(const mat4& M_v)
+{
+    this->uniformMatrix4fv(this->u_M_v , M_v);
+}
+
+void Shader::setUniformProjectionMatrix(const mat4& M_p)
+{
+    this->uniformMatrix4fv(this->u_M_p, M_p);
+}
+
+void Shader::setUniformParticleSize(const float particleSize)
+{
+    this->uniform1f(this->u_particleSize, particleSize);
+}
+**/
 // Assigns a texture unit to a texture 
 
 void Shader::setTexUnit(const GLchar* name, GLuint unit) {

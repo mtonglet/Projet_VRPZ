@@ -17,6 +17,7 @@
 #include "headers/object.h"
 #include "headers/CubeMap.h"
 #include "headers/FrameBuffer.h"
+#include "headers/Emitter.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -175,9 +176,9 @@ int main(int argc, char* argv[])
 	char pathLightV[] = PATH_TO_SHADER "/textureLight.vert";
 	Shader lightShader = Shader(pathLightV, pathLightF);
 
-	//char pathEmitterF[] = PATH_TO_SHADER "/emitter.frag";
-	//char pathEmitterV[] = PATH_TO_SHADER "/emitter.vert";
-	//Shader emitterShader = Shader(pathEmitterV, pathEmitterF);
+	char pathEmitterF[] = PATH_TO_SHADER "/emitter.frag";
+	char pathEmitterV[] = PATH_TO_SHADER "/emitter.vert";
+	Shader emitterShader = Shader(pathEmitterV, pathEmitterF);
 
 	char pathS[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
 	Object sphere1(pathS);
@@ -214,6 +215,7 @@ int main(int argc, char* argv[])
 	Object sapin(pathSapin);
 	sapin.makeObject(lightShader);
 
+	Emitter emitter;
 
 	double prev = 0;
 	int deltaFrame = 0;
@@ -711,6 +713,16 @@ int main(int argc, char* argv[])
 		glEnable(GL_BLEND);
 		mirror.draw();
 		glDisable(GL_BLEND);
+
+		//EMITTER
+		emitter.update(0.5f);
+
+		emitterShader.use();
+		emitterShader.setMatrix4("P", perspective);
+		emitterShader.setMatrix4("V", view);
+		emitterShader.setUniformParticleSize("particleSize", 0.1f);
+
+		emitter.draw(emitterShader);
 		
 
 		// Enable the depth buffer
