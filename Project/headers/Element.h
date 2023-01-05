@@ -27,7 +27,7 @@ public:
     void initialize(float x, float y, float z,float scale);
     void display(glm::mat4 view, glm::mat4 projection);
     void updatePos(double time);
-    void Element::move(glm::vec3 newPos);
+    void Element::move(glm::vec3 newPos, float scale);
     void Element::move(float newPosX, float newPosY, float newPosZ);
 
     glm::vec3 getPos();

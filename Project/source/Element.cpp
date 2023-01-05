@@ -4,7 +4,7 @@
 Element::Element()
 {
 	char path[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
-	shader = Shader();
+	Shader shader = Shader();
 	Element(path, shader);
 }
 
@@ -46,8 +46,12 @@ void Element::updatePos(double time) {
 
 }
 
-void Element::move(glm::vec3 newPos) {
-
+void Element::move(glm::vec3 newPos,float scale = 1.0) {
+	glm::mat4 m = glm::mat4(1.0);
+	m = glm::translate(m, newPos);
+	m = glm::scale(m, glm::vec3(scale, scale, scale));
+	this->M = m;
+	this->invM = glm::transpose(glm::inverse(m));
 }
 
 void Element::move(float newPosX, float newPosY, float newPosZ) {

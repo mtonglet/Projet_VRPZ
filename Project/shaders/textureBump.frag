@@ -46,6 +46,7 @@
 	//	FragColor = vec4(vec3(texture(tex0, texCoord)) * vec3(light), 1.0); 
 	//}
 
+
 	void main() { 
 		vec3 N = normalize(texture(normal0, texCoord).xyz * 2.0f - 1.0f);
 		vec3 L = normalize(lightPos - fragCoord) ; 
@@ -54,7 +55,10 @@
 		float diffuse = light.diffuse_strength * max(dot(N,L),0.0);
 		float distance = length(lightPos - fragCoord) + length(u_view_pos - fragCoord);
 		float attenuation = 1 / (light.constant + light.linear * distance + light.quadratic * distance * distance);
-		float light = light.ambient_strength + attenuation * (diffuse + specular); 
+		float light = light.ambient_strength ;
+		if (dot(N,L) >=0){
+			light += attenuation * (diffuse + specular) ;
+		}
 		FragColor = vec4(vec3(texture(tex0, texCoord)) * vec3(light), 1.0); 
 	}
 	
