@@ -222,6 +222,14 @@ int main(int argc, char* argv[])
 	Object chaise(pathChaise);
 	chaise.makeObject(lightShader);
 
+	char pathMeuble[] = PATH_TO_OBJECTS "/meuble.obj";
+	Object meuble(pathMeuble);
+	meuble.makeObject(lightShader);
+
+	char pathPeinture[] = PATH_TO_OBJECTS "/peinture.obj";
+	Object peinture(pathPeinture);
+	peinture.makeObject(lightShader);
+
 	Emitter emitter;
 
 	double prev = 0;
@@ -312,6 +320,16 @@ int main(int argc, char* argv[])
 	//modelChaise = glm::rotate(modelChaise, glm::radians(180.0f), glm::vec3(0.0, 1.0, 0.0));
 	glm::mat4 inversemodelChaise = glm::transpose(glm::inverse(modelChaise));
 
+	glm::mat4 modelMeuble = glm::mat4(1.0);				//Z	  //X  //Y
+	modelMeuble = glm::translate(modelMeuble, glm::vec3(1.0, 0.0, -7.0));
+	modelMeuble = glm::scale(modelMeuble, glm::vec3(3.0, 3.0, 3.0));
+	glm::mat4 inversemodelMeuble = glm::transpose(glm::inverse(modelMeuble));
+
+	glm::mat4 modelPeinture = glm::mat4(1.0);				//Z	  //X  //Y
+	modelPeinture = glm::translate(modelPeinture, glm::vec3(1.0, 0.0, -7.0));
+	modelPeinture = glm::scale(modelPeinture, glm::vec3(3.0, 3.0, 3.0));
+	glm::mat4 inversemodelPeinture = glm::transpose(glm::inverse(modelPeinture));
+
 	glm::mat4 view = camera.GetViewMatrix();
 	glm::mat4 perspective = camera.GetProjectionMatrixCube(45.0f, 0.01f, 100.0f);
 
@@ -384,6 +402,12 @@ int main(int argc, char* argv[])
 
 	char pathimChaise[] = PATH_TO_TEXTURE "/texture_chaise.png";
 	Texture chaiseTex(pathimChaise, "");
+
+	char pathimMeuble[] = PATH_TO_TEXTURE "/texture_meuble.png";
+	Texture meubleTex(pathimMeuble, "");
+
+	char pathimPeinture[] = PATH_TO_TEXTURE "/texture_peinture.jpg";
+	Texture peintureTex(pathimPeinture, "");
 	
 	
 	std::string PathCM( PATH_TO_TEXTURE "/cubemaps/yokohama3/sky2_");
@@ -527,6 +551,12 @@ int main(int argc, char* argv[])
 				chaiseTex.Bind(1);
 				chaise.draw();
 
+				meubleTex.Bind(1);
+				meuble.draw();
+
+				peintureTex.Bind(1);
+				peinture.draw();
+
 				lightShader.setMatrix4("M", modelSol);
 				GNDTex.Bind(1);
 				ground.draw();
@@ -667,6 +697,12 @@ int main(int argc, char* argv[])
 
 		chaiseTex.Bind(0);
 		chaise.draw();
+
+		meubleTex.Bind(0);
+		meuble.draw();
+
+		peintureTex.Bind(0);
+		peinture.draw();
 		
 		lightShader.setMatrix4("M", modelSol);
 		GNDTex.Bind(0);
@@ -799,6 +835,14 @@ int main(int argc, char* argv[])
 		lightShader.setMatrix4("M", modelChaise);
 		chaiseTex.Bind(0);
 		chaise.draw();
+
+		lightShader.setMatrix4("M", modelMeuble);
+		meubleTex.Bind(0);
+		meuble.draw();
+
+		lightShader.setMatrix4("M", modelPeinture);
+		peintureTex.Bind(0);
+		peinture.draw();
 
 		lightShader.setMatrix4("M", modelSol);
 		GNDTex.Bind(0);
