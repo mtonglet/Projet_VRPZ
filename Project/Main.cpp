@@ -770,7 +770,7 @@ int main(int argc, char* argv[])
 		classicShader.setFloat("alpha", 0.5);
 		classicShader.setVector3f("colorRGB", glm::vec3(1.0, 0.6, 0.0));
 
-		bunny.draw();
+		//bunny.draw();
 		
 		classicShader.setVector3f("colorRGB", glm::vec3(1.0, 1.0, 0.9));
 		classicShader.setMatrix4("M", modelMoon);
@@ -794,7 +794,7 @@ int main(int argc, char* argv[])
 
 		
 		glDepthFunc(GL_LEQUAL);
-		sphere1.draw();
+		//sphere1.draw();
 
 		skybox.Bind(0);
 		cubeMapShader.use();
@@ -816,7 +816,7 @@ int main(int argc, char* argv[])
 		shaderGND.setTexUnit("tex0", 0);
 		// Binds texture so that is appears in rendering to the right unit
 		GNDTex.Bind(0);
-		bunnyText.draw();
+		//bunnyText.draw();
 
 		
 		// Binds texture so that is appears in rendering
@@ -824,7 +824,7 @@ int main(int argc, char* argv[])
 
 		shaderGND.setMatrix4("M", modelBunnyText2);
 
-		bunnyText.draw(); //same object with different texture and model uniforms
+		//bunnyText.draw(); //same object with different texture and model uniforms
 
 
 		//room with bump mapping
