@@ -226,9 +226,17 @@ int main(int argc, char* argv[])
 	Object meuble(pathMeuble);
 	meuble.makeObject(lightShader);
 
-	char pathPeinture[] = PATH_TO_OBJECTS "/peinture.obj";
+	char pathPeinture[] = PATH_TO_OBJECTS "/peintureRPZ.obj";
 	Object peinture(pathPeinture);
 	peinture.makeObject(lightShader);
+
+	char pathWoodFloor[] = PATH_TO_OBJECTS "/woodfloor.obj";
+	Object woodfloor(pathWoodFloor);
+	woodfloor.makeObject(lightShader);
+
+	char pathWoodParvis[] = PATH_TO_OBJECTS "/woodparvis.obj";
+	Object woodparvis(pathWoodParvis);
+	woodparvis.makeObject(lightShader);
 
 	Emitter emitter;
 
@@ -314,21 +322,31 @@ int main(int argc, char* argv[])
 	glm::mat4 inversemodelSapin = glm::transpose(glm::inverse(modelSapin));
 
 	glm::mat4 modelChaise = glm::mat4(1.0);				//Z	  //X  //Y
-	modelChaise = glm::translate(modelChaise, glm::vec3(3.0, 0.0, -22.0));
-	modelChaise = glm::scale(modelChaise, glm::vec3(3.0, 3.0, 3.0));
+	modelChaise = glm::translate(modelChaise, glm::vec3(3.0, 0.0, -26.0));
+	modelChaise = glm::scale(modelChaise, glm::vec3(4.0, 4.0, 4.0));
 	//rotattion not working yet
 	//modelChaise = glm::rotate(modelChaise, glm::radians(180.0f), glm::vec3(0.0, 1.0, 0.0));
 	glm::mat4 inversemodelChaise = glm::transpose(glm::inverse(modelChaise));
 
 	glm::mat4 modelMeuble = glm::mat4(1.0);				//Z	  //X  //Y
 	modelMeuble = glm::translate(modelMeuble, glm::vec3(1.0, 0.0, -7.0));
-	modelMeuble = glm::scale(modelMeuble, glm::vec3(3.0, 3.0, 3.0));
+	modelMeuble = glm::scale(modelMeuble, glm::vec3(4.0, 4.0, 4.0));
 	glm::mat4 inversemodelMeuble = glm::transpose(glm::inverse(modelMeuble));
 
 	glm::mat4 modelPeinture = glm::mat4(1.0);				//Z	  //X  //Y
-	modelPeinture = glm::translate(modelPeinture, glm::vec3(1.0, 0.0, -7.0));
-	modelPeinture = glm::scale(modelPeinture, glm::vec3(3.0, 3.0, 3.0));
+	modelPeinture = glm::translate(modelPeinture, glm::vec3(-9.0, -3.50, 0.0));
+	modelPeinture = glm::scale(modelPeinture, glm::vec3(2.0, 2.0, 2.0));
 	glm::mat4 inversemodelPeinture = glm::transpose(glm::inverse(modelPeinture));
+
+	glm::mat4 modelWoodFloor = glm::mat4(1.0);				//Z	  //X  //Y
+	modelWoodFloor = glm::translate(modelWoodFloor, glm::vec3(0.0, 0.05, 0.0));
+	modelWoodFloor = glm::scale(modelWoodFloor, glm::vec3(3.0, 3.0, 3.0));
+	glm::mat4 inversemodelWoodFloor = glm::transpose(glm::inverse(modelWoodFloor));
+
+	glm::mat4 modelWoodParvis = glm::mat4(1.0);				//Z	  //X  //Y
+	modelWoodParvis = glm::translate(modelWoodParvis, glm::vec3(0.0, 0.0, 0.0));
+	modelWoodParvis = glm::scale(modelWoodParvis, glm::vec3(3.0, 3.0, 3.0));
+	glm::mat4 inversemodelWoodParvis = glm::transpose(glm::inverse(modelWoodParvis));
 
 	glm::mat4 view = camera.GetViewMatrix();
 	glm::mat4 perspective = camera.GetProjectionMatrixCube(45.0f, 0.01f, 100.0f);
@@ -406,8 +424,14 @@ int main(int argc, char* argv[])
 	char pathimMeuble[] = PATH_TO_TEXTURE "/texture_meuble.png";
 	Texture meubleTex(pathimMeuble, "");
 
-	char pathimPeinture[] = PATH_TO_TEXTURE "/texture_peinture.jpg";
+	char pathimPeinture[] = PATH_TO_TEXTURE "/texture_rpz.jpg";
 	Texture peintureTex(pathimPeinture, "");
+
+	char pathimWoodFloor[] = PATH_TO_TEXTURE "/texture_woodfloor.jpeg";
+	Texture woodFloorTex(pathimWoodFloor, "");
+
+	char pathimWoodParvis[] = PATH_TO_TEXTURE "/texture_woodparvis.jpeg";
+	Texture woodParvisTex(pathimWoodParvis, "");
 	
 	
 	std::string PathCM( PATH_TO_TEXTURE "/cubemaps/yokohama3/sky2_");
@@ -557,6 +581,12 @@ int main(int argc, char* argv[])
 				peintureTex.Bind(1);
 				peinture.draw();
 
+				woodFloorTex.Bind(1);
+				woodfloor.draw();
+
+				woodParvisTex.Bind(1);
+				woodparvis.draw();
+
 				lightShader.setMatrix4("M", modelSol);
 				GNDTex.Bind(1);
 				ground.draw();
@@ -703,6 +733,12 @@ int main(int argc, char* argv[])
 
 		peintureTex.Bind(0);
 		peinture.draw();
+
+		woodFloorTex.Bind(0);
+		woodfloor.draw();
+
+		woodParvisTex.Bind(0);
+		woodparvis.draw();
 		
 		lightShader.setMatrix4("M", modelSol);
 		GNDTex.Bind(0);
@@ -843,6 +879,14 @@ int main(int argc, char* argv[])
 		lightShader.setMatrix4("M", modelPeinture);
 		peintureTex.Bind(0);
 		peinture.draw();
+
+		lightShader.setMatrix4("M", modelWoodFloor);
+		woodFloorTex.Bind(0);
+		woodfloor.draw();
+
+		woodParvisTex.Bind(0);
+		woodparvis.draw();
+
 
 		lightShader.setMatrix4("M", modelSol);
 		GNDTex.Bind(0);
