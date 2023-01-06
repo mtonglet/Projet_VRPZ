@@ -218,6 +218,10 @@ int main(int argc, char* argv[])
 	Object sapin(pathSapin);
 	sapin.makeObject(lightShader);
 
+	char pathChaise[] = PATH_TO_OBJECTS "/chaise_salon.obj";
+	Object chaise(pathChaise);
+	chaise.makeObject(lightShader);
+
 	Emitter emitter;
 
 	double prev = 0;
@@ -296,6 +300,18 @@ int main(int argc, char* argv[])
 	modelRoom = glm::scale(modelRoom, glm::vec3(3.0, 3.0, 3.0));
 	glm::mat4 inverseModelRoom = glm::transpose(glm::inverse(modelRoom));
 
+	glm::mat4 modelSapin = glm::mat4(1.0);				//Z	  //X  //Y
+	modelSapin = glm::translate(modelSapin, glm::vec3(-5.0, 0.0, -5.0));
+	modelSapin = glm::scale(modelSapin, glm::vec3(3.0, 3.0, 3.0));
+	glm::mat4 inversemodelSapin = glm::transpose(glm::inverse(modelSapin));
+
+	glm::mat4 modelChaise = glm::mat4(1.0);				//Z	  //X  //Y
+	modelChaise = glm::translate(modelChaise, glm::vec3(3.0, 0.0, -22.0));
+	modelChaise = glm::scale(modelChaise, glm::vec3(3.0, 3.0, 3.0));
+	//rotattion not working yet
+	//modelChaise = glm::rotate(modelChaise, glm::radians(180.0f), glm::vec3(0.0, 1.0, 0.0));
+	glm::mat4 inversemodelChaise = glm::transpose(glm::inverse(modelChaise));
+
 	glm::mat4 view = camera.GetViewMatrix();
 	glm::mat4 perspective = camera.GetProjectionMatrixCube(45.0f, 0.01f, 100.0f);
 
@@ -365,6 +381,9 @@ int main(int argc, char* argv[])
 
 	char pathNormal[] = PATH_TO_TEXTURE "/woodBump.png";
 	Texture normalMap(pathNormal, "normal");
+
+	char pathimChaise[] = PATH_TO_TEXTURE "/texture_chaise.png";
+	Texture chaiseTex(pathimChaise, "");
 	
 	
 	std::string PathCM( PATH_TO_TEXTURE "/cubemaps/yokohama3/sky2_");
@@ -505,6 +524,9 @@ int main(int argc, char* argv[])
 				sapinTex.Bind(1);
 				sapin.draw();
 
+				chaiseTex.Bind(1);
+				chaise.draw();
+
 				lightShader.setMatrix4("M", modelSol);
 				GNDTex.Bind(1);
 				ground.draw();
@@ -642,6 +664,9 @@ int main(int argc, char* argv[])
 		// Binds texture so that is appears in rendering to the right unit
 		sapinTex.Bind(0);
 		sapin.draw();
+
+		chaiseTex.Bind(0);
+		chaise.draw();
 		
 		lightShader.setMatrix4("M", modelSol);
 		GNDTex.Bind(0);
@@ -767,8 +792,13 @@ int main(int argc, char* argv[])
 		lightShader.setTexUnit("tex0", 0);
 
 		// Binds texture so that is appears in rendering to the right unit
+		lightShader.setMatrix4("M", modelSapin);
 		sapinTex.Bind(0);
 		sapin.draw();
+
+		lightShader.setMatrix4("M", modelChaise);
+		chaiseTex.Bind(0);
+		chaise.draw();
 
 		lightShader.setMatrix4("M", modelSol);
 		GNDTex.Bind(0);

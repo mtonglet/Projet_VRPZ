@@ -50,7 +50,7 @@ glm::vec3 Emitter::randomPos()
 {
     glm::vec3 randomPosition;
     //srand(time(NULL));
-    randomPosition.x = static_cast <float> (rand()) / static_cast <float> (RAND_MAX)*100-50;
+    randomPosition.x = static_cast <float> (rand()) / static_cast <float> (RAND_MAX)*100+10;
     randomPosition.y = 20;
     randomPosition.z = static_cast <float> (rand()) / static_cast <float> (RAND_MAX)*100-50;
 
