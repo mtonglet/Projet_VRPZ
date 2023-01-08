@@ -86,11 +86,11 @@
 		//vec3 total_light  =  Emitted; //
 		//TODO: initialize with directional light from the sun/moon
 		float dirli = calcDirLight(N);
-		vec3 total_light = vec3(dirli);
+		vec3 total_light = vec3(0.0);//dirli);
 
 		if (lampsActivated){
 			for (int i = 1 ; i < n_lights ; i++){
-				//total_light += vec3(calcLight(i,N));
+				total_light += vec3(calcLight(i,N));
 			}
 		}
 		for (int i = 1 ; i < n_lights ; i++){
