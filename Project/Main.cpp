@@ -396,8 +396,8 @@ int main(int argc, char* argv[])
 	lightShader.setFloat("lights[0].linear", 0.0);
 	lightShader.setFloat("lights[0].quadratic", 0.0);
 	lightShader.setFloat("lights[0].ambient_strength", 0.35);
-	lightShader.setFloat("lights[0].diffuse_strength", 0.2);
-	lightShader.setFloat("lights[0].specular_strength", 0.2);
+	lightShader.setFloat("lights[0].diffuse_strength", 0.75);
+	lightShader.setFloat("lights[0].specular_strength", 0.25);
 
 
 
@@ -467,7 +467,7 @@ int main(int argc, char* argv[])
 		glfwPollEvents();
 		double now = glfwGetTime();
 		//moving moon
-		glm::vec3 newMoonPos = glm::vec3(-50.0 * std::cos(moonSpeed * (now - init_now)) , 50.0 * std::sin(moonSpeed * (now - init_now)), 0.0);
+		glm::vec3 newMoonPos = glm::vec3(50.0 * std::sin(moonSpeed * (now - init_now)) , 50.0 * std::cos(moonSpeed * (now - init_now)), 0.0);
 		modelMoon = glm::mat4(1.0);
 		modelMoon = glm::translate(modelMoon, newMoonPos);
 		modelMoon = glm::scale(modelMoon, glm::vec3(2.0, 2.0, 2.0));
@@ -476,9 +476,11 @@ int main(int argc, char* argv[])
 
 		//moving lights
 		auto delta = light_pos + glm::vec3(0.0, 0.0, 6 * std::sin(now));
-		auto deltas = lights_positions;
-		deltas[1] += glm::vec3(0.0, 0.0, 6 * std::sin(now));
-		deltas[0] = newMoonPos;
+		lights_positions[1] = delta;
+		lights_positions[0] = newMoonPos;
+//		auto deltas = lights_positions;
+//		deltas[1] += glm::vec3(0.0, 0.0, 6 * std::sin(now));
+//		deltas[0] = newMoonPos;
 		
 		float moonAmbientValue = glm::max(0.0, 0.14 * newMoonPos.y / 50.0);
 
@@ -555,7 +557,7 @@ int main(int argc, char* argv[])
 
 				//room (for objects without bump mapping)
 				lightShader.use();
-				lightShader.setFloat("lights[2].ambient_strength", moonAmbientValue);
+				//lightShader.setFloat("lights[2].ambient_strength", moonAmbientValue);
 				lightShader.setMatrix4("M", modelRoom);
 				lightShader.setMatrix4("itM", inverseModelRoom); //should be modified with regards to R 
 				lightShader.setMatrix4("R", glm::mat4(1.0));
@@ -709,14 +711,14 @@ int main(int argc, char* argv[])
 
 		//room (for objects without bump mapping)
 		lightShader.use();
-		lightShader.setFloat("lights[2].ambient_strength", moonAmbientValue);
+		//lightShader.setFloat("lights[2].ambient_strength", moonAmbientValue);
 		lightShader.setMatrix4("M", modelRoom);
 		lightShader.setMatrix4("itM", inverseModelRoom); //should be modified with regards to R 
 		lightShader.setMatrix4("R", reflection);
 		lightShader.setMatrix4("V", view);
 		lightShader.setMatrix4("P", perspective);
 		lightShader.setVector3f("u_view_pos", camera.Position);
-		lightShader.setLightsPos(lights_number, deltas);
+		lightShader.setLightsPos(lights_number, lights_positions);
 
 		lightShader.setTexUnit("tex0", 0);
 
@@ -851,14 +853,14 @@ int main(int argc, char* argv[])
 
 		//room (for objects without bump mapping)
 		lightShader.use();
-		lightShader.setFloat("lights[2].ambient_strength", moonAmbientValue);
+		//lightShader.setFloat("lights[2].ambient_strength", moonAmbientValue);
 		lightShader.setMatrix4("M", modelRoom);
 		lightShader.setMatrix4("itM", inverseModelRoom); //should be modified with regards to R 
 		lightShader.setMatrix4("R", glm::mat4(1.0));
 		lightShader.setMatrix4("V", view);
 		lightShader.setMatrix4("P", perspective);
 		lightShader.setVector3f("u_view_pos", camera.Position);
-		lightShader.setLightsPos(lights_number, deltas);
+		lightShader.setLightsPos(lights_number, lights_positions);
 
 		lightShader.setTexUnit("tex0", 0);
 
