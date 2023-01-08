@@ -38,18 +38,20 @@
 	}
 
 	
-	//changes by Morgan
-//	void main() { 
-//		vec3 N = normalize(v_normal);
-//		vec3 L = normalize(light.light_pos - v_frag_coord) ; 
-//		vec3 V = normalize(u_view_pos - v_frag_coord); 
-//		float specular = specularCalculation( N, L, V); 
-//		float diffuse = light.diffuse_strength * max(dot(N,L),0.0);
-//		float distance = length(light.light_pos - v_frag_coord) + length(u_view_pos - v_frag_coord);
-//		float attenuation = 1 / (light.constant + light.linear * distance + light.quadratic * distance * distance);
-//		float light = light.ambient_strength + attenuation * (diffuse + specular); 
-//		FragColor = vec4(vec3(texture(tex0, v_tex)) * vec3(light), 1.0); 
-//	}
+	float calcDirLight(vec3 N){
+		vec3 L = normalize(-lights[0].light_pos) ; 
+		vec3 V = normalize(u_view_pos - v_frag_coord); 
+
+		float specular = specularCalculation( N, L, V); 
+		float diffuse = lights[0].diffuse_strength * max(dot(N,L),0.0);
+		
+		float light = lights[0].ambient_strength + diffuse + specular;
+
+		if (dot(N,L) <=0){
+			light = 0.0; //lights[0].ambient_strength ;
+		}
+		return light;
+	}
 
 
 	float calcLight(int i, vec3 N){
@@ -60,7 +62,8 @@
 		float distance = length(lights[i].light_pos - v_frag_coord) + length(u_view_pos - v_frag_coord);
 		float attenuation = 1 / (lights[i].constant + lights[i].linear * distance + lights[i].quadratic * distance * distance);
 		//todo : add some 'emitted' light for the moon
-		float light = lights[i].ambient_strength + attenuation * (diffuse + specular);
+		//float light = lights[i].ambient_strength + attenuation * (diffuse + specular);
+		float light =  attenuation * (diffuse + specular);
 		if (dot(N,L) <=0){
 			light = 0.0;//light.ambient_strength ;
 		}
@@ -70,10 +73,12 @@
 	void main() { 
 		vec3 N = normalize(v_normal);
 
-		vec3 total_light  = vec3(Ambient) + Emitted; //
+		//vec3 total_light  = vec3(Ambient) + Emitted; //
 		//TODO: initialize with directional light from the sun/moon
-
-		for (int i = 0 ; i < n_lights ; i++){
+		float dirli = calcDirLight(N);
+		vec3 total_light = vec3(dirli);
+		
+		for (int i = 1 ; i < n_lights ; i++){
 			total_light += vec3(calcLight(i,N));
 		}
 

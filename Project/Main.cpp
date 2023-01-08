@@ -259,11 +259,10 @@ int main(int argc, char* argv[])
 	//LIGHTS PARAMETERS
 	//must be less than MAX_LIGHTS_NUMBER defined in textureLight.frag
 	std::vector<glm::vec3> lights_positions = {
+		glm::vec3(0.0,50.0,0.0), //moon
 		light_pos,
-		glm::vec3(7.5, 2.0, 7.5),
-		glm::vec3(0.0,50.0,0.0) //moon
+		glm::vec3(7.5, 2.0, 7.5)
 	};
-	std::vector<glm::vec3> deltas_lighpos;
 	const int lights_number = lights_positions.size();
 
 	float ambient = 0.3;
@@ -393,12 +392,12 @@ int main(int argc, char* argv[])
 	lightShader.setLightsPos(lights_number,lights_positions);
 	lightShader.setFloat("shininess", 32.0f);
 	lightShader.setVector3f("materialColour", materialColour);
-	lightShader.setFloat("lights[2].constant", 1.0);
-	lightShader.setFloat("lights[2].linear", 0.0);
-	lightShader.setFloat("lights[2].quadratic", 0.0);
-	lightShader.setFloat("lights[2].ambient_strength", 0.15);
-	lightShader.setFloat("lights[2].diffuse_strength", 0.1);
-	lightShader.setFloat("lights[2].specular_strength", 0.1);
+	lightShader.setFloat("lights[0].constant", 1.0);
+	lightShader.setFloat("lights[0].linear", 0.0);
+	lightShader.setFloat("lights[0].quadratic", 0.0);
+	lightShader.setFloat("lights[0].ambient_strength", 0.35);
+	lightShader.setFloat("lights[0].diffuse_strength", 0.2);
+	lightShader.setFloat("lights[0].specular_strength", 0.2);
 
 
 
@@ -475,11 +474,11 @@ int main(int argc, char* argv[])
 //		lightShader.setFloat("lights[2].ambient_strength", (float) glm::abs(newMoonPos.y));
 //		elem_moon.move(newMoonPos,2.0);
 
-		//moving light
+		//moving lights
 		auto delta = light_pos + glm::vec3(0.0, 0.0, 6 * std::sin(now));
 		auto deltas = lights_positions;
-		deltas[0] += glm::vec3(0.0, 0.0, 6 * std::sin(now));
-		deltas[2] = newMoonPos;
+		deltas[1] += glm::vec3(0.0, 0.0, 6 * std::sin(now));
+		deltas[0] = newMoonPos;
 		
 		float moonAmbientValue = glm::max(0.0, 0.14 * newMoonPos.y / 50.0);
 
