@@ -397,9 +397,9 @@ int main(int argc, char* argv[])
 	lightShader.setFloat("lights[0].constant", 1.0);
 	lightShader.setFloat("lights[0].linear", 0.0);
 	lightShader.setFloat("lights[0].quadratic", 0.0);
-	lightShader.setFloat("lights[0].ambient_strength", 0.35);
-	lightShader.setFloat("lights[0].diffuse_strength", 0.75);
-	lightShader.setFloat("lights[0].specular_strength", 0.25);
+	lightShader.setFloat("lights[0].ambient_strength", 0.2);
+	lightShader.setFloat("lights[0].diffuse_strength", 0.3);
+	lightShader.setFloat("lights[0].specular_strength", 0.2);
 
 
 

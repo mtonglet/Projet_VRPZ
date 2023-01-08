@@ -30,18 +30,18 @@
 	uniform int n_lights;
 	uniform vec3 Emitted;
 
-	float specularCalculation(vec3 N, vec3 L, vec3 V ){ 
+	float specularCalculation(vec3 N, vec3 L, vec3 V , int i){ 
 		vec3 R = reflect (-L,N);  //reflect (-L,N) is  equivalent to //max (2 * dot(N,L) * N - L , 0.0) ;
 		float cosTheta = dot(R , V); 
 		float spec = pow(max(cosTheta,0.0), 32.0); 
-		return lights[0].specular_strength * spec;
+		return lights[i].specular_strength * spec;
 	}
 
 	
 	float calcDirLightInit(vec3 N){
 		vec3 L = normalize(-lights[0].light_pos); 
 		vec3 V = normalize(u_view_pos - v_frag_coord); 
-		float specular = specularCalculation( N, L, V); 
+		float specular = specularCalculation( N, L, V, 0); 
 		float diffuse = lights[0].diffuse_strength * max(dot(N,L),0.0);
 		float light = lights[0].ambient_strength + diffuse + specular;
 		if (dot(N,L) <= 0){
@@ -54,7 +54,7 @@
 	float calcDirLight(vec3 N){
 		vec3 L = normalize(lights[0].light_pos); 
 		vec3 V = normalize(u_view_pos - v_frag_coord); 
-		float specular = specularCalculation( N, L, V); 
+		float specular = specularCalculation( N, L, V, 0); 
 		float diffuse = lights[0].diffuse_strength * max(dot(N,L),0.0);
 		float light = lights[0].ambient_strength + diffuse + specular;
 		if (dot(N,L) <= 0){
@@ -67,7 +67,7 @@
 	float calcLight(int i, vec3 N){
 		vec3 L = normalize(lights[i].light_pos - v_frag_coord) ; 
 		vec3 V = normalize(u_view_pos - v_frag_coord); 
-		float specular = specularCalculation( N, L, V); 
+		float specular = specularCalculation( N, L, V, i); 
 		float diffuse = lights[i].diffuse_strength * max(dot(N,L),0.0);
 		float distance = length(lights[i].light_pos - v_frag_coord) + length(u_view_pos - v_frag_coord);
 		float attenuation = 1 / (lights[i].constant + lights[i].linear * distance + lights[i].quadratic * distance * distance);
@@ -82,19 +82,15 @@
 
 	void main() { 
 		vec3 N = normalize(v_normal);
-
-		//vec3 total_light  =  Emitted; //
-		//TODO: initialize with directional light from the sun/moon
 		float dirli = calcDirLight(N);
-		vec3 total_light = vec3(0.0);//dirli);
+		vec3 total_light = vec3(dirli);
+
+		//total_light  +=  Emitted;
 
 		if (lampsActivated){
 			for (int i = 1 ; i < n_lights ; i++){
 				total_light += vec3(calcLight(i,N));
 			}
-		}
-		for (int i = 1 ; i < n_lights ; i++){
-			//total_light += vec3(calcLight(i,N));
 		}
 
 		FragColor = vec4(vec3(texture(tex0, v_tex)) * total_light, 1.0); 

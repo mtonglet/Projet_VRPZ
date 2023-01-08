@@ -49,6 +49,8 @@
 
 	void main() { 
 		vec3 N = normalize(texture(normal0, texCoord).xyz * 2.0f - 1.0f);
+
+
 		vec3 L = normalize(lightPos - fragCoord) ; 
 		vec3 V = normalize(u_view_pos - fragCoord); 
 		float specular = specularCalculation( N, L, V); 
