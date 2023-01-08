@@ -37,6 +37,8 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 float lastX = width / 2.0f;
 float lastY = height / 2.0f;
 bool firstMouse = true;
+bool lampsActivated = false;
+bool inKeyA = false;
 
 void loadCubemapFace(const char* file, const GLenum& targetCube);
 
@@ -557,6 +559,7 @@ int main(int argc, char* argv[])
 
 				//room (for objects without bump mapping)
 				lightShader.use();
+				lightShader.setInteger("lampsActivated", lampsActivated);
 				//lightShader.setFloat("lights[2].ambient_strength", moonAmbientValue);
 				lightShader.setMatrix4("M", modelRoom);
 				lightShader.setMatrix4("itM", inverseModelRoom); //should be modified with regards to R 
@@ -711,6 +714,7 @@ int main(int argc, char* argv[])
 
 		//room (for objects without bump mapping)
 		lightShader.use();
+		lightShader.setInteger("lampsActivated", lampsActivated);
 		//lightShader.setFloat("lights[2].ambient_strength", moonAmbientValue);
 		lightShader.setMatrix4("M", modelRoom);
 		lightShader.setMatrix4("itM", inverseModelRoom); //should be modified with regards to R 
@@ -853,6 +857,7 @@ int main(int argc, char* argv[])
 
 		//room (for objects without bump mapping)
 		lightShader.use();
+		lightShader.setInteger("lampsActivated", lampsActivated);
 		//lightShader.setFloat("lights[2].ambient_strength", moonAmbientValue);
 		lightShader.setMatrix4("M", modelRoom);
 		lightShader.setMatrix4("itM", inverseModelRoom); //should be modified with regards to R 
@@ -981,7 +986,18 @@ void processInput(GLFWwindow* window) {
 	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
 		camera.MouseSwitchActivation(false, window);}
 	else {
-		camera.MouseSwitchActivation(true, window);}}
+		camera.MouseSwitchActivation(true, window);}
+	
+	if (inKeyA && glfwGetKey(window, GLFW_KEY_Q) == GLFW_RELEASE) {
+		lampsActivated = !lampsActivated;
+		inKeyA = false;
+		std::cout << "Lamp set " << lampsActivated << std::endl;
+	}
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+		inKeyA = true;
+	}
+
+}
 
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)

@@ -7,7 +7,8 @@
 	in vec3 v_normal;
 
 	uniform vec3 u_view_pos;
-	uniform sampler2D tex0; 
+	uniform sampler2D tex0;
+	uniform bool lampsActivated;
 	
 	//In GLSL you can use structures to better organize your code
 	//light
@@ -86,7 +87,12 @@
 		//TODO: initialize with directional light from the sun/moon
 		float dirli = calcDirLight(N);
 		vec3 total_light = vec3(dirli);
-		
+
+		if (lampsActivated){
+			for (int i = 1 ; i < n_lights ; i++){
+				//total_light += vec3(calcLight(i,N));
+			}
+		}
 		for (int i = 1 ; i < n_lights ; i++){
 			//total_light += vec3(calcLight(i,N));
 		}
