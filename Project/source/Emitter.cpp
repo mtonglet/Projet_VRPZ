@@ -5,84 +5,45 @@
 #include <time.h>
 //Emitter model & construction
 
-Emitter::Emitter(int name)
+Emitter::Emitter()
 {
-    if (name == 1) {
-        srand(static_cast <unsigned> (time(0)));
-        particles.resize(1000);
+    srand(static_cast <unsigned> (time(0)));
+    particles.resize(1000);
 
-        for (int i = 0; i < particles.size(); ++i) {
-            particles[i].position = randomPos();
-            std::cout << particles[i].position.x << std::endl;
-            particles[i].lifetime = randomLife();
-        }
-
-        std::vector<float> vertices;
-
-        glGenBuffers(1, &vertexBuffer);
-        glGenBuffers(1, &positionBuffer);
-
-        //quad in xy plane
-        vertices.push_back(0.0f);
-        vertices.push_back(0.0f);
-        vertices.push_back(0.0f);
-
-        vertices.push_back(1.0f);
-        vertices.push_back(0.0f);
-        vertices.push_back(0.0f);
-
-        vertices.push_back(0.0f);
-        vertices.push_back(1.0f);
-        vertices.push_back(0.0f);
-
-        vertices.push_back(1.0f);
-        vertices.push_back(1.0f);
-        vertices.push_back(0.0f);
-
-        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-
-        glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
-        glBufferData(GL_ARRAY_BUFFER, particles.size() * 4 * sizeof(float), positions, GL_DYNAMIC_DRAW);
+    for ( int i = 0 ; i < particles.size() ; ++i ) {
+        particles[i].position = randomPos();
+        std::cout << particles[i].position.x << std::endl;
+        particles[i].lifetime = randomLife();
     }
-    if (name == 2) {
-        srand(static_cast <unsigned> (time(0)));
-        particles.resize(200);
 
-        for (int i = 0; i < particles.size(); ++i) {
-            particles[i].position = randomPos(0.1, 0.1, 6.9);
-            std::cout << particles[i].position.x << std::endl;
-            particles[i].lifetime = randomLife();
-        }
+    std::vector<float> vertices;
 
-        std::vector<float> vertices;
+    glGenBuffers(1, &vertexBuffer);
+    glGenBuffers(1, &positionBuffer);
 
-        glGenBuffers(1, &vertexBuffer);
-        glGenBuffers(1, &positionBuffer);
+    //quad in xy plane
+    vertices.push_back(0.0f);
+    vertices.push_back(0.0f);
+    vertices.push_back(0.0f);
 
-        //quad in xy plane
-        vertices.push_back(0.0f);
-        vertices.push_back(0.0f);
-        vertices.push_back(0.0f);
+    vertices.push_back(1.0f);
+    vertices.push_back(0.0f);
+    vertices.push_back(0.0f);
 
-        vertices.push_back(1.0f);
-        vertices.push_back(0.0f);
-        vertices.push_back(0.0f);
+    vertices.push_back(0.0f);
+    vertices.push_back(1.0f);
+    vertices.push_back(0.0f);
 
-        vertices.push_back(0.0f);
-        vertices.push_back(1.0f);
-        vertices.push_back(0.0f);
+    vertices.push_back(1.0f);
+    vertices.push_back(1.0f);
+    vertices.push_back(0.0f);
 
-        vertices.push_back(1.0f);
-        vertices.push_back(1.0f);
-        vertices.push_back(0.0f);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(float),vertices.data(),GL_STATIC_DRAW);
 
-        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-
-        glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
-        glBufferData(GL_ARRAY_BUFFER, particles.size() * 4 * sizeof(float), positions, GL_DYNAMIC_DRAW);
-    }
+    glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
+    glBufferData(GL_ARRAY_BUFFER, particles.size()*4*sizeof(float), positions, GL_DYNAMIC_DRAW);
+    
 }
 
 glm::vec3 Emitter::randomPos()
@@ -91,18 +52,7 @@ glm::vec3 Emitter::randomPos()
     //srand(time(NULL));
     randomPosition.x = static_cast <float> (rand()) / static_cast <float> (RAND_MAX)*100+10;
     randomPosition.y = 20;
-    randomPosition.z = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) * 100 - 50;
-
-    return randomPosition;
-}
-
-glm::vec3 Emitter::randomPos(int x, int y, int z)
-{
-    glm::vec3 randomPosition;
-    //srand(time(NULL));
-    randomPosition.x = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) * 3 + x ;
-    randomPosition.y = y;
-    randomPosition.z = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) * 2 + z;
+    randomPosition.z = static_cast <float> (rand()) / static_cast <float> (RAND_MAX)*100-50;
 
     return randomPosition;
 }
@@ -114,34 +64,19 @@ float Emitter::randomLife()
     return lifeTime;
 }
 
-void Emitter::update(const float dt, const int name)
+void Emitter::update(const float dt)
 {
     for (int i=0; i < particles.size(); ++i)
     {
         particles[i].lifetime -= dt;
 
-        if (name == 1) {
-            if (particles[i].lifetime <= 0.0f)
-            {
-                particles[i].position = randomPos();
-                particles[i].lifetime = randomLife();
-            }
-            particles[i].position -= glm::vec3(0.0f, dt * 2.0f, 0.0f);
+        if (particles[i].lifetime <= 0.0f )
+        {
+            particles[i].position = randomPos();
+            particles[i].lifetime = randomLife();
         }
-        if (name == 2) {
-            if (particles[i].lifetime <= 0.0f)
-            {
-                particles[i].position = randomPos(0.1, 0.1, 6.9);
-                particles[i].lifetime = randomLife();
-            }
-            if (particles[i].position[1] >= 5.0f)
-            {
-                particles[i].position = randomPos(0.1, 0.1, 6.9);
-                particles[i].lifetime = randomLife();
-            }
-            particles[i].position += glm::vec3(0.0f, dt * 2.0f, 0.0f);
-        }
-       
+
+        particles[i].position -= glm::vec3(0.0f, dt*2.0f, 0.0f);
 
         positions[i*4+0] = particles[i].position[0];
         positions[i*4+1] = particles[i].position[1];

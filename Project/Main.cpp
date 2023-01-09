@@ -238,8 +238,7 @@ int main(int argc, char* argv[])
 	Object woodparvis(pathWoodParvis);
 	woodparvis.makeObject(lightShader);
 
-	Emitter emitter_fire = Emitter(2);
-	Emitter emitter = Emitter(1);
+	Emitter emitter;
 
 	double prev = 0;
 	int deltaFrame = 0;
@@ -921,7 +920,7 @@ int main(int argc, char* argv[])
 		glDisable(GL_BLEND);
 
 		//EMITTER
-		emitter.update(0.01f, 1);
+		emitter.update(0.01f);
 
 		emitterShader.use();
 		emitterShader.setMatrix4("P", perspective);
@@ -929,26 +928,7 @@ int main(int argc, char* argv[])
 		emitterShader.setUniformParticleSize("particleSize", 0.1f);
 
 		emitter.draw(emitterShader);
-
-		//EMITTER Fire
-		emitter_fire.update(0.01f, 2);
-
-		emitterShader.use();
-		emitterShader.setMatrix4("P", perspective);
-		emitterShader.setMatrix4("V", view);
-		emitterShader.setUniformParticleSize("particleSize", 0.1f);
-
-		emitter_fire.draw(emitterShader);
 		
-		//EMITTER FIRE
-		/*emitter_fire.update(0.01f);
-
-		emitterShader.use();
-		emitterShader.setMatrix4("P", perspective);
-		emitterShader.setMatrix4("V", view);
-		emitterShader.setUniformParticleSize("particleSize", 0.1f);
-
-		emitter_fire.draw(emitterShader);*/
 
 		// Enable the depth buffer
 		glEnable(GL_DEPTH_TEST);
@@ -994,7 +974,7 @@ void processInput(GLFWwindow* window) {
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
 		camera.MovementSpeed = 4.0;}
 	else {
-		camera.MovementSpeed = 1.75;
+		camera.MovementSpeed = 0.75;
 	}
 	//Pressing C (des)activate the camera folowing the mouse
 	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {

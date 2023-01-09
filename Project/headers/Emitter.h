@@ -21,13 +21,12 @@
 class Emitter
 {
     public:
-        Emitter(int name);
+        Emitter();
         //~Emitter();
         glm::vec3 randomPos();
-        glm::vec3 randomPos(int x, int y, int z);
         float randomLife();
 
-        void update(const float dt, const int name);
+        void update(const float dt);
         void draw(Shader shader);
 
         //GLuint VBO, VAO;
