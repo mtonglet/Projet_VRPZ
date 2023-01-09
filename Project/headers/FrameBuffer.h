@@ -9,6 +9,18 @@
 
 #include "stb_image.h"
 
+class ShadowFrameBuffer
+{
+public:
+	//GLuint ID;
+	unsigned int ID;
+
+	ShadowFrameBuffer(unsigned int mapWidth = 2048,unsigned int mapHeight=2048);
+	
+	void Bind(GLuint unit);
+	void Unbind();
+};
+
 class FrameBuffer
 {
 public:
@@ -18,16 +30,13 @@ public:
 	unsigned int textureColorbufferID;
 	unsigned int rboID;
 
-	//constructor, used for shadow map
-	//FrameBuffer(unsigned int shadowMapWidth = 2048, unsigned int shadowMapHeight = 2048);
-	FrameBuffer::FrameBuffer(unsigned int noLight,bool forShadows);
-
 	//constructor, bind an empty texture and  render buffer to the framebuffer
 	FrameBuffer(unsigned int width = 800, unsigned int height = 600, unsigned int nbCol = 0);
 
 	//constructor, bind an empty texture and  render buffer to the framebuffer
-	FrameBuffer(Texture& texture, unsigned int width = 800, unsigned int height = 600);
-	
+	FrameBuffer(Texture& texture, unsigned int width = 800, unsigned int height = 600, bool forShadows = false);
+
+
 	// Binds the framebuffer
 	void Bind(GLuint unit);
 	// Unbinds the framebuffer

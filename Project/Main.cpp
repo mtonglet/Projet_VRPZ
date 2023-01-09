@@ -266,17 +266,19 @@ int main(int argc, char* argv[])
 
 	glm::vec3 light_pos = glm::vec3(-7.0, 3.0, 2.0);
 	//LIGHTS PARAMETERS
+	double moonSpeed = 0.05;	
+	double moonDist = 100.0;
 	//must be less than MAX_LIGHTS_NUMBER defined in textureLight.frag
 	std::vector<glm::vec3> lights_positions = {
-		glm::vec3(0.0,50.0,0.0), //moon
+		glm::vec3(0.0,moonDist,0.0), //moon
 		light_pos,
 		glm::vec3(7.5, 2.0, 7.5)
 	};
 	const int lights_number = lights_positions.size();
 
-	float ambient = 0.3;
+	float ambient = 0.25;
 	float diffuse = 0.5;
-	float specular = 0.8;
+	float specular = 0.3;
 	const float lights_params[] = { 0.0, diffuse, specular, 1.0, 0.00014, 0.0007 };
 
 	glm::mat4 modelS = glm::mat4(1.0);
@@ -357,7 +359,7 @@ int main(int argc, char* argv[])
 	glm::mat4 inversemodelWoodParvis = glm::transpose(glm::inverse(modelWoodParvis));
 
 	glm::mat4 view = camera.GetViewMatrix();
-	glm::mat4 perspective = camera.GetProjectionMatrixCube(45.0f, 0.01f, 100.0f);
+	glm::mat4 perspective = camera.GetProjectionMatrixCube(45.0f, 0.01f, 200.0f);
 
 	glm::vec3 mirrorCenter = mirrorPos; 
 	glm::mat4 reflection = camera.GetReflectionMatrix(mirrorCenter, mirrorNorm);
@@ -381,7 +383,7 @@ int main(int argc, char* argv[])
 	shaderBump.setFloat("light_param.constant", 1.0);
 	shaderBump.setFloat("light_param.linear", 0.0);
 	shaderBump.setFloat("light_param.quadratic", 0.0);
-	shaderBump.setFloat("light_param.ambient_strength", 0.2);
+	shaderBump.setFloat("light_param.ambient_strength", ambient);
 	shaderBump.setFloat("light_param.diffuse_strength", 0.3);
 	shaderBump.setFloat("light_param.specular_strength", 0.2);
 
@@ -419,9 +421,9 @@ int main(int argc, char* argv[])
 	lightShader.setFloat("lights[0].constant", 1.0);
 	lightShader.setFloat("lights[0].linear", 0.0);
 	lightShader.setFloat("lights[0].quadratic", 0.0);
-	lightShader.setFloat("lights[0].ambient_strength", 0.2);
-	lightShader.setFloat("lights[0].diffuse_strength", 0.3);
-	lightShader.setFloat("lights[0].specular_strength", 0.2);
+	lightShader.setFloat("lights[0].ambient_strength", ambient);
+	lightShader.setFloat("lights[0].diffuse_strength", 0.4);
+	lightShader.setFloat("lights[0].specular_strength", 0.3);
 
 
 	//Texture objects generation
@@ -471,7 +473,8 @@ int main(int argc, char* argv[])
 	FrameBuffer framebufferCube(1024,1024);
 
 	//Framebuffer for shadow map - from tutorial 25 of Victor Gordan - Youtube
-	FrameBuffer(0);
+	ShadowFrameBuffer framebufferShadow();
+
 	/*
 	unsigned int shadowMapFBO;
 	glGenFramebuffers(1, &shadowMapFBO);
@@ -499,7 +502,7 @@ int main(int argc, char* argv[])
 
 //	Camera cameraCube(glm::vec3(0.0, 4.0, -15.0));
 	Camera cameraCube(mirrorSpherePos);
-	glm::mat4 projectionCube = cameraCube.GetProjectionMatrixCube(90.0f, 0.01f, 100.0f);
+	glm::mat4 projectionCube = cameraCube.GetProjectionMatrixCube(90.0f, 0.01f, 200.0f);
 
 	glm::mat4 viewCube = cameraCube.GetViewCubeMatrix(0);
 
@@ -508,34 +511,32 @@ int main(int argc, char* argv[])
 
 	// Enables the Depth Buffer
 	glEnable(GL_DEPTH_TEST);
+
 	
 	bool firstLoop = true;
 	glfwSwapInterval(1);
 
 	double init_now = glfwGetTime();
-	double moonSpeed = 0.25;
+
+
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
 		view = camera.GetViewMatrix();
 		glfwPollEvents();
 		double now = glfwGetTime();
 		//moving moon
-		glm::vec3 newMoonPos = glm::vec3(50.0 * std::sin(moonSpeed * (now - init_now)) , 50.0 * std::cos(moonSpeed * (now - init_now)), 0.0);
+
+		glm::vec3 newMoonPos = glm::vec3(moonDist* std::sin(moonSpeed * (now - init_now)), moonDist* std::cos(moonSpeed * (now - init_now)), 0.0);
 		modelMoon = glm::mat4(1.0);
 		modelMoon = glm::translate(modelMoon, newMoonPos);
 		modelMoon = glm::scale(modelMoon, glm::vec3(2.0, 2.0, 2.0));
 //		lightShader.setFloat("lights[2].ambient_strength", (float) glm::abs(newMoonPos.y));
-//		elem_moon.move(newMoonPos,2.0);
 
 		//moving lights
 		auto delta = light_pos + glm::vec3(0.0, 0.0, 6 * std::sin(now));
 		lights_positions[1] = delta;
-		lights_positions[0] = newMoonPos;
-		/*
-		auto deltas = lights_positions;
-		deltas[1] += glm::vec3(0.0, 0.0, 6 * std::sin(now));
-		deltas[0] = newMoonPos;
-		*/
+		lights_positions[0] = newMoonPos; //TODO: uncomment to move the moon
+
 		float moonAmbientValue = glm::max(0.0, 0.14 * newMoonPos.y / 50.0);
 
 
