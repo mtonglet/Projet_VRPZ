@@ -23,19 +23,19 @@ ShadowFrameBuffer::ShadowFrameBuffer(unsigned int mapWidth, unsigned int mapHeig
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void ShadowFrameBuffer::Bind(GLuint unit) {
-	/*
+void ShadowFrameBuffer::BindFB() {
+	
 	glEnable(GL_DEPTH_TEST);
-
 	glViewport(0, 0, mapWidth, mapHeight);
 	glBindFramebuffer(GL_FRAMEBUFFER, ID);
 	glClear(GL_DEPTH_BUFFER_BIT);
-	*/
+}
+
+void ShadowFrameBuffer::BindTex(GLuint unit) {
 	glActiveTexture(GL_TEXTURE0 + unit);
 	glBindTexture(GL_TEXTURE_2D, shadowMapTex);
-//	glUniform1i(glGetUniformLocation(shaderProgram.ID, "shadowMap"), 2);
-
 }
+
 
 void ShadowFrameBuffer::Unbind(int winWidth, int winHeight) {
 	// Switch back to the default framebuffer
@@ -44,6 +44,11 @@ void ShadowFrameBuffer::Unbind(int winWidth, int winHeight) {
 	glViewport(0, 0, winWidth, winHeight);
 }
 
+
+void ShadowFrameBuffer::InitRenderTest() {
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, this->shadowMapTex);
+}
 
 FrameBuffer::FrameBuffer(unsigned int width, unsigned int height, unsigned int nbCol) {
 

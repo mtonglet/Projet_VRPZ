@@ -19,8 +19,10 @@ public:
 
 	ShadowFrameBuffer(unsigned int mapWidth = 2048,unsigned int mapHeight=2048);
 	
-	void Bind(GLuint unit);
+	void BindFB();
+	void BindTex(GLuint unit);
 	void Unbind(int winWidth, int winHeight);
+	void InitRenderTest();
 };
 
 class FrameBuffer

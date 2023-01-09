@@ -34,58 +34,7 @@ void processInput(GLFWwindow* window);
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 
-/*
-Shader shader, shaderBump, shaderGND, cubeMapShader, glassShader, 
-classicShader, lightShader, emitterShader, shadowShader, debug_shadowShader;
-
-void _shaders_init(){
-	char pathSourceF[] = PATH_TO_SHADER "/reflective.frag";
-	char pathSourceV[] = PATH_TO_SHADER "/reflective.vert";
-	shader = Shader(pathSourceV, pathSourceF);
-
-	char pathBumpF[] = PATH_TO_SHADER "/textureBump.frag";
-	char pathBumpG[] = PATH_TO_SHADER "/textureBump.geom";
-	char pathBumpV[] = PATH_TO_SHADER "/textureBump.vert";
-	shaderBump = Shader(pathBumpV, pathBumpG, pathBumpF);
-
-	char pathSourceFGND[] = PATH_TO_SHADER "/texture2D.frag";
-	char pathSourceVGND[] = PATH_TO_SHADER "/texture2D.vert";
-	shaderGND = Shader(pathSourceVGND, pathSourceFGND);
-
-
-	char pathCubemapF[] = PATH_TO_SHADER "/cubemap.frag";
-	char pathCubemapV[] = PATH_TO_SHADER "/cubemap.vert";
-	cubeMapShader = Shader(pathCubemapV, pathCubemapF);
-
-	char pathglassF[] = PATH_TO_SHADER "/glass.frag";
-	char pathglassV[] = PATH_TO_SHADER "/glass.vert";
-	glassShader = Shader(pathglassV, pathglassF);
-
-	char pathclassicF[] = PATH_TO_SHADER "/classic.frag";
-	char pathclassicV[] = PATH_TO_SHADER "/classic.vert";
-	classicShader = Shader(pathclassicV, pathclassicF);
-
-	char pathLightF[] = PATH_TO_SHADER "/textureLight.frag";
-	char pathLightV[] = PATH_TO_SHADER "/textureLight.vert";
-	lightShader = Shader(pathLightV, pathLightF);
-
-	char pathEmitterF[] = PATH_TO_SHADER "/emitter.frag";
-	char pathEmitterV[] = PATH_TO_SHADER "/emitter.vert";
-	emitterShader = Shader(pathEmitterV, pathEmitterF);
-
-	char pathShadowF[] = PATH_TO_SHADER "/shadowmap.frag";
-	char pathShadowV[] = PATH_TO_SHADER "/shadowmap.vert";
-	shadowShader = Shader(pathShadowV, pathShadowF);
-
-	char pathDebugShadowF[] = PATH_TO_SHADER "/debug_shadow.frag";
-	char pathDebugShadowV[] = PATH_TO_SHADER "/debug_shadow.vert";
-	debug_shadowShader = Shader(pathDebugShadowV, pathDebugShadowF);
-
-}*/
-
-void _objects_init(){
-
-}
+void renderShadowMapTest();
 
 
 float lastX = width / 2.0f;
@@ -199,7 +148,7 @@ int main(int argc, char* argv[])
 #endif
 
 	//shader files read, shader initialised , linked and compiled
-
+	
 	char pathSourceF[] = PATH_TO_SHADER "/reflective.frag";
 	char pathSourceV[] = PATH_TO_SHADER "/reflective.vert";
 	Shader shader(pathSourceV,pathSourceF);
@@ -241,7 +190,7 @@ int main(int argc, char* argv[])
 	char pathDebugShadowF[] = PATH_TO_SHADER "/debug_shadow.frag";
 	char pathDebugShadowV[] = PATH_TO_SHADER "/debug_shadow.vert";
 	Shader shadowDebugShader = Shader(pathDebugShadowV, pathDebugShadowF);
-
+	
 
 	char pathS[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
 	Object sphere1(pathS);
@@ -317,6 +266,8 @@ int main(int argc, char* argv[])
 			const double fpsCount = (double)deltaFrame / deltaTime;
 			deltaFrame = 0;
 			std::cout << "\r FPS: " << fpsCount;
+			std::cout.flush();
+			std::cout << "\n cam pos: " << camera.Position.x << " - " << camera.Position.y << " - " << camera.Position.z;
 			std::cout.flush();
 		}
 	};
@@ -479,8 +430,8 @@ int main(int argc, char* argv[])
 	lightShader.setFloat("lights[0].linear", 0.0);
 	lightShader.setFloat("lights[0].quadratic", 0.0);
 	lightShader.setFloat("lights[0].ambient_strength", ambient);
-	lightShader.setFloat("lights[0].diffuse_strength", 0.4);
-	lightShader.setFloat("lights[0].specular_strength", 0.3);
+	lightShader.setFloat("lights[0].diffuse_strength", 0.9);
+	lightShader.setFloat("lights[0].specular_strength", 0.9);
 
 
 	//Texture objects generation
@@ -532,39 +483,8 @@ int main(int argc, char* argv[])
 	//Framebuffer for shadow map - from tutorial 25 of Victor Gordan - Youtube
 	ShadowFrameBuffer framebufferShadow(2048,2048);
 
-	glm::mat4 orthoProj = glm::ortho(-35.0f, 35.0f, -35.0f, 35.0f, 0.1f, 75.0f);
-	glm::mat4 dirLightView = glm::lookAt(lights_positions[0], glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	glm::mat4 dirLightProj = orthoProj * dirLightView;
+	glm::mat4 orthoProj = glm::ortho(-35.0f, 35.0f, -35.0f, 35.0f, 0.1f, 100.0f);
 
-	shadowShader.use();
-	shadowShader.setMatrix4("lightProj", dirLightProj);
-	//shadowShader.setMatrix4("model", dirLightProj);
-
-		
-	/*
-	unsigned int shadowMapFBO;
-	glGenFramebuffers(1, &shadowMapFBO);
-	unsigned int shadowMapWidth = 2048, shadowMapHeight = 2048;
-	unsigned int shadowMap;
-	glGenTextures(1, &shadowMap);
-	glBindTexture(GL_TEXTURE_2D, shadowMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadowMapWidth, shadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	float clampColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };// Prevents darkness outside the frustrum
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, clampColor);
-	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMap, 0);
-	glDrawBuffer(GL_NONE);// Needed since we don't touch the color buffer
-	glReadBuffer(GL_NONE);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	glm::mat4 orthgonalProjection = glm::ortho(-35.0f, 35.0f, -35.0f, 35.0f, 0.1f, 75.0f);
-	glm::mat4 lightView = glm::lookAt(20.0f * lights_positions[0], glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	glm::mat4 lightProjection = orthgonalProjection * lightView;
-	*/
 
 //	Camera cameraCube(glm::vec3(0.0, 4.0, -15.0));
 	Camera cameraCube(mirrorSpherePos);
@@ -772,25 +692,37 @@ int main(int argc, char* argv[])
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //Zero pass: Draw scene and compute shadow maps
-		framebufferShadow.Bind(0);
+		framebufferShadow.BindFB();
 
-		glm::mat4 dirLightView = glm::lookAt(0.3f * lights_positions[0], glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		//glm::vec3 pos = camera.Position; // lights_positions[0];
+		//glm::mat4 dirLightView = glm::lookAt(glm::float32(moonDist/10)*lights_positions[0], glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::mat4 dirLightView = camera.GetViewMatrix();
 		glm::mat4 dirLightProj = orthoProj * dirLightView;
 
 		shadowShader.use();
 		shadowShader.setMatrix4("lightProj", dirLightProj);
 
-		shadowShader.setMatrix4("M",modelBunny);
-		bunny.draw();
+		shadowShader.setMatrix4("M", modelSapin);
+		sapin.draw();
+		shadowShader.setMatrix4("M", modelRoom);
+		room.draw();
+		shadowShader.setMatrix4("M", modelSol);
+		ground.draw();
 
-		framebufferShadow.Unbind(width,height);
 
-		/*DEBUGGING CODE*/
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glViewport(0,0,width, height);
-		glClearColor(0.0, 0.0, 0.0, 1.0);
+		framebufferShadow.Unbind(width, height);
+
+		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//DEBUGGING CODE to uncomment
+		//glClearColor(0.2f, 0.4f, 0.8f, 1.0f);
+		shadowDebugShader.use();
+		framebufferShadow.InitRenderTest();
+		renderShadowMapTest();
+		//all the drawing that follows should be commented for visualization in OpenGL
+		/*
 
+		
 ////////////////////////////////////////////////////////////////////////////////////////////
 //First pass: Draw reversed Scene 
 		// 
@@ -1037,6 +969,11 @@ int main(int argc, char* argv[])
 
 		//room (for objects without bump mapping)
 		lightShader.use();
+		//shadows
+		lightShader.setMatrix4("dirLightProj", dirLightProj);
+		framebufferShadow.BindTex(1);//1st taken by the default texture 
+		lightShader.setInteger("shadow_map", 1);
+		//lighting
 		lightShader.setVector3f("emitted", glm::vec3(0.0));
 		lightShader.setInteger("lampsActivated", lampsActivated);
 		//lightShader.setFloat("lights[2].ambient_strength", moonAmbientValue);
@@ -1128,11 +1065,11 @@ int main(int argc, char* argv[])
 		emitterShader.setUniformParticleSize("particleSize", 0.1f);
 
 		emitter_fire.draw(emitterShader);
-		/**/
+		
 		
 
-		// Enable the depth buffer
-		glEnable(GL_DEPTH_TEST);
+
+		glEnable(GL_DEPTH_TEST);// Enable the depth buffer*/
 		fps(now);
 		glfwSwapBuffers(window);
 //		break;
@@ -1217,3 +1154,33 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 	camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
+
+
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+void renderShadowMapTest()
+{
+	if (quadVAO == 0)
+	{
+		float quadVertices[] = {
+			// positions        // texture Coords
+			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+			 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+		};
+		// setup plane VAO
+		glGenVertexArrays(1, &quadVAO);
+		glGenBuffers(1, &quadVBO);
+		glBindVertexArray(quadVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	}
+	glBindVertexArray(quadVAO);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindVertexArray(0);
+}
