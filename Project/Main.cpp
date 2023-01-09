@@ -37,6 +37,8 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 float lastX = width / 2.0f;
 float lastY = height / 2.0f;
 bool firstMouse = true;
+bool lampsActivated = false;
+bool inKeyA = false;
 
 void loadCubemapFace(const char* file, const GLenum& targetCube);
 
@@ -185,7 +187,7 @@ int main(int argc, char* argv[])
 
 //	Element elem_moon(pathS, lightShader);
 	Object moon(pathS);
-	moon.makeObject(classicShader);
+	moon.makeObject(lightShader);
 	
 	char pathB[] = PATH_TO_OBJECTS "/bunny_small.obj";
 	Object bunny(pathB);
@@ -260,11 +262,10 @@ int main(int argc, char* argv[])
 	//LIGHTS PARAMETERS
 	//must be less than MAX_LIGHTS_NUMBER defined in textureLight.frag
 	std::vector<glm::vec3> lights_positions = {
+		glm::vec3(0.0,50.0,0.0), //moon
 		light_pos,
-		glm::vec3(7.5, 2.0, 7.5),
-		glm::vec3(0.0,50.0,0.0) //moon
+		glm::vec3(7.5, 2.0, 7.5)
 	};
-	std::vector<glm::vec3> deltas_lighpos;
 	const int lights_number = lights_positions.size();
 
 	float ambient = 0.3;
@@ -282,6 +283,7 @@ int main(int argc, char* argv[])
 	glm::mat4 modelMoon = glm::mat4(1.0);
 	modelMoon = glm::translate(modelMoon, glm::vec3(0.0, 50.0, 0.0));
 	modelMoon = glm::scale(modelMoon, glm::vec3(2.0, 2.0, 2.0));
+	glm::vec3 moonColor = 0.9f * glm::vec3(1.0,1.0,0.9);
 //	elem_moon.initialize(0.0,50.0,0.0,2.0);
 
 	glm::mat4 modelBunny = glm::mat4(1.0);
@@ -364,13 +366,28 @@ int main(int argc, char* argv[])
 	//BUMP
 	shaderBump.use();
 	shaderBump.setFloat("shininess", 32.0f);
-	shaderBump.setVector3f("materialColour", materialColour);
-	shaderBump.setFloat("light.ambient_strength", ambient);
+	//shaderBump.setVector3f("materialColour", materialColour);
+//	shaderBump.setLightsPosBump(lights_number, lights_positions);
+	shaderBump.setInteger("n_lights", 3);
+	shaderBump.setVector3f("lights[0]", lights_positions[0]);
+	shaderBump.setVector3f("lights[1]", lights_positions[1]);
+	shaderBump.setVector3f("lights[2]", lights_positions[2]);
+
+	shaderBump.setFloat("light_param.constant", 1.0);
+	shaderBump.setFloat("light_param.linear", 0.0);
+	shaderBump.setFloat("light_param.quadratic", 0.0);
+	shaderBump.setFloat("light_param.ambient_strength", 0.2);
+	shaderBump.setFloat("light_param.diffuse_strength", 0.3);
+	shaderBump.setFloat("light_param.specular_strength", 0.2);
+
+/*	shaderBump.setFloat("light.ambient_strength", ambient);
 	shaderBump.setFloat("light.diffuse_strength", diffuse);
 	shaderBump.setFloat("light.specular_strength", specular);
 	shaderBump.setFloat("light.constant", 1.0);
 	shaderBump.setFloat("light.linear", 0.00014);
 	shaderBump.setFloat("light.quadratic", 0.0007);
+*/
+
 
 	/*	Refraction indices :
 	Air:      1.0	|	Water:    1.33	|
@@ -389,17 +406,17 @@ int main(int argc, char* argv[])
 	//LIGHT
 	lightShader.use();
 	lightShader.setFloat("Ambient", ambient);
-	lightShader.setVector3f("Emitted", glm::vec3(0.0));
+	lightShader.setVector3f("emitted", glm::vec3(0.0));
 	lightShader.setLightsParams(10, lights_params);
 	lightShader.setLightsPos(lights_number,lights_positions);
 	lightShader.setFloat("shininess", 32.0f);
 	lightShader.setVector3f("materialColour", materialColour);
-	lightShader.setFloat("lights[2].constant", 1.0);
-	lightShader.setFloat("lights[2].linear", 0.0);
-	lightShader.setFloat("lights[2].quadratic", 0.0);
-	lightShader.setFloat("lights[2].ambient_strength", 0.15);
-	lightShader.setFloat("lights[2].diffuse_strength", 0.1);
-	lightShader.setFloat("lights[2].specular_strength", 0.1);
+	lightShader.setFloat("lights[0].constant", 1.0);
+	lightShader.setFloat("lights[0].linear", 0.0);
+	lightShader.setFloat("lights[0].quadratic", 0.0);
+	lightShader.setFloat("lights[0].ambient_strength", 0.2);
+	lightShader.setFloat("lights[0].diffuse_strength", 0.3);
+	lightShader.setFloat("lights[0].specular_strength", 0.2);
 
 
 
@@ -434,6 +451,9 @@ int main(int argc, char* argv[])
 	char pathimWoodParvis[] = PATH_TO_TEXTURE "/texture_woodparvis.jpeg";
 	Texture woodParvisTex(pathimWoodParvis, "");
 	
+	char pathMoonTex[] = PATH_TO_TEXTURE "/MOON-SURFACE-resized.png";
+	Texture moonTex(pathMoonTex, "");
+
 	
 	std::string PathCM( PATH_TO_TEXTURE "/cubemaps/yokohama3/sky2_");
 	//cube map creation 
@@ -469,18 +489,20 @@ int main(int argc, char* argv[])
 		glfwPollEvents();
 		double now = glfwGetTime();
 		//moving moon
-		glm::vec3 newMoonPos = glm::vec3(-50.0 * std::cos(moonSpeed * (now - init_now)) , 50.0 * std::sin(moonSpeed * (now - init_now)), 0.0);
+		glm::vec3 newMoonPos = glm::vec3(50.0 * std::sin(moonSpeed * (now - init_now)) , 50.0 * std::cos(moonSpeed * (now - init_now)), 0.0);
 		modelMoon = glm::mat4(1.0);
 		modelMoon = glm::translate(modelMoon, newMoonPos);
 		modelMoon = glm::scale(modelMoon, glm::vec3(2.0, 2.0, 2.0));
 //		lightShader.setFloat("lights[2].ambient_strength", (float) glm::abs(newMoonPos.y));
 //		elem_moon.move(newMoonPos,2.0);
 
-		//moving light
+		//moving lights
 		auto delta = light_pos + glm::vec3(0.0, 0.0, 6 * std::sin(now));
-		auto deltas = lights_positions;
-		deltas[0] += glm::vec3(0.0, 0.0, 6 * std::sin(now));
-		deltas[2] = newMoonPos;
+		lights_positions[1] = delta;
+		lights_positions[0] = newMoonPos;
+//		auto deltas = lights_positions;
+//		deltas[1] += glm::vec3(0.0, 0.0, 6 * std::sin(now));
+//		deltas[0] = newMoonPos;
 		
 		float moonAmbientValue = glm::max(0.0, 0.14 * newMoonPos.y / 50.0);
 
@@ -488,7 +510,7 @@ int main(int argc, char* argv[])
 		if (firstLoop) {
 ////////////////////////////////////////////////////////////////////////////////////////////
 // Pass 0 :
-			//firstLoop = false; //UNCOMMENT/COMMENT
+			firstLoop = false; //UNCOMMENT/COMMENT
 			//draw the cubeMap 
 			framebufferCube.Bind(0);
 
@@ -515,9 +537,6 @@ int main(int argc, char* argv[])
 
 				bunny.draw();
 				
-				classicShader.setVector3f("colorRGB", glm::vec3(1.0, 1.0, 0.9));
-				classicShader.setMatrix4("M", modelMoon);
-				moon.draw();
 				
 //				elem_moon.display(viewCube,projectionCube);
 
@@ -557,7 +576,9 @@ int main(int argc, char* argv[])
 
 				//room (for objects without bump mapping)
 				lightShader.use();
-				lightShader.setFloat("lights[2].ambient_strength", moonAmbientValue);
+				lightShader.setVector3f("emitted", glm::vec3(0.0));
+				lightShader.setInteger("lampsActivated", lampsActivated);
+				//lightShader.setFloat("lights[2].ambient_strength", moonAmbientValue);
 				lightShader.setMatrix4("M", modelRoom);
 				lightShader.setMatrix4("itM", inverseModelRoom); //should be modified with regards to R 
 				lightShader.setMatrix4("R", glm::mat4(1.0));
@@ -570,6 +591,8 @@ int main(int argc, char* argv[])
 				lightShader.setTexUnit("tex0", 1);
 				
 				// Binds texture so that is appears in rendering to the right unit
+
+				//lightShader.setVector3f("colorRGB", glm::vec3(1.0, 1.0, 0.9));
 				sapinTex.Bind(1);
 				sapin.draw();
 
@@ -591,7 +614,12 @@ int main(int argc, char* argv[])
 				lightShader.setMatrix4("M", modelSol);
 				GNDTex.Bind(1);
 				ground.draw();
-				
+
+				lightShader.setMatrix4("M", modelMoon);
+				lightShader.setVector3f("emitted", moonColor);
+				moonTex.Bind(1);
+				moon.draw();
+
 				/*
 				lightShader.setVector3f("Emitted", glm::vec3(1.0, 1.0, 0.9));
 				lightShader.setMatrix4("M", modelMoon);
@@ -599,14 +627,24 @@ int main(int argc, char* argv[])
 				*/
 				//room with bump mapping
 				shaderBump.use();
-				shaderBump.setFloat("light.ambient_strength", ambient + moonAmbientValue);
+
+//				shaderBump.setLightsPosBump(lights_number, lights_positions);
+				shaderBump.setInteger("n_lights", 3);
+				shaderBump.setVector3f("lights[0]", lights_positions[0]);
+				shaderBump.setVector3f("lights[1]", lights_positions[1]);
+				shaderBump.setVector3f("lights[2]", lights_positions[2]);
+
+
+				//shaderBump.setFloat("light.ambient_strength", ambient + moonAmbientValue);
 				shaderBump.setMatrix4("M", modelRoom);
 				shaderBump.setMatrix4("itM", inverseModelRoom);
 				shaderBump.setMatrix4("R", glm::mat4(1.0));
 				shaderBump.setMatrix4("V", viewCube);
 				shaderBump.setMatrix4("P", projectionCube);
 				shaderBump.setVector3f("u_view_pos", cameraCube.Position);
-				shaderBump.setVector3f("light.light_pos", delta);
+				shaderBump.setInteger("lampsActivated", lampsActivated);
+				//shaderBump.setVector3f("light.light_pos", delta);
+
 
 				// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
 				shaderBump.setTexUnit("tex0", 1);
@@ -649,9 +687,9 @@ int main(int argc, char* argv[])
 
 		bunny.draw();
 		
-		classicShader.setVector3f("colorRGB", glm::vec3(1.0, 1.0, 0.9));
-		classicShader.setMatrix4("M", modelMoon);
-		moon.draw();
+//		classicShader.setVector3f("colorRGB", glm::vec3(1.0, 1.0, 0.9));
+//		classicShader.setMatrix4("M", modelMoon);
+//		moon.draw();
 		
 //		elem_moon.display(viewCube, perspective);
 
@@ -688,14 +726,23 @@ int main(int argc, char* argv[])
 
 		//room (with bump mapping)
 		shaderBump.use();
-		shaderBump.setFloat("light.ambient_strength",ambient + moonAmbientValue);
+		//shaderBump.setFloat("light.ambient_strength",ambient + moonAmbientValue);
+		//shaderBump.setVector3f("lightPos", delta);		
+
+//		shaderBump.setLightsPosBump(lights_number, lights_positions);
+		shaderBump.setInteger("n_lights", 3);
+		shaderBump.setVector3f("lights[0]", lights_positions[0]);
+		shaderBump.setVector3f("lights[1]", lights_positions[1]);
+		shaderBump.setVector3f("lights[2]", lights_positions[2]);
+
 		shaderBump.setMatrix4("M", modelRoom);
 		shaderBump.setMatrix4("itM", inverseModelRoom); //should be modified with regards to R 
 		shaderBump.setMatrix4("R", reflection);
 		shaderBump.setMatrix4("V", view);
 		shaderBump.setMatrix4("P", perspective);
 		shaderBump.setVector3f("u_view_pos", camera.Position);
-		shaderBump.setVector3f("lightPos", delta);
+		shaderBump.setInteger("lampsActivated", lampsActivated);
+
 
 		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
 		shaderBump.setTexUnit("tex0", 0);
@@ -711,14 +758,16 @@ int main(int argc, char* argv[])
 
 		//room (for objects without bump mapping)
 		lightShader.use();
-		lightShader.setFloat("lights[2].ambient_strength", moonAmbientValue);
+		lightShader.setVector3f("emitted", glm::vec3(0.0));
+		lightShader.setInteger("lampsActivated", lampsActivated);
+		//lightShader.setFloat("lights[2].ambient_strength", moonAmbientValue);
 		lightShader.setMatrix4("M", modelRoom);
 		lightShader.setMatrix4("itM", inverseModelRoom); //should be modified with regards to R 
 		lightShader.setMatrix4("R", reflection);
 		lightShader.setMatrix4("V", view);
 		lightShader.setMatrix4("P", perspective);
 		lightShader.setVector3f("u_view_pos", camera.Position);
-		lightShader.setLightsPos(lights_number, deltas);
+		lightShader.setLightsPos(lights_number, lights_positions);
 
 		lightShader.setTexUnit("tex0", 0);
 
@@ -744,6 +793,11 @@ int main(int argc, char* argv[])
 		lightShader.setMatrix4("M", modelSol);
 		GNDTex.Bind(0);
 		ground.draw();
+
+		lightShader.setMatrix4("M", modelMoon);
+		lightShader.setVector3f("emitted", moonColor);
+		moonTex.Bind(0);
+		moon.draw();
 
 		/*
 		lightShader.setVector3f("Emitted", glm::vec3(1.0, 1.0, 0.9));
@@ -773,9 +827,9 @@ int main(int argc, char* argv[])
 
 		//bunny.draw();
 		
-		classicShader.setVector3f("colorRGB", glm::vec3(1.0, 1.0, 0.9));
-		classicShader.setMatrix4("M", modelMoon);
-		moon.draw();
+//		classicShader.setVector3f("colorRGB", glm::vec3(1.0, 1.0, 0.9));
+//		classicShader.setMatrix4("M", modelMoon);
+//		moon.draw();
 		
 //		elem_moon.display(viewCube, projectionCube);
 
@@ -830,14 +884,24 @@ int main(int argc, char* argv[])
 
 		//room with bump mapping
 		shaderBump.use();
-		shaderBump.setFloat("light.ambient_strength",ambient + moonAmbientValue);
+//		shaderBump.setFloat("light.ambient_strength",ambient + moonAmbientValue);
+//		shaderBump.setVector3f("lightPos", delta);
+		
+		//shaderBump.setLightsPosBump(lights_number, lights_positions);
+
 		shaderBump.setMatrix4("M", modelRoom);
 		shaderBump.setMatrix4("itM", inverseModelRoom);
 		shaderBump.setMatrix4("R", glm::mat4(1.0));
 		shaderBump.setMatrix4("V", view);
 		shaderBump.setMatrix4("P", perspective);
 		shaderBump.setVector3f("u_view_pos", camera.Position);
-		shaderBump.setVector3f("lightPos", delta);
+		shaderBump.setVector3f("lights[0]", lights_positions[0]);
+		shaderBump.setVector3f("lights[1]", lights_positions[1]);
+		shaderBump.setVector3f("lights[2]", lights_positions[2]);
+		shaderBump.setInteger("n_lights", 3);
+
+		shaderBump.setInteger("lampsActivated", lampsActivated);
+
 
 		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
 		shaderBump.setTexUnit("tex0", 0);
@@ -853,14 +917,16 @@ int main(int argc, char* argv[])
 
 		//room (for objects without bump mapping)
 		lightShader.use();
-		lightShader.setFloat("lights[2].ambient_strength", moonAmbientValue);
+		lightShader.setVector3f("emitted", glm::vec3(0.0));
+		lightShader.setInteger("lampsActivated", lampsActivated);
+		//lightShader.setFloat("lights[2].ambient_strength", moonAmbientValue);
 		lightShader.setMatrix4("M", modelRoom);
 		lightShader.setMatrix4("itM", inverseModelRoom); //should be modified with regards to R 
 		lightShader.setMatrix4("R", glm::mat4(1.0));
 		lightShader.setMatrix4("V", view);
 		lightShader.setMatrix4("P", perspective);
 		lightShader.setVector3f("u_view_pos", camera.Position);
-		lightShader.setLightsPos(lights_number, deltas);
+		lightShader.setLightsPos(lights_number, lights_positions);
 
 		lightShader.setTexUnit("tex0", 0);
 
@@ -892,6 +958,11 @@ int main(int argc, char* argv[])
 		lightShader.setMatrix4("M", modelSol);
 		GNDTex.Bind(0);
 		ground.draw();
+
+		lightShader.setMatrix4("M", modelMoon);
+		lightShader.setVector3f("emitted", moonColor);
+		moonTex.Bind(0);
+		moon.draw();
 
 		/*
 		lightShader.setVector3f("Emitted", glm::vec3(1.0, 1.0, 0.9));
@@ -945,6 +1016,7 @@ int main(int argc, char* argv[])
 		glEnable(GL_DEPTH_TEST);
 		fps(now);
 		glfwSwapBuffers(window);
+//		break;
 	}
 
 	//clean up ressource
@@ -991,7 +1063,18 @@ void processInput(GLFWwindow* window) {
 	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
 		camera.MouseSwitchActivation(false, window);}
 	else {
-		camera.MouseSwitchActivation(true, window);}}
+		camera.MouseSwitchActivation(true, window);}
+	
+	if (inKeyA && glfwGetKey(window, GLFW_KEY_Q) == GLFW_RELEASE) {
+		lampsActivated = !lampsActivated;
+		inKeyA = false;
+		std::cout << "Lamp set " << lampsActivated << std::endl;
+	}
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+		inKeyA = true;
+	}
+
+}
 
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)

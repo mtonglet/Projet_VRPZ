@@ -1,5 +1,7 @@
 #version 330 core 
 
+#define MAX_LIGHTS_NUMBER 10
+
 layout (triangles) in;
 layout (triangle_strip, max_vertices = 3) out;
 
@@ -7,7 +9,9 @@ out vec3 Normal;
 out vec2 texCoord;
 out vec3 fragCoord;
 out vec3 u_view_pos;
-out vec3 lightPos;
+out vec3 lights[10];
+//out int n_lights;
+
 
 in DATA
 {
@@ -17,12 +21,14 @@ in DATA
     mat4 projection;
     mat4 model;
     vec3 u_view_pos;
-    vec3 lightPos;
+    vec3 lights[10];
+//    int n_lights;
 } data_in[];
+
+uniform int n_lights;
 
 void main() 
 {
-
     //formula to get the normal map to work correctly (TBN)
     vec3 edge0 = gl_in[1].gl_Position.xyz - gl_in[0].gl_Position.xyz;
     vec3 edge1 = gl_in[2].gl_Position.xyz - gl_in[0].gl_Position.xyz;
@@ -42,10 +48,13 @@ void main()
     TBN = transpose(TBN);
 
     gl_Position = data_in[0].projection * gl_in[0].gl_Position;
+//    n_lights = data_in[0].n_lights;
     Normal = data_in[0].Normal;
     texCoord = data_in[0].texCoord;
     fragCoord = TBN * data_in[0].fragCoord;
-    lightPos = TBN * data_in[0].lightPos;
+    for (int i = 0; i<n_lights;i++){
+        lights[i] = TBN * data_in[0].lights[i];
+    }
     u_view_pos = TBN * data_in[0].u_view_pos;
     EmitVertex();
 
@@ -53,7 +62,10 @@ void main()
     Normal = data_in[1].Normal;
     texCoord = data_in[1].texCoord;
     fragCoord = TBN * data_in[1].fragCoord;
-    lightPos = TBN * data_in[1].lightPos;
+    //lightPos = TBN * data_in[1].lightPos;
+    for (int i = 0; i<n_lights;i++){
+        lights[i] = TBN * data_in[1].lights[i];
+    }
     u_view_pos = TBN * data_in[1].u_view_pos;
     EmitVertex();
 
@@ -61,10 +73,12 @@ void main()
     Normal = data_in[2].Normal;
     texCoord = data_in[2].texCoord;
     fragCoord = TBN * data_in[2].fragCoord;
-    lightPos = TBN * data_in[2].lightPos;
+    //lightPos = TBN * data_in[2].lightPos;
+    for (int i = 0; i<n_lights;i++){
+        lights[i] = TBN * data_in[2].lights[i];
+    }    
     u_view_pos = TBN * data_in[2].u_view_pos;
     EmitVertex();
-
     EndPrimitive();
 
 }

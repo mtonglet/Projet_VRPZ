@@ -1,4 +1,6 @@
 #version 330 core
+	#define MAX_LIGHTS_NUMBER 10
+
 	in vec3 position; 
 	in vec2 tex_coord; 
 	in vec3 normal;
@@ -15,8 +17,9 @@
 		mat4 projection;
 		mat4 model;
 		vec3 u_view_pos;
-		vec3 lightPos;
+		vec3 lights[10];
 	} data_out;
+
 
 	uniform mat4 M; 
 	uniform mat4 R;
@@ -24,7 +27,8 @@
 	uniform mat4 P; 
 	uniform mat4 itM;
 	uniform vec3 u_view_pos;
-	uniform vec3 lightPos;
+	uniform vec3 lights[10];
+//	uniform int n_lights;
 
 	//void main()
 	//{ 
@@ -43,6 +47,7 @@
 		data_out.fragCoord = gl_Position.xyz;
 		data_out.projection = P * V;
 		data_out.model = M;
-		data_out.lightPos = lightPos;
+		data_out.lights = lights;
 		data_out.u_view_pos = u_view_pos;
+//   	data_out.n_lights = n_lights;
 	}
