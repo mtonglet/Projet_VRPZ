@@ -14,11 +14,13 @@ class ShadowFrameBuffer
 public:
 	//GLuint ID;
 	unsigned int ID;
+	unsigned int shadowMapTex;
+	unsigned int mapWidth, mapHeight;
 
 	ShadowFrameBuffer(unsigned int mapWidth = 2048,unsigned int mapHeight=2048);
 	
 	void Bind(GLuint unit);
-	void Unbind();
+	void Unbind(int winWidth, int winHeight);
 };
 
 class FrameBuffer

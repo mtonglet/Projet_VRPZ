@@ -2,11 +2,12 @@
 
 
 ShadowFrameBuffer::ShadowFrameBuffer(unsigned int mapWidth, unsigned int mapHeight) {
+	this->mapWidth = mapWidth;
+	this->mapHeight= mapHeight;
 
 	glGenFramebuffers(1, &ID);
-	unsigned int shadowMap;
-	glGenTextures(1, &shadowMap);
-	glBindTexture(GL_TEXTURE_2D, shadowMap);
+	glGenTextures(1, &shadowMapTex);
+	glBindTexture(GL_TEXTURE_2D, shadowMapTex);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, mapWidth, mapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -16,18 +17,31 @@ ShadowFrameBuffer::ShadowFrameBuffer(unsigned int mapWidth, unsigned int mapHeig
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, clampColor);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, ID);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMap, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMapTex, 0);
 	glDrawBuffer(GL_NONE);// Needed since we don't touch the color buffer
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void ShadowFrameBuffer::Bind(GLuint unit) {
+	/*
+	glEnable(GL_DEPTH_TEST);
+
+	glViewport(0, 0, mapWidth, mapHeight);
+	glBindFramebuffer(GL_FRAMEBUFFER, ID);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	*/
+	glActiveTexture(GL_TEXTURE0 + unit);
+	glBindTexture(GL_TEXTURE_2D, shadowMapTex);
+//	glUniform1i(glGetUniformLocation(shaderProgram.ID, "shadowMap"), 2);
 
 }
 
-void ShadowFrameBuffer::Unbind() {
-
+void ShadowFrameBuffer::Unbind(int winWidth, int winHeight) {
+	// Switch back to the default framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	// Switch back to the default viewport
+	glViewport(0, 0, winWidth, winHeight);
 }
 
 

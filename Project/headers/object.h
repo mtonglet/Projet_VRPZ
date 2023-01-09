@@ -45,7 +45,8 @@ public:
 
 	GLuint VBO, VAO;
 
-	glm::mat4 model = glm::mat4(1.0);
+	glm::mat4 M = glm::mat4(1.0); //unused so far
+
 
 /*
 	Object() {

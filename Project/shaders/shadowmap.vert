@@ -2,7 +2,7 @@
 layout (location=0) in vec3 pos;
 
 uniform mat4 lightProj; 
-uniform mat4 model; 
+uniform mat4 M; 
 
 void main()
 { 
