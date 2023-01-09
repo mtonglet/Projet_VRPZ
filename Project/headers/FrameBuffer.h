@@ -18,6 +18,10 @@ public:
 	unsigned int textureColorbufferID;
 	unsigned int rboID;
 
+	//constructor, used for shadow map
+	//FrameBuffer(unsigned int shadowMapWidth = 2048, unsigned int shadowMapHeight = 2048);
+	FrameBuffer::FrameBuffer(unsigned int noLight,bool forShadows);
+
 	//constructor, bind an empty texture and  render buffer to the framebuffer
 	FrameBuffer(unsigned int width = 800, unsigned int height = 600, unsigned int nbCol = 0);
 

@@ -34,6 +34,8 @@ void processInput(GLFWwindow* window);
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 
+void shadowMapInit();
+
 float lastX = width / 2.0f;
 float lastY = height / 2.0f;
 bool firstMouse = true;
@@ -180,6 +182,10 @@ int main(int argc, char* argv[])
 	char pathEmitterV[] = PATH_TO_SHADER "/emitter.vert";
 	Shader emitterShader = Shader(pathEmitterV, pathEmitterF);
 
+	char pathShadowF[] = PATH_TO_SHADER "/shadowmap.frag";
+	char pathShadowV[] = PATH_TO_SHADER "/shadowmap.vert";
+	Shader ShadowShader = Shader(pathShadowV, pathShadowF);
+
 	char pathS[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
 	Object sphere1(pathS);
 	sphere1.makeObject(shader);
@@ -301,7 +307,6 @@ int main(int argc, char* argv[])
 	modelBunnyText2 = glm::scale(modelBunnyText2, glm::vec3(0.8, 0.8, 0.8));
 	glm::mat4 inverseModelBunnyText2 = glm::transpose(glm::inverse(modelBunnyText2));
 
-	
 	glm::mat4 modelPlane = glm::mat4(1.0);
 	modelPlane = glm::translate(modelPlane, mirrorPos );
 	modelPlane = glm::scale(modelPlane, glm::vec3(1.0f, 1.0f, 1.0f));
@@ -418,7 +423,6 @@ int main(int argc, char* argv[])
 	lightShader.setFloat("lights[0].specular_strength", 0.2);
 
 
-
 	//Texture objects generation
 	char pathim[] = PATH_TO_TEXTURE "/Sand.jpg";
 	Texture GNDTex(pathim, "");
@@ -450,7 +454,7 @@ int main(int argc, char* argv[])
 	char pathimWoodParvis[] = PATH_TO_TEXTURE "/texture_woodparvis.jpeg";
 	Texture woodParvisTex(pathimWoodParvis, "");
 	
-	char pathMoonTex[] = PATH_TO_TEXTURE "/MOON-SURFACE-resized.png";
+	char pathMoonTex[] = PATH_TO_TEXTURE "/moon_texture_hd_001.jpg";
 	Texture moonTex(pathMoonTex, "");
 
 	
@@ -464,6 +468,33 @@ int main(int argc, char* argv[])
 	//Framebuffer for cubemap
 	CubeMap cubeRef = CubeMap(1024, 1024, 1);
 	FrameBuffer framebufferCube(1024,1024);
+
+	//Framebuffer for shadow map - from tutorial 25 of Victor Gordan - Youtube
+	FrameBuffer(0);
+	/*
+	unsigned int shadowMapFBO;
+	glGenFramebuffers(1, &shadowMapFBO);
+	unsigned int shadowMapWidth = 2048, shadowMapHeight = 2048;
+	unsigned int shadowMap;
+	glGenTextures(1, &shadowMap);
+	glBindTexture(GL_TEXTURE_2D, shadowMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadowMapWidth, shadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	float clampColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };// Prevents darkness outside the frustrum
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, clampColor);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMap, 0);
+	glDrawBuffer(GL_NONE);// Needed since we don't touch the color buffer
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	*/
+
+	glm::mat4 orthgonalProjection = glm::ortho(-35.0f, 35.0f, -35.0f, 35.0f, 0.1f, 75.0f);
+	glm::mat4 lightView = glm::lookAt(20.0f * lights_positions[0], glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::mat4 lightProjection = orthgonalProjection * lightView;
 
 //	Camera cameraCube(glm::vec3(0.0, 4.0, -15.0));
 	Camera cameraCube(mirrorSpherePos);
@@ -499,10 +530,11 @@ int main(int argc, char* argv[])
 		auto delta = light_pos + glm::vec3(0.0, 0.0, 6 * std::sin(now));
 		lights_positions[1] = delta;
 		lights_positions[0] = newMoonPos;
-//		auto deltas = lights_positions;
-//		deltas[1] += glm::vec3(0.0, 0.0, 6 * std::sin(now));
-//		deltas[0] = newMoonPos;
-		
+		/*
+		auto deltas = lights_positions;
+		deltas[1] += glm::vec3(0.0, 0.0, 6 * std::sin(now));
+		deltas[0] = newMoonPos;
+		*/
 		float moonAmbientValue = glm::max(0.0, 0.14 * newMoonPos.y / 50.0);
 
 
@@ -1085,4 +1117,10 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 	lastY = ypos;
 
 	camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
+
+void shadowMapInit(){
+
+
 }
