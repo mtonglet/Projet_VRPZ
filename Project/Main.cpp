@@ -187,7 +187,7 @@ int main(int argc, char* argv[])
 
 //	Element elem_moon(pathS, lightShader);
 	Object moon(pathS);
-	moon.makeObject(classicShader);
+	moon.makeObject(lightShader);
 	
 	char pathB[] = PATH_TO_OBJECTS "/bunny_small.obj";
 	Object bunny(pathB);
@@ -364,13 +364,28 @@ int main(int argc, char* argv[])
 	//BUMP
 	shaderBump.use();
 	shaderBump.setFloat("shininess", 32.0f);
-	shaderBump.setVector3f("materialColour", materialColour);
-	shaderBump.setFloat("light.ambient_strength", ambient);
+	//shaderBump.setVector3f("materialColour", materialColour);
+//	shaderBump.setLightsPosBump(lights_number, lights_positions);
+	shaderBump.setInteger("n_lights", 3);
+	shaderBump.setVector3f("lights[0]", lights_positions[0]);
+	shaderBump.setVector3f("lights[1]", lights_positions[1]);
+	shaderBump.setVector3f("lights[2]", lights_positions[2]);
+
+	shaderBump.setFloat("light_param.constant", 1.0);
+	shaderBump.setFloat("light_param.linear", 0.0);
+	shaderBump.setFloat("light_param.quadratic", 0.0);
+	shaderBump.setFloat("light_param.ambient_strength", 0.2);
+	shaderBump.setFloat("light_param.diffuse_strength", 0.3);
+	shaderBump.setFloat("light_param.specular_strength", 0.2);
+
+/*	shaderBump.setFloat("light.ambient_strength", ambient);
 	shaderBump.setFloat("light.diffuse_strength", diffuse);
 	shaderBump.setFloat("light.specular_strength", specular);
 	shaderBump.setFloat("light.constant", 1.0);
 	shaderBump.setFloat("light.linear", 0.00014);
 	shaderBump.setFloat("light.quadratic", 0.0007);
+*/
+
 
 	/*	Refraction indices :
 	Air:      1.0	|	Water:    1.33	|
@@ -434,6 +449,9 @@ int main(int argc, char* argv[])
 	char pathimWoodParvis[] = PATH_TO_TEXTURE "/texture_woodparvis.jpeg";
 	Texture woodParvisTex(pathimWoodParvis, "");
 	
+	char pathMoonTex[] = PATH_TO_TEXTURE "/MOON-SURFACE-resized.png";
+	Texture moonTex(pathMoonTex, "");
+
 	
 	std::string PathCM( PATH_TO_TEXTURE "/cubemaps/yokohama3/sky2_");
 	//cube map creation 
@@ -490,7 +508,7 @@ int main(int argc, char* argv[])
 		if (firstLoop) {
 ////////////////////////////////////////////////////////////////////////////////////////////
 // Pass 0 :
-			//firstLoop = false; //UNCOMMENT/COMMENT
+			firstLoop = false; //UNCOMMENT/COMMENT
 			//draw the cubeMap 
 			framebufferCube.Bind(0);
 
@@ -517,9 +535,6 @@ int main(int argc, char* argv[])
 
 				bunny.draw();
 				
-				classicShader.setVector3f("colorRGB", glm::vec3(1.0, 1.0, 0.9));
-				classicShader.setMatrix4("M", modelMoon);
-				moon.draw();
 				
 //				elem_moon.display(viewCube,projectionCube);
 
@@ -573,6 +588,8 @@ int main(int argc, char* argv[])
 				lightShader.setTexUnit("tex0", 1);
 				
 				// Binds texture so that is appears in rendering to the right unit
+
+				//lightShader.setVector3f("colorRGB", glm::vec3(1.0, 1.0, 0.9));
 				sapinTex.Bind(1);
 				sapin.draw();
 
@@ -594,7 +611,11 @@ int main(int argc, char* argv[])
 				lightShader.setMatrix4("M", modelSol);
 				GNDTex.Bind(1);
 				ground.draw();
-				
+
+				lightShader.setMatrix4("M", modelMoon);
+				moonTex.Bind(1);
+				moon.draw();
+
 				/*
 				lightShader.setVector3f("Emitted", glm::vec3(1.0, 1.0, 0.9));
 				lightShader.setMatrix4("M", modelMoon);
@@ -602,14 +623,24 @@ int main(int argc, char* argv[])
 				*/
 				//room with bump mapping
 				shaderBump.use();
-				shaderBump.setFloat("light.ambient_strength", ambient + moonAmbientValue);
+
+//				shaderBump.setLightsPosBump(lights_number, lights_positions);
+				shaderBump.setInteger("n_lights", 3);
+				shaderBump.setVector3f("lights[0]", lights_positions[0]);
+				shaderBump.setVector3f("lights[1]", lights_positions[1]);
+				shaderBump.setVector3f("lights[2]", lights_positions[2]);
+
+
+				//shaderBump.setFloat("light.ambient_strength", ambient + moonAmbientValue);
 				shaderBump.setMatrix4("M", modelRoom);
 				shaderBump.setMatrix4("itM", inverseModelRoom);
 				shaderBump.setMatrix4("R", glm::mat4(1.0));
 				shaderBump.setMatrix4("V", viewCube);
 				shaderBump.setMatrix4("P", projectionCube);
 				shaderBump.setVector3f("u_view_pos", cameraCube.Position);
-				shaderBump.setVector3f("light.light_pos", delta);
+				shaderBump.setInteger("lampsActivated", lampsActivated);
+				//shaderBump.setVector3f("light.light_pos", delta);
+
 
 				// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
 				shaderBump.setTexUnit("tex0", 1);
@@ -652,9 +683,9 @@ int main(int argc, char* argv[])
 
 		bunny.draw();
 		
-		classicShader.setVector3f("colorRGB", glm::vec3(1.0, 1.0, 0.9));
-		classicShader.setMatrix4("M", modelMoon);
-		moon.draw();
+//		classicShader.setVector3f("colorRGB", glm::vec3(1.0, 1.0, 0.9));
+//		classicShader.setMatrix4("M", modelMoon);
+//		moon.draw();
 		
 //		elem_moon.display(viewCube, perspective);
 
@@ -691,14 +722,23 @@ int main(int argc, char* argv[])
 
 		//room (with bump mapping)
 		shaderBump.use();
-		shaderBump.setFloat("light.ambient_strength",ambient + moonAmbientValue);
+		//shaderBump.setFloat("light.ambient_strength",ambient + moonAmbientValue);
+		//shaderBump.setVector3f("lightPos", delta);		
+
+//		shaderBump.setLightsPosBump(lights_number, lights_positions);
+		shaderBump.setInteger("n_lights", 3);
+		shaderBump.setVector3f("lights[0]", lights_positions[0]);
+		shaderBump.setVector3f("lights[1]", lights_positions[1]);
+		shaderBump.setVector3f("lights[2]", lights_positions[2]);
+
 		shaderBump.setMatrix4("M", modelRoom);
 		shaderBump.setMatrix4("itM", inverseModelRoom); //should be modified with regards to R 
 		shaderBump.setMatrix4("R", reflection);
 		shaderBump.setMatrix4("V", view);
 		shaderBump.setMatrix4("P", perspective);
 		shaderBump.setVector3f("u_view_pos", camera.Position);
-		shaderBump.setVector3f("lightPos", delta);
+		shaderBump.setInteger("lampsActivated", lampsActivated);
+
 
 		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
 		shaderBump.setTexUnit("tex0", 0);
@@ -749,6 +789,10 @@ int main(int argc, char* argv[])
 		GNDTex.Bind(0);
 		ground.draw();
 
+		lightShader.setMatrix4("M", modelMoon);
+		moonTex.Bind(0);
+		moon.draw();
+
 		/*
 		lightShader.setVector3f("Emitted", glm::vec3(1.0, 1.0, 0.9));
 		lightShader.setMatrix4("M", modelMoon);
@@ -777,9 +821,9 @@ int main(int argc, char* argv[])
 
 		//bunny.draw();
 		
-		classicShader.setVector3f("colorRGB", glm::vec3(1.0, 1.0, 0.9));
-		classicShader.setMatrix4("M", modelMoon);
-		moon.draw();
+//		classicShader.setVector3f("colorRGB", glm::vec3(1.0, 1.0, 0.9));
+//		classicShader.setMatrix4("M", modelMoon);
+//		moon.draw();
 		
 //		elem_moon.display(viewCube, projectionCube);
 
@@ -834,14 +878,24 @@ int main(int argc, char* argv[])
 
 		//room with bump mapping
 		shaderBump.use();
-		shaderBump.setFloat("light.ambient_strength",ambient + moonAmbientValue);
+//		shaderBump.setFloat("light.ambient_strength",ambient + moonAmbientValue);
+//		shaderBump.setVector3f("lightPos", delta);
+		
+		//shaderBump.setLightsPosBump(lights_number, lights_positions);
+
 		shaderBump.setMatrix4("M", modelRoom);
 		shaderBump.setMatrix4("itM", inverseModelRoom);
 		shaderBump.setMatrix4("R", glm::mat4(1.0));
 		shaderBump.setMatrix4("V", view);
 		shaderBump.setMatrix4("P", perspective);
 		shaderBump.setVector3f("u_view_pos", camera.Position);
-		shaderBump.setVector3f("lightPos", delta);
+		shaderBump.setVector3f("lights[0]", lights_positions[0]);
+		shaderBump.setVector3f("lights[1]", lights_positions[1]);
+		shaderBump.setVector3f("lights[2]", lights_positions[2]);
+		shaderBump.setInteger("n_lights", 3);
+
+		shaderBump.setInteger("lampsActivated", lampsActivated);
+
 
 		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
 		shaderBump.setTexUnit("tex0", 0);
@@ -898,6 +952,10 @@ int main(int argc, char* argv[])
 		GNDTex.Bind(0);
 		ground.draw();
 
+		lightShader.setMatrix4("M", modelMoon);
+		moonTex.Bind(0);
+		moon.draw();
+
 		/*
 		lightShader.setVector3f("Emitted", glm::vec3(1.0, 1.0, 0.9));
 		lightShader.setMatrix4("M", modelMoon);
@@ -940,6 +998,7 @@ int main(int argc, char* argv[])
 		glEnable(GL_DEPTH_TEST);
 		fps(now);
 		glfwSwapBuffers(window);
+//		break;
 	}
 
 	//clean up ressource

@@ -37,20 +37,6 @@
 		return lights[i].specular_strength * spec;
 	}
 
-	
-	float calcDirLightInit(vec3 N){
-		vec3 L = normalize(-lights[0].light_pos); 
-		vec3 V = normalize(u_view_pos - v_frag_coord); 
-		float specular = specularCalculation( N, L, V, 0); 
-		float diffuse = lights[0].diffuse_strength * max(dot(N,L),0.0);
-		float light = lights[0].ambient_strength + diffuse + specular;
-		if (dot(N,L) <= 0){
-			light = lights[0].ambient_strength; //
-		}
-
-		return light;
-	}
-
 	float calcDirLight(vec3 N){
 		vec3 L = normalize(lights[0].light_pos); 
 		vec3 V = normalize(u_view_pos - v_frag_coord); 
@@ -58,7 +44,7 @@
 		float diffuse = lights[0].diffuse_strength * max(dot(N,L),0.0);
 		float light = lights[0].ambient_strength + diffuse + specular;
 		if (dot(N,L) <= 0){
-			light = lights[0].ambient_strength + diffuse + specular; //
+			light = lights[0].ambient_strength ;//+ diffuse + specular; //
 		}
 
 		return light;

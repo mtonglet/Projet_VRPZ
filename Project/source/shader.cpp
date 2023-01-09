@@ -164,6 +164,13 @@ void Shader::setLightsPos(const int nLights, std::vector<glm::vec3> &array) {
     }   
 }
 
+void Shader::setLightsPosBump(const int nLights, std::vector<glm::vec3>& array) {
+    this->setInteger("n_lights", nLights);
+    for (int i = 0; i < nLights; i++) {
+        std::string name = "lights[" + std::to_string(i) + "]";
+        this->setVector3f(name.c_str(), array[i]);
+    }
+}
 void Shader::setMatrix4(const GLchar* name, const glm::mat4& matrix) {
     glUniformMatrix4fv(glGetUniformLocation(ID, name), 1, GL_FALSE, glm::value_ptr(matrix));
 } 
