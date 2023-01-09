@@ -28,7 +28,7 @@
 	const int MAX_LIGHTS_NUMBER = 10;
 	uniform Light lights[MAX_LIGHTS_NUMBER];
 	uniform int n_lights;
-	uniform vec3 Emitted;
+	uniform vec3 emitted;
 
 	float specularCalculation(vec3 N, vec3 L, vec3 V , int i){ 
 		vec3 R = reflect (-L,N);  //reflect (-L,N) is  equivalent to //max (2 * dot(N,L) * N - L , 0.0) ;
@@ -71,7 +71,7 @@
 		float dirli = calcDirLight(N);
 		vec3 total_light = vec3(dirli);
 
-		//total_light  +=  Emitted;
+		total_light  +=  emitted;
 
 		if (lampsActivated){
 			for (int i = 1 ; i < n_lights ; i++){

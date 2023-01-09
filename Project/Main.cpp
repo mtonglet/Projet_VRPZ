@@ -282,6 +282,7 @@ int main(int argc, char* argv[])
 	glm::mat4 modelMoon = glm::mat4(1.0);
 	modelMoon = glm::translate(modelMoon, glm::vec3(0.0, 50.0, 0.0));
 	modelMoon = glm::scale(modelMoon, glm::vec3(2.0, 2.0, 2.0));
+	glm::vec3 moonColor = 0.9f * glm::vec3(1.0,1.0,0.9);
 //	elem_moon.initialize(0.0,50.0,0.0,2.0);
 
 	glm::mat4 modelBunny = glm::mat4(1.0);
@@ -404,7 +405,7 @@ int main(int argc, char* argv[])
 	//LIGHT
 	lightShader.use();
 	lightShader.setFloat("Ambient", ambient);
-	lightShader.setVector3f("Emitted", glm::vec3(0.0));
+	lightShader.setVector3f("emitted", glm::vec3(0.0));
 	lightShader.setLightsParams(10, lights_params);
 	lightShader.setLightsPos(lights_number,lights_positions);
 	lightShader.setFloat("shininess", 32.0f);
@@ -574,6 +575,7 @@ int main(int argc, char* argv[])
 
 				//room (for objects without bump mapping)
 				lightShader.use();
+				lightShader.setVector3f("emitted", glm::vec3(0.0));
 				lightShader.setInteger("lampsActivated", lampsActivated);
 				//lightShader.setFloat("lights[2].ambient_strength", moonAmbientValue);
 				lightShader.setMatrix4("M", modelRoom);
@@ -613,6 +615,7 @@ int main(int argc, char* argv[])
 				ground.draw();
 
 				lightShader.setMatrix4("M", modelMoon);
+				lightShader.setVector3f("emitted", moonColor);
 				moonTex.Bind(1);
 				moon.draw();
 
@@ -754,6 +757,7 @@ int main(int argc, char* argv[])
 
 		//room (for objects without bump mapping)
 		lightShader.use();
+		lightShader.setVector3f("emitted", glm::vec3(0.0));
 		lightShader.setInteger("lampsActivated", lampsActivated);
 		//lightShader.setFloat("lights[2].ambient_strength", moonAmbientValue);
 		lightShader.setMatrix4("M", modelRoom);
@@ -790,6 +794,7 @@ int main(int argc, char* argv[])
 		ground.draw();
 
 		lightShader.setMatrix4("M", modelMoon);
+		lightShader.setVector3f("emitted", moonColor);
 		moonTex.Bind(0);
 		moon.draw();
 
@@ -911,6 +916,7 @@ int main(int argc, char* argv[])
 
 		//room (for objects without bump mapping)
 		lightShader.use();
+		lightShader.setVector3f("emitted", glm::vec3(0.0));
 		lightShader.setInteger("lampsActivated", lampsActivated);
 		//lightShader.setFloat("lights[2].ambient_strength", moonAmbientValue);
 		lightShader.setMatrix4("M", modelRoom);
@@ -953,6 +959,7 @@ int main(int argc, char* argv[])
 		ground.draw();
 
 		lightShader.setMatrix4("M", modelMoon);
+		lightShader.setVector3f("emitted", moonColor);
 		moonTex.Bind(0);
 		moon.draw();
 
