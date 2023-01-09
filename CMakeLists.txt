@@ -5,7 +5,7 @@
 project(Project_VRPZ)
 
 #set the minimal version of cmake and the minimal version of the c++ language
-cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 set(CMAKE_CXX_STANDARD 14)     
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
