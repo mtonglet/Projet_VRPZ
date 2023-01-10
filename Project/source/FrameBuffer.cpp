@@ -21,6 +21,7 @@ ShadowFrameBuffer::ShadowFrameBuffer(unsigned int mapWidth, unsigned int mapHeig
 	glDrawBuffer(GL_NONE);// Needed since we don't touch the color buffer
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 }
 
 void ShadowFrameBuffer::BindFB() {

@@ -60,6 +60,7 @@
 		if(pos.z > 1.0){
 			pos.z = 1.0;
 		}
+
 		float depth = texture(shadow_map,pos.xy).r;
 		float bias = max(0.05*(1-dotNL),0.005);
 		return (depth + bias) < pos.z ? 0.01 : 1.0;
@@ -76,7 +77,7 @@
 		float shad = otherShadCalc(dot(N,L));
 		float light = lights[0].ambient_strength + (diffuse + specular)*shad;
 		if (dot(N,L) <= 0){
-			//light = lights[0].ambient_strength ;//+ diffuse + specular; //
+			light = lights[0].ambient_strength ;//+ diffuse + specular; //
 		}
 
 		return light;

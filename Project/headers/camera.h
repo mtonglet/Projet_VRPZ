@@ -74,12 +74,14 @@ public:
     void ProcessMouseScroll(float yoffset);
 
     void MouseSwitchActivation(bool released, GLFWwindow* window);
+
+    //reset the position to the origin, pointing towards positive x
+    void resetPosition();
+
 private:
     
     // calculates the front vector from the Camera's (updated) Euler Angles
     void updateCameraVectors();
-   
-
-};
+ };
 
 #endif

@@ -234,3 +234,10 @@ void Camera::MouseSwitchActivation(bool released, GLFWwindow* window) {
     Creleased = released;
 
 }
+
+void Camera::resetPosition() {
+    Position = glm::vec3(0.0);
+    //towards positive x
+    this->Yaw = 90;
+    this->Pitch = 0;
+}

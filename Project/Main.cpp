@@ -117,14 +117,15 @@ int main(int argc, char* argv[])
 
 	//Create the window
 	GLFWwindow* window = glfwCreateWindow(width, height, "Project VRPZ", nullptr, nullptr);
-	if (window == NULL)
+	//GLFWwindow* debugWindow = glfwCreateWindow(width/2, height/2, "DEBUG - Project VRPZ", nullptr, nullptr);
+
+	if (window == NULL )//|| debugWindow == NULL)
 	{
 		glfwTerminate();
 		throw std::runtime_error("Failed to create GLFW window\n");
 	}
 
 	glfwMakeContextCurrent(window);
-
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -268,8 +269,6 @@ int main(int argc, char* argv[])
 			deltaFrame = 0;
 			std::cout << "\r FPS: " << fpsCount;
 			std::cout.flush();
-			std::cout << "\n cam pos: " << camera.Position.x << " - " << camera.Position.y << " - " << camera.Position.z;
-			std::cout.flush();
 		}
 	};
 
@@ -281,7 +280,7 @@ int main(int argc, char* argv[])
 	std::vector<glm::vec3> lights_positions = {
 //		glm::vec3(0.0,moonDist,0.0), //moon
 //		light_pos,
-		glm::vec3(25.0,10.0,0.0),
+		4.0f*glm::vec3(20.0,6.0,4.0),
 //		glm::vec3(7.5, 2.0, 7.5)
 	};
 	const int lights_number = lights_positions.size();
@@ -301,7 +300,10 @@ int main(int argc, char* argv[])
 	glm::mat4 modelMoon = glm::mat4(1.0);
 	modelMoon = glm::translate(modelMoon, lights_positions[0]);
 	modelMoon = glm::scale(modelMoon, glm::vec3(1.0));
+	modelMoon = glm::rotate(modelMoon, 3.14159265358979f,glm::vec3(0.0,1.0,0.0));
 	glm::vec3 moonColor = 0.9f * glm::vec3(1.0,1.0,0.9);
+	glm::mat4 inverseModelMoon = glm::transpose(glm::inverse(modelMoon));
+
 //	elem_moon.initialize(0.0,50.0,0.0,2.0);
 
 	glm::mat4 modelBunny = glm::mat4(1.0);
@@ -505,8 +507,9 @@ int main(int argc, char* argv[])
 		double init_t = glfwGetTime();
 	}
 
-
+	bool renderDebuggingWindow = false;
 	while (!glfwWindowShouldClose(window)) {
+		glfwMakeContextCurrent(window);
 		processInput(window);
 		view = camera.GetViewMatrix();
 		glfwPollEvents();
@@ -539,10 +542,14 @@ int main(int argc, char* argv[])
 		*/
 		//
 		auto delta =  + glm::vec3(0.0, 0.0, 6 * std::sin(now));
-		lights_positions[0] =  glm::vec3(20.0, 6.0f + 2.5f * std::sin(now), 0.0);; //TODO: uncomment to move the moon
+//		lights_positions[0] =  glm::vec3(20.0,6.0f + 2.5f * std::sin(now),4.0f);; //TODO: uncomment to move the moon
+		lights_positions[0] =  2.0f*glm::vec3(30.0,30.0f+30.0f*std::sin(now), 10.0f);;
 		modelMoon = glm::mat4(1.0);
 		modelMoon = glm::translate(modelMoon, lights_positions[0]);
 		modelMoon = glm::scale(modelMoon, glm::vec3(1.0));
+		modelMoon = glm::rotate(modelMoon, 3.14159265358979f, glm::vec3(0.0, 1.0, 0.0));
+		inverseModelMoon = glm::transpose(glm::inverse(modelMoon));
+
 
 		if (firstLoop) {
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -653,6 +660,7 @@ int main(int argc, char* argv[])
 				ground.draw();
 
 				lightShader.setMatrix4("M", modelMoon);
+				lightShader.setMatrix4("itM", inverseModelMoon);
 				lightShader.setVector3f("emitted", moonColor);
 				moonTex.Bind(1);
 				moon.draw();
@@ -702,15 +710,20 @@ int main(int argc, char* argv[])
 		//clear framebuffer contents
 		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		framebufferMirror.Unbind();
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //Zero pass: Draw scene and compute shadow maps
 		framebufferShadow.BindFB();
 
 		//glm::vec3 pos = camera.Position; // lights_positions[0];
-		glm::mat4 orthoProj = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, 0.1f, 150.0f);
-//		glm::mat4 dirLightView = glm::lookAt(14.0f*glm::normalize(lights_positions[0]), glm::vec3(0.0f, 4.5f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		glm::mat4 dirLightView = glm::lookAt(lights_positions[0], glm::vec3(0.0, 0.5, 0.0), glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::mat4 orthoProj = glm::ortho(-15.0f, 15.0f, -15.0f, 15.0f, -10.0f, 150.0f);
+//		glm::mat4 orthoProj = camera.GetProjectionMatrix();
+//		glm::vec3 upDirLight = glm::normalize(glm::cross(glm::cross(-1.0f * lights_positions[0], glm::vec3(0.0f, 1.0f, 0.0f)), -1.0f * lights_positions[0]));
+		glm::vec3 upDirLight = glm::vec3(0.0f,1.0f,0.0f);
+		glm::mat4 dirLightView = glm::lookAt(lights_positions[0], glm::vec3(0.0f, 0.0f, 0.0f), upDirLight);
+//		glm::mat4 dirLightView = glm::lookAt(lights_positions[0], glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0f, 1.0f, 0.0f));
+//		glm::mat4 dirLightView = glm::lookAt(lights_positions[0], glm::vec3(0.0), upDirLight);
 		//glm::mat4 dirLightView = camera.GetViewMatrix();
 		glm::mat4 dirLightProj = orthoProj * dirLightView;
 
@@ -738,21 +751,22 @@ int main(int argc, char* argv[])
 		woodparvis.draw();
 
 		framebufferShadow.Unbind(width, height);
-
-		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		/*
 		//DEBUGGING CODE to uncomment
-		//shadowDebugShader.use();
-		//framebufferShadow.InitRenderTest();
-		//renderShadowMapTest();
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		shadowDebugShader.use();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, framebufferShadow.shadowMapTex);
+		renderShadowMapTest();
 		//all that follows should be commented for visualization in OpenGL
-		
+		/**/
 
 		
 ////////////////////////////////////////////////////////////////////////////////////////////
 //First pass: Draw reversed Scene 
 		// 
 		//draw bunny
+		framebufferMirror.Bind(0);
 		classicShader.use();
 
 		classicShader.setMatrix4("M", modelBunny);
@@ -869,6 +883,7 @@ int main(int argc, char* argv[])
 		ground.draw();
 
 		lightShader.setMatrix4("M", modelMoon);
+		lightShader.setMatrix4("itM", inverseModelMoon);
 		lightShader.setVector3f("emitted", moonColor);
 		moonTex.Bind(0);
 		moon.draw();
@@ -956,20 +971,71 @@ int main(int argc, char* argv[])
 		//bunnyText.draw(); //same object with different texture and model uniforms
 
 
+		//room (for objects without bump mapping)
+		lightShader.use();
+		lightShader.setVector3f("emitted", glm::vec3(0.0));
+		
+		//to VS
+		lightShader.setMatrix4("R", glm::mat4(1.0));
+		lightShader.setMatrix4("V", view);
+		lightShader.setMatrix4("P", perspective);
+		lightShader.setMatrix4("itM", glm::mat4(1)); //should be modified with regards to R 
+		lightShader.setMatrix4("dir_light_proj", dirLightProj);//shadows
+
+		//to FS
+		lightShader.setInteger("lampsActivated", lampsActivated);
+		lightShader.setLightsPos(lights_number, lights_positions);
+		lightShader.setFloat("shininess", 32.0f);
+		lightShader.setVector3f("u_view_pos", camera.Position);
+		lightShader.setVector3f("emitted", glm::vec3(0.0));//objects do not emit light by default
+		//for(every shadow maps in every frame_buffer_shadow):
+		lightShader.setTexUnit("shadow_map", 1);
+		framebufferShadow.BindTex(1);//1st taken by the default texture 
+
+		//Bind correct slot for textures...
+		lightShader.setTexUnit("tex0", 0);
+		//... and draw all model matrices with textures
+		lightShader.setMatrix4("M", modelSapin);
+		sapinTex.Bind(0);
+		sapin.draw();
+		lightShader.setMatrix4("M", modelChaise);
+		chaiseTex.Bind(0);
+		chaise.draw();
+		lightShader.setMatrix4("M", modelMeuble);
+		meubleTex.Bind(0);
+		meuble.draw();
+		lightShader.setMatrix4("M", modelPeinture);
+		peintureTex.Bind(0);
+		peinture.draw();
+		lightShader.setMatrix4("M", modelSol);
+		GNDTex.Bind(0);
+		ground.draw();
+		lightShader.setMatrix4("M", modelWoodFloor);
+		woodFloorTex.Bind(0);
+		woodfloor.draw();
+		lightShader.setMatrix4("M", modelWoodParvis);
+		woodParvisTex.Bind(0);
+		woodparvis.draw();
+		lightShader.setMatrix4("M", modelMoon);
+		lightShader.setMatrix4("itM", inverseModelMoon);
+		lightShader.setVector3f("emitted", 1.5f*moonColor);
+		moonTex.Bind(0);
+		moon.draw();
+
+
 		//room with bump mapping
 		shaderBump.use();
-//		shaderBump.setFloat("light.ambient_strength",ambient + moonAmbientValue);
-//		shaderBump.setVector3f("lightPos", delta);
-		
-
+		//		shaderBump.setFloat("light.ambient_strength",ambient + moonAmbientValue);
+		//		shaderBump.setVector3f("lightPos", delta);
 		shaderBump.setMatrix4("M", modelRoom);
+//		shaderBump.setMatrix4("itM", inverseModelRoom);
 		shaderBump.setMatrix4("itM", inverseModelRoom);
 		shaderBump.setMatrix4("R", glm::mat4(1.0));
 		shaderBump.setMatrix4("V", view);
 		shaderBump.setMatrix4("P", perspective);
 		shaderBump.setVector3f("u_view_pos", camera.Position);
 		shaderBump.setLightsPosBump(lights_number, lights_positions);
-		
+
 		shaderBump.setInteger("lampsActivated", lampsActivated);
 
 
@@ -985,65 +1051,6 @@ int main(int argc, char* argv[])
 
 		room.draw();
 
-		//room (for objects without bump mapping)
-		lightShader.use();
-		lightShader.setVector3f("emitted", glm::vec3(0.0));
-		//shadows
-		lightShader.setMatrix4("dir_light_proj", dirLightProj);
-		lightShader.setTexUnit("shadow_map", 0);
-		framebufferShadow.BindTex(0);//1st taken by the default texture 
-		//lighting
-		lightShader.setVector3f("emitted", glm::vec3(0.0));
-		lightShader.setInteger("lampsActivated", lampsActivated);
-		//lightShader.setFloat("lights[2].ambient_strength", moonAmbientValue);
-		lightShader.setMatrix4("M", modelRoom);
-		lightShader.setMatrix4("itM", inverseModelRoom); //should be modified with regards to R 
-		lightShader.setMatrix4("R", glm::mat4(1.0));
-		lightShader.setMatrix4("V", view);
-		lightShader.setMatrix4("P", perspective);
-		lightShader.setVector3f("u_view_pos", camera.Position);
-		lightShader.setLightsPos(lights_number, lights_positions);
-
-		lightShader.setTexUnit("tex0", 1);
-
-		// Binds texture so that is appears in rendering to the right unit
-		lightShader.setMatrix4("M", modelSapin);
-		sapinTex.Bind(1);
-		sapin.draw();
-
-		lightShader.setMatrix4("M", modelChaise);
-		chaiseTex.Bind(1);
-		chaise.draw();
-
-		lightShader.setMatrix4("M", modelMeuble);
-		meubleTex.Bind(1);
-		meuble.draw();
-
-		lightShader.setMatrix4("M", modelPeinture);
-		peintureTex.Bind(1);
-		peinture.draw();
-
-		lightShader.setMatrix4("M", modelWoodFloor);
-		woodFloorTex.Bind(1);
-		woodfloor.draw();
-
-		woodParvisTex.Bind(1);
-		woodparvis.draw();
-
-
-		lightShader.setMatrix4("M", modelSol);
-		GNDTex.Bind(1);
-		ground.draw();
-
-		lightShader.setMatrix4("M", modelMoon);
-		lightShader.setVector3f("emitted", 1.5f*moonColor);
-		moonTex.Bind(1);
-		moon.draw();
-		
-		
-		//lightShader.setVector3f("Emitted", glm::vec3(1.0, 1.0, 0.9));
-		//lightShader.setMatrix4("M", modelMoon);
-		//moon.draw();
 
 		// now draw the mirror quad with screen texture
 	    // --------------------------------------------
@@ -1090,8 +1097,68 @@ int main(int argc, char* argv[])
 
 		glEnable(GL_DEPTH_TEST);// Enable the depth buffer*/
 		fps(now);
-		glfwSwapBuffers(window);
+		
+//		glfwSwapBuffers(window);
 //		break;
+ 
+		//FOR DEBUGGING
+//		glClear(GL_COLOR_BUFFER_BIT);
+		glfwSwapBuffers(window);
+		
+		//DISPLAY SECOND WINDOW for debugging
+		if (renderDebuggingWindow) {
+//			glfwMakeContextCurrent(debugWindow);
+			glEnable(GL_DEPTH_TEST);
+			glClearColor(0.2f, 0.5f, 0.8f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
+			//render the shadow map
+			framebufferShadow.BindFB();
+
+			//glm::mat4 orthoProj = glm::ortho(-12.0f, 12.0f, -12.0f, 12.0f, 0.1f, 150.0f);
+			//glm::mat4 dirLightView = glm::lookAt(lights_positions[0], glm::vec3(0.0, 0.5, 0.0), glm::vec3(0.0f, 1.0f, 0.0f));
+			//glm::mat4 dirLightProj = orthoProj * dirLightView;
+
+			shadowShader.use();
+			shadowShader.setMatrix4("lightProj", dirLightProj);
+
+
+			shadowShader.setMatrix4("M", modelSapin);
+			sapin.draw();
+			shadowShader.setMatrix4("M", modelRoom);
+			room.draw();
+			shadowShader.setMatrix4("M", modelSol);
+			ground.draw();
+
+
+			shadowShader.setMatrix4("M", modelChaise);
+			chaise.draw();
+			shadowShader.setMatrix4("M", modelMeuble);
+			meuble.draw();
+			shadowShader.setMatrix4("M", modelPeinture);
+			peinture.draw();
+			shadowShader.setMatrix4("M", modelWoodFloor);
+			woodfloor.draw();
+			shadowShader.setMatrix4("M", modelWoodParvis);
+			woodparvis.draw();
+
+			framebufferShadow.Unbind(width, height);
+
+			glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			//DEBUGGING CODE to uncomment
+			//shadowDebugShader.use();
+			//framebufferShadow.InitRenderTest();
+			//renderShadowMapTest();
+//			shadowDebugShader.use();
+//			framebufferShadow.InitRenderTest();
+//			renderShadowMapTest();
+
+			//glClear(GL_COLOR_BUFFER_BIT);
+//			glfwSwapBuffers(debugWindow);
+
+		}
+		//glfwPollEvents();
+		/**/
 	}
 
 	//clean up ressource
@@ -1157,6 +1224,10 @@ void processInput(GLFWwindow* window) {
 	}
 	else {
 		fasterMoon = 0.0;
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
+		camera.resetPosition();
 	}
 
 }
