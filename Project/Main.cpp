@@ -42,6 +42,7 @@ float lastY = height / 2.0f;
 bool firstMouse = true;
 bool lampsActivated = false;
 bool inKeyA = false;
+float fasterMoon = 0.0;
 
 void loadCubemapFace(const char* file, const GLenum& targetCube);
 
@@ -278,9 +279,10 @@ int main(int argc, char* argv[])
 	double moonDist = 100.0;
 	//must be less than MAX_LIGHTS_NUMBER defined in textureLight.frag
 	std::vector<glm::vec3> lights_positions = {
-		glm::vec3(0.0,moonDist,0.0), //moon
-		light_pos,
-		glm::vec3(7.5, 2.0, 7.5)
+//		glm::vec3(0.0,moonDist,0.0), //moon
+//		light_pos,
+		glm::vec3(25.0,10.0,0.0),
+//		glm::vec3(7.5, 2.0, 7.5)
 	};
 	const int lights_number = lights_positions.size();
 
@@ -297,8 +299,8 @@ int main(int argc, char* argv[])
 	glm::mat4 inverseModelS = glm::transpose(glm::inverse(modelS));
 
 	glm::mat4 modelMoon = glm::mat4(1.0);
-	modelMoon = glm::translate(modelMoon, glm::vec3(0.0, 50.0, 0.0));
-	modelMoon = glm::scale(modelMoon, glm::vec3(2.0, 2.0, 2.0));
+	modelMoon = glm::translate(modelMoon, lights_positions[0]);
+	modelMoon = glm::scale(modelMoon, glm::vec3(1.0));
 	glm::vec3 moonColor = 0.9f * glm::vec3(1.0,1.0,0.9);
 //	elem_moon.initialize(0.0,50.0,0.0,2.0);
 
@@ -382,11 +384,7 @@ int main(int argc, char* argv[])
 	shaderBump.use();
 	shaderBump.setFloat("shininess", 32.0f);
 	//shaderBump.setVector3f("materialColour", materialColour);
-//	shaderBump.setLightsPosBump(lights_number, lights_positions);
-	shaderBump.setInteger("n_lights", 3);
-	shaderBump.setVector3f("lights[0]", lights_positions[0]);
-	shaderBump.setVector3f("lights[1]", lights_positions[1]);
-	shaderBump.setVector3f("lights[2]", lights_positions[2]);
+	shaderBump.setLightsPosBump(lights_number, lights_positions);
 
 	shaderBump.setFloat("light_param.constant", 1.0);
 	shaderBump.setFloat("light_param.linear", 0.0);
@@ -483,8 +481,6 @@ int main(int argc, char* argv[])
 	//Framebuffer for shadow map - from tutorial 25 of Victor Gordan - Youtube
 	ShadowFrameBuffer framebufferShadow(2048,2048);
 
-	glm::mat4 orthoProj = glm::ortho(-35.0f, 35.0f, -35.0f, 35.0f, 0.1f, 100.0f);
-
 
 //	Camera cameraCube(glm::vec3(0.0, 4.0, -15.0));
 	Camera cameraCube(mirrorSpherePos);
@@ -503,6 +499,11 @@ int main(int argc, char* argv[])
 	glfwSwapInterval(1);
 
 	double init_now = glfwGetTime();
+	double init_t = 0.0;
+	float df = 0;
+	if (fasterMoon > 0) {
+		double init_t = glfwGetTime();
+	}
 
 
 	while (!glfwWindowShouldClose(window)) {
@@ -510,21 +511,38 @@ int main(int argc, char* argv[])
 		view = camera.GetViewMatrix();
 		glfwPollEvents();
 		double now = glfwGetTime();
+		/*
 		//moving moon
+		if (fasterMoon>0 && df<fasterMoon) {
+			df += 0.01;
+		}
+		else if (fasterMoon== 0 && df>0) {
+			df -= 0.01;
+		}
+		std::cout << "		df= " << df << std::endl;
+		glm::vec3 newMoonPos = glm::vec3(
+				moonDist * std::sin((moonSpeed+df)*(now-init_now)),
+				moonDist * std::cos((moonSpeed+df)*(now-init_now)),
+			0.0);
 
-		glm::vec3 newMoonPos = glm::vec3(moonDist* std::sin(moonSpeed * (now - init_now)), moonDist* std::cos(moonSpeed * (now - init_now)), 0.0);
+		auto delta = light_pos + glm::vec3(0.0, 0.0, 6 * std::sin(now));
 		modelMoon = glm::mat4(1.0);
 		modelMoon = glm::translate(modelMoon, newMoonPos);
 		modelMoon = glm::scale(modelMoon, glm::vec3(2.0, 2.0, 2.0));
 //		lightShader.setFloat("lights[2].ambient_strength", (float) glm::abs(newMoonPos.y));
 
 		//moving lights
-		auto delta = light_pos + glm::vec3(0.0, 0.0, 6 * std::sin(now));
 		lights_positions[1] = delta;
 		lights_positions[0] = newMoonPos; //TODO: uncomment to move the moon
 
-		float moonAmbientValue = glm::max(0.0, 0.14 * newMoonPos.y / 50.0);
-
+//		float moonAmbientValue = glm::max(0.0, 0.14 * newMoonPos.y / 50.0);
+		*/
+		//
+		auto delta =  + glm::vec3(0.0, 0.0, 6 * std::sin(now));
+		lights_positions[0] =  glm::vec3(20.0, 6.0f + 2.5f * std::sin(now), 0.0);; //TODO: uncomment to move the moon
+		modelMoon = glm::mat4(1.0);
+		modelMoon = glm::translate(modelMoon, lights_positions[0]);
+		modelMoon = glm::scale(modelMoon, glm::vec3(1.0));
 
 		if (firstLoop) {
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -647,12 +665,7 @@ int main(int argc, char* argv[])
 				//room with bump mapping
 				shaderBump.use();
 
-//				shaderBump.setLightsPosBump(lights_number, lights_positions);
-				shaderBump.setInteger("n_lights", 3);
-				shaderBump.setVector3f("lights[0]", lights_positions[0]);
-				shaderBump.setVector3f("lights[1]", lights_positions[1]);
-				shaderBump.setVector3f("lights[2]", lights_positions[2]);
-
+				shaderBump.setLightsPosBump(lights_number, lights_positions);
 
 				//shaderBump.setFloat("light.ambient_strength", ambient + moonAmbientValue);
 				shaderBump.setMatrix4("M", modelRoom);
@@ -695,12 +708,15 @@ int main(int argc, char* argv[])
 		framebufferShadow.BindFB();
 
 		//glm::vec3 pos = camera.Position; // lights_positions[0];
-		//glm::mat4 dirLightView = glm::lookAt(glm::float32(moonDist/10)*lights_positions[0], glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		glm::mat4 dirLightView = camera.GetViewMatrix();
+		glm::mat4 orthoProj = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, 0.1f, 150.0f);
+//		glm::mat4 dirLightView = glm::lookAt(14.0f*glm::normalize(lights_positions[0]), glm::vec3(0.0f, 4.5f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::mat4 dirLightView = glm::lookAt(lights_positions[0], glm::vec3(0.0, 0.5, 0.0), glm::vec3(0.0f, 1.0f, 0.0f));
+		//glm::mat4 dirLightView = camera.GetViewMatrix();
 		glm::mat4 dirLightProj = orthoProj * dirLightView;
 
 		shadowShader.use();
 		shadowShader.setMatrix4("lightProj", dirLightProj);
+
 
 		shadowShader.setMatrix4("M", modelSapin);
 		sapin.draw();
@@ -710,17 +726,27 @@ int main(int argc, char* argv[])
 		ground.draw();
 
 
+		shadowShader.setMatrix4("M", modelChaise);
+		chaise.draw();
+		shadowShader.setMatrix4("M", modelMeuble);
+		meuble.draw();
+		shadowShader.setMatrix4("M", modelPeinture);
+		peinture.draw();
+		shadowShader.setMatrix4("M", modelWoodFloor);
+		woodfloor.draw();
+		shadowShader.setMatrix4("M", modelWoodParvis);
+		woodparvis.draw();
+
 		framebufferShadow.Unbind(width, height);
 
 		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		//DEBUGGING CODE to uncomment
-		//glClearColor(0.2f, 0.4f, 0.8f, 1.0f);
-		shadowDebugShader.use();
-		framebufferShadow.InitRenderTest();
-		renderShadowMapTest();
-		//all the drawing that follows should be commented for visualization in OpenGL
-		/*
+		//shadowDebugShader.use();
+		//framebufferShadow.InitRenderTest();
+		//renderShadowMapTest();
+		//all that follows should be commented for visualization in OpenGL
+		
 
 		
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -781,11 +807,7 @@ int main(int argc, char* argv[])
 		//shaderBump.setFloat("light.ambient_strength",ambient + moonAmbientValue);
 		//shaderBump.setVector3f("lightPos", delta);		
 
-//		shaderBump.setLightsPosBump(lights_number, lights_positions);
-		shaderBump.setInteger("n_lights", 3);
-		shaderBump.setVector3f("lights[0]", lights_positions[0]);
-		shaderBump.setVector3f("lights[1]", lights_positions[1]);
-		shaderBump.setVector3f("lights[2]", lights_positions[2]);
+		shaderBump.setLightsPosBump(lights_number, lights_positions);
 
 		shaderBump.setMatrix4("M", modelRoom);
 		shaderBump.setMatrix4("itM", inverseModelRoom); //should be modified with regards to R 
@@ -939,7 +961,6 @@ int main(int argc, char* argv[])
 //		shaderBump.setFloat("light.ambient_strength",ambient + moonAmbientValue);
 //		shaderBump.setVector3f("lightPos", delta);
 		
-		//shaderBump.setLightsPosBump(lights_number, lights_positions);
 
 		shaderBump.setMatrix4("M", modelRoom);
 		shaderBump.setMatrix4("itM", inverseModelRoom);
@@ -947,11 +968,8 @@ int main(int argc, char* argv[])
 		shaderBump.setMatrix4("V", view);
 		shaderBump.setMatrix4("P", perspective);
 		shaderBump.setVector3f("u_view_pos", camera.Position);
-		shaderBump.setVector3f("lights[0]", lights_positions[0]);
-		shaderBump.setVector3f("lights[1]", lights_positions[1]);
-		shaderBump.setVector3f("lights[2]", lights_positions[2]);
-		shaderBump.setInteger("n_lights", 3);
-
+		shaderBump.setLightsPosBump(lights_number, lights_positions);
+		
 		shaderBump.setInteger("lampsActivated", lampsActivated);
 
 
@@ -969,10 +987,11 @@ int main(int argc, char* argv[])
 
 		//room (for objects without bump mapping)
 		lightShader.use();
+		lightShader.setVector3f("emitted", glm::vec3(0.0));
 		//shadows
-		lightShader.setMatrix4("dirLightProj", dirLightProj);
-		framebufferShadow.BindTex(1);//1st taken by the default texture 
-		lightShader.setInteger("shadow_map", 1);
+		lightShader.setMatrix4("dir_light_proj", dirLightProj);
+		lightShader.setTexUnit("shadow_map", 0);
+		framebufferShadow.BindTex(0);//1st taken by the default texture 
 		//lighting
 		lightShader.setVector3f("emitted", glm::vec3(0.0));
 		lightShader.setInteger("lampsActivated", lampsActivated);
@@ -985,40 +1004,40 @@ int main(int argc, char* argv[])
 		lightShader.setVector3f("u_view_pos", camera.Position);
 		lightShader.setLightsPos(lights_number, lights_positions);
 
-		lightShader.setTexUnit("tex0", 0);
+		lightShader.setTexUnit("tex0", 1);
 
 		// Binds texture so that is appears in rendering to the right unit
 		lightShader.setMatrix4("M", modelSapin);
-		sapinTex.Bind(0);
+		sapinTex.Bind(1);
 		sapin.draw();
 
 		lightShader.setMatrix4("M", modelChaise);
-		chaiseTex.Bind(0);
+		chaiseTex.Bind(1);
 		chaise.draw();
 
 		lightShader.setMatrix4("M", modelMeuble);
-		meubleTex.Bind(0);
+		meubleTex.Bind(1);
 		meuble.draw();
 
 		lightShader.setMatrix4("M", modelPeinture);
-		peintureTex.Bind(0);
+		peintureTex.Bind(1);
 		peinture.draw();
 
 		lightShader.setMatrix4("M", modelWoodFloor);
-		woodFloorTex.Bind(0);
+		woodFloorTex.Bind(1);
 		woodfloor.draw();
 
-		woodParvisTex.Bind(0);
+		woodParvisTex.Bind(1);
 		woodparvis.draw();
 
 
 		lightShader.setMatrix4("M", modelSol);
-		GNDTex.Bind(0);
+		GNDTex.Bind(1);
 		ground.draw();
 
 		lightShader.setMatrix4("M", modelMoon);
-		lightShader.setVector3f("emitted", moonColor);
-		moonTex.Bind(0);
+		lightShader.setVector3f("emitted", 1.5f*moonColor);
+		moonTex.Bind(1);
 		moon.draw();
 		
 		
@@ -1115,12 +1134,14 @@ void processInput(GLFWwindow* window) {
 	else {
 		camera.MovementSpeed = 0.75;
 	}
+
 	//Pressing C (des)activate the camera folowing the mouse
 	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
 		camera.MouseSwitchActivation(false, window);}
 	else {
 		camera.MouseSwitchActivation(true, window);}
 	
+	//Pressing A (des)activate lighting inside the house
 	if (inKeyA && glfwGetKey(window, GLFW_KEY_Q) == GLFW_RELEASE) {
 		lampsActivated = !lampsActivated;
 		inKeyA = false;
@@ -1128,6 +1149,14 @@ void processInput(GLFWwindow* window) {
 	}
 	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
 		inKeyA = true;
+	}
+
+	//Pressing L accelerates the moon
+	if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
+		fasterMoon = 0.3;
+	}
+	else {
+		fasterMoon = 0.0;
 	}
 
 }

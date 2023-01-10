@@ -22,5 +22,6 @@
 		v_normal = vec3(itM * vec4(normal, 1.0));
 		v_tex = tex_coord; 
 		v_frag_coord = frag_coord.xyz; 
+
 		frag_pos_light = dir_light_proj * vec4(position,1.0);
 	}

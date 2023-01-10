@@ -25,8 +25,8 @@
 	uniform vec3 u_view_pos;
 	uniform vec3 emitted;
 	uniform Light lights[MAX_LIGHTS_NUMBER];
-	uniform sampler2D tex0;
 	uniform sampler2D shadow_map;
+	uniform sampler2D tex0;
 	
 
 	float specularCalculation(vec3 N, vec3 L, vec3 V , int i){ 
@@ -36,27 +36,47 @@
 		return lights[i].specular_strength * spec;
 	}
 
-	float calcDirLight(vec3 N){
-		float shad = 0.0f;//no shadow
-		vec3 li_coords = frag_pos_light.xyz/ frag_pos_light.w; //persp. division to get into the clip space
-		if(li_coords.z <= 1.0f){
-			//where inside the frustrum of the orthographic proj
-			li_coords = (li_coords + 1.0f) / 2.0f;
+//	float shadowCalculation(){
+//		float shad = 0.0f;
+		//persp. division to get into the clip space
+//		vec3 light_coords = frag_pos_light.xyz/frag_pos_light.w;
+//
+		//where inside the frustrum of the orthographic proj
+//		if (light_coords.z <= 1.0f){
+//			light_coords = (light_coords + 1.0f) / 2.0f;
+//
+//			float closest_depth = texture(shadow_map,light_coords.xy).r;
+//			float current_depth = light_coords.z;
+//			float bias = 0.005f;
+//			if (current_depth > closest_depth + bias){
+//				shad = 1.0f;
+//			}
+//		}
+//		return shad;
+//	}
 
-			float closest_depth = texture(shadow_map,li_coords.xy).r;
-			float current_depth = li_coords.z;
-			if (current_depth >= closest_depth){
-				shad = 1.0f;
-			}
+	float otherShadCalc(float dotNL){
+		vec3 pos = frag_pos_light.xyz * 0.5 + 0.5;
+		if(pos.z > 1.0){
+			pos.z = 1.0;
 		}
+		float depth = texture(shadow_map,pos.xy).r;
+		float bias = max(0.05*(1-dotNL),0.005);
+		return (depth + bias) < pos.z ? 0.01 : 1.0;
+	}
+
+	float calcDirLight(vec3 N){
+		vec3 li_coords = frag_pos_light.xyz/ frag_pos_light.w; 
 
 		vec3 L = normalize(lights[0].light_pos); 
 		vec3 V = normalize(u_view_pos - v_frag_coord); 
 		float specular = specularCalculation( N, L, V, 0); 
 		float diffuse = lights[0].diffuse_strength * max(dot(N,L),0.0);
-		float light = lights[0].ambient_strength + (diffuse + specular) * (1.0f - shad);
+
+		float shad = otherShadCalc(dot(N,L));
+		float light = lights[0].ambient_strength + (diffuse + specular)*shad;
 		if (dot(N,L) <= 0){
-			light = lights[0].ambient_strength ;//+ diffuse + specular; //
+			//light = lights[0].ambient_strength ;//+ diffuse + specular; //
 		}
 
 		return light;
@@ -90,6 +110,6 @@
 				total_light += vec3(calcLight(i,N));
 			}
 		}
-
-		FragColor = vec4(vec3(texture(tex0, v_tex)) * total_light, 1.0); 
+		vec3 color = vec3(texture(tex0, v_tex)).rgb;
+		FragColor = vec4(color * total_light, 1.0); 
 	}
