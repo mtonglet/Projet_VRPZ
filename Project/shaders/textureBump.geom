@@ -11,7 +11,7 @@ out vec3 fragCoord;
 out vec3 u_view_pos;
 out vec3 lights[10];
 //out int n_lights;
-
+out vec4 u_frag_pos_light;
 
 in DATA
 {
@@ -23,6 +23,7 @@ in DATA
     vec3 u_view_pos;
     vec3 lights[10];
 //    int n_lights;
+	vec4 u_frag_pos_light;
 } data_in[];
 
 uniform int n_lights;
@@ -51,16 +52,19 @@ void main()
 //    n_lights = data_in[0].n_lights;
     Normal = data_in[0].Normal;
     texCoord = data_in[0].texCoord;
+    u_frag_pos_light = data_in[0].u_frag_pos_light;
     fragCoord = TBN * data_in[0].fragCoord;
     for (int i = 0; i<n_lights;i++){
         lights[i] = TBN * data_in[0].lights[i];
     }
     u_view_pos = TBN * data_in[0].u_view_pos;
+
     EmitVertex();
 
     gl_Position = data_in[1].projection * gl_in[1].gl_Position;
     Normal = data_in[1].Normal;
     texCoord = data_in[1].texCoord;
+    u_frag_pos_light = data_in[1].u_frag_pos_light;
     fragCoord = TBN * data_in[1].fragCoord;
     //lightPos = TBN * data_in[1].lightPos;
     for (int i = 0; i<n_lights;i++){
@@ -73,6 +77,7 @@ void main()
     Normal = data_in[2].Normal;
     texCoord = data_in[2].texCoord;
     fragCoord = TBN * data_in[2].fragCoord;
+    u_frag_pos_light = data_in[2].u_frag_pos_light;
     //lightPos = TBN * data_in[2].lightPos;
     for (int i = 0; i<n_lights;i++){
         lights[i] = TBN * data_in[2].lights[i];

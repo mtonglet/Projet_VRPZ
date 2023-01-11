@@ -9,10 +9,11 @@
 	in vec3 fragCoord;
 	in vec3 u_view_pos;
 	in vec3 lights[10];
+	in vec4 u_frag_pos_light;
+
+
 	uniform int n_lights;
 
-	uniform sampler2D tex0; 
-	uniform sampler2D normal0;
 
 	//In GLSL you can use structures to better organize your code
 	//light
@@ -28,6 +29,11 @@
 	uniform float shininess; 
 	uniform LightParams light_param;
 	uniform bool lampsActivated;
+	uniform sampler2D tex0; 
+	uniform sampler2D normal0;
+	uniform sampler2D shadow_map;
+
+
 	
 //GOOD ONE THAT WORKS !!
 //	float specularCalculation(vec3 N, vec3 L, vec3 V ){ 
@@ -54,6 +60,8 @@
 //		FragColor = vec4(vec3(texture(tex0, texCoord)) * vec3(light), 1.0); 
 //	}
 
+
+
 	float specularCalculation(vec3 N, vec3 L, vec3 V , int i){ 
 		vec3 R = reflect (-L,N); 
 		float cosTheta = dot(R , V); 
@@ -61,28 +69,59 @@
 		return light_param.specular_strength * spec;
 	}
 
+
+	
+	float shadowCalculation(float dotNL){
+		float shad = 0.0f;
+		vec3 light_coords = u_frag_pos_light.xyz/u_frag_pos_light.w;
+
+		int rad = 2; //at least 1 -> 
+
+		if (light_coords.z <= 1.0f){
+			light_coords = (light_coords + 1.0f) / 2.0f;
+
+			float current_depth = light_coords.z;
+			float bias = max(0.00005f, (1.0f-dotNL) * 0.0005f);
+
+			vec2 pixel_dims = 1.0f / textureSize(shadow_map, 0);
+			for(int x=-rad ; x<=rad ; x++){
+				for(int y=-rad ; y<=rad ; y++){
+					float closest_depth = texture(shadow_map,light_coords.xy + pixel_dims*vec2(x,y)).x;
+					if (current_depth > closest_depth + bias){
+						shad += 1.0f;
+					}
+				}			
+			}
+		}
+		shad = shad / ((2*rad+1)*(2*rad+1));
+		return shad;
+	}
+
 	float calcDirLight(vec3 N){
 		vec3 L = normalize(lights[0]); 
 		vec3 V = normalize(u_view_pos - fragCoord); 
 		float specular = specularCalculation( N, L, V, 0); 
 		float diffuse = light_param.diffuse_strength * max(dot(N,L),0.0);
-		float light = light_param.ambient_strength + diffuse + specular;
+		float shad = shadowCalculation(dot(N,L));
+
+		float light = light_param.ambient_strength + (diffuse + specular)*(1.0f - shad);
 		if (dot(N,L) <= 0){
-			light = light_param.ambient_strength + diffuse + specular; //
+			light = light_param.ambient_strength ; //
 		}
 		return light;
-	}//ok
+	}
 
-	float calcLight(int i, vec3 N){
+	float calcPointLight(int i, vec3 N){
 		vec3 L = normalize(lights[i] - fragCoord) ; 
-		vec3 V = normalize(u_view_pos - fragCoord); 
+		vec3 V = normalize(u_view_pos - fragCoord);
+		float ambiant = light_param.ambient_strength;
 		float specular = specularCalculation( N, L, V, i); 
 		float diffuse = light_param.diffuse_strength * max(dot(N,L),0.0);
 		float distance = length(lights[i] - fragCoord) + length(u_view_pos - fragCoord);
 		float attenuation = 1 / (light_param.constant + light_param.linear * distance + light_param.quadratic * distance * distance);
-		float light =  attenuation * (diffuse + specular);
+		float light =  ambiant + attenuation * (diffuse + specular);
 		if (dot(N,L) <=0){
-			light = 0.0;
+			light = ambiant;
 		}
 		return light;
 	}
@@ -96,7 +135,7 @@
 
 		if (lampsActivated){
 			for (int i = 1 ; i < n_lights ; i++){
-				total_light += calcLight(i,N);
+				total_light += calcPointLight(i,N);
 			}
 		}
 

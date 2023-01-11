@@ -150,6 +150,25 @@ void Shader::setLightsParams(const int maxLightsNumber, const float(&params)[6])
         this->setFloat(param.c_str(), params[5]);
     }
 }
+void Shader::setLightsParamsBump(const float(&params)[6]) {
+
+    std::string name = "light_param.";
+
+    std::string param;
+    param = name + "ambient_strength";
+    this->setFloat(param.c_str(), 0.5f*params[0]);
+    param = name + "diffuse_strength";
+    this->setFloat(param.c_str(), params[1]);
+    param = name + "specular_strength";
+    this->setFloat(param.c_str(), params[2]);
+    param = name + "constant";
+    this->setFloat(param.c_str(), params[3]);
+    param = name + "linear";
+    this->setFloat(param.c_str(), params[4]);
+    param = name + "quadratic";
+    this->setFloat(param.c_str(), params[5]);
+}
+
 
 
 void Shader::setLightsPos(const int nLights, std::vector<glm::vec3> &array) {

@@ -14,6 +14,7 @@
 		mat4 model;
 		vec3 u_view_pos;
 		vec3 lights[10];
+		vec4 u_frag_pos_light;
 	} data_out;
 
 
@@ -24,6 +25,7 @@
 	uniform mat4 V; 
 	uniform mat4 P; 
 	uniform mat4 itM;
+	uniform mat4 dir_light_proj;
 
 	void main()
 	{
@@ -35,4 +37,5 @@
 		data_out.model = M;
 		data_out.lights = lights;
 		data_out.u_view_pos = u_view_pos;
+		data_out.u_frag_pos_light = dir_light_proj * vec4(gl_Position.xyz,1.0);
 	}
