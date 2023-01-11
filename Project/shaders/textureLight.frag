@@ -1,7 +1,7 @@
 #version 330 core	
 	precision mediump float;
 	const int MAX_LIGHTS_NUMBER = 10;
-
+	const float PI = 3.14159265358979f;
 	in vec2 v_tex; 
 	in vec3 v_frag_coord;
 	in vec3 v_normal;
@@ -19,7 +19,17 @@
 		float quadratic;
 	};
 
+	struct LightParams{
+		float ambient_strength; 
+		float diffuse_strength; 
+		float specular_strength; 
+		float constant;
+		float linear;
+		float quadratic;
+	};
+
 	uniform bool lampsActivated;
+	uniform bool withNormalMap;
 	uniform int n_lights;
 	uniform float shininess;
 	uniform vec3 u_view_pos;
@@ -27,6 +37,8 @@
 	uniform Light lights[MAX_LIGHTS_NUMBER];
 	uniform sampler2D shadow_map;
 	uniform sampler2D tex0;
+	uniform sampler2D normal0;
+	uniform LightParams light_param;
 	
 
 	float specularCalculation(vec3 N, vec3 L, vec3 V , int i){ 
@@ -103,8 +115,37 @@
 		return light;
 	}
 
+	float calcSpotLight(int i, vec3 N){
+		float innerAngle = 1.0f; //in cosinus value
+		float outerAngle = 0.9f;
+
+		vec3 L = normalize(lights[i].light_pos - v_frag_coord) ;
+		vec3 V = normalize(u_view_pos - v_frag_coord);
+		float ambiant = 0;//lights[i].ambient_strength;
+		float specular = specularCalculation( N, L, V, i); 
+		float diffuse = lights[i].diffuse_strength * max(dot(N,L),0.0);
+		float distance = length(lights[i].light_pos - v_frag_coord) + length(u_view_pos - v_frag_coord);
+		float attenuation = 1 / (lights[i].constant + lights[i].linear * distance + lights[i].quadratic * distance * distance);
+
+//		float angle = dot(vec3(0.0f, -1.0f, 0.0f), - L);
+		//to make spotlights pointing towards the origin
+		vec3 lightDir = normalize(-lights[i].light_pos)+vec3(0.0f,1.0f,0.0f);
+		float angle = dot(normalize(lightDir), - L);
+
+		float intensity = clamp((angle - outerAngle)/(innerAngle - outerAngle), 0.0f, 1.0f);
+
+		float light =  ambiant + attenuation * intensity * (diffuse + specular);
+		if (dot(N,L) <=0){
+			light = ambiant;
+		}
+		return light;	
+	}
+
 	void main() { 
 		vec3 N = normalize(v_normal);
+		if(withNormalMap){
+			//N = normalize(texture(normal0, v_tex).xyz * 2.0f - 1.0f);
+		}
 
 		vec3 total_light = vec3(calcDirLight(N));
 
@@ -113,6 +154,7 @@
 		if (lampsActivated && length(emitted)==0.0){
 			for (int i = 1 ; i < n_lights ; i++){
 				total_light += vec3(calcPointLight(i,N));
+//				total_light += vec3(calcSpotLight(i,N));
 			}
 		}
 

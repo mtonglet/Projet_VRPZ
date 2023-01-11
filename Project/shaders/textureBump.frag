@@ -27,7 +27,11 @@
 	};
 
 	uniform float shininess; 
+	uniform LightParams spot_light_param;
+	uniform LightParams dir_light_param;
+	uniform LightParams point_light_param;
 	uniform LightParams light_param;
+
 	uniform bool lampsActivated;
 	uniform sampler2D tex0; 
 	uniform sampler2D normal0;
@@ -126,6 +130,28 @@
 		return light;
 	}
 
+	float calcSpotLight(int i, vec3 N){
+		float innerAngle = 1.0f; //in cosinus value
+		float outerAngle = 0.9f;
+
+		vec3 L = normalize(lights[i] - fragCoord) ; 
+		vec3 V = normalize(u_view_pos - fragCoord);
+		float ambiant = 0;//light_param.ambient_strength;
+		float specular = specularCalculation( N, L, V, i); 
+		float diffuse = light_param.diffuse_strength * max(dot(N,L),0.0);
+		float distance = length(lights[i] - fragCoord) + length(u_view_pos - fragCoord);
+		float attenuation = 1 / (light_param.constant + light_param.linear * distance + light_param.quadratic * distance * distance);
+
+		float angle = dot(vec3(0.0f, -1.0f, 0.0f), - L);
+		float intensity = clamp((angle - outerAngle)/(innerAngle - outerAngle), 0.0f, 1.0f);
+
+		float light =  ambiant + attenuation * intensity * (diffuse + specular);
+		if (dot(N,L) <=0){
+			light = ambiant;
+		}
+		return light;	
+	}
+
 	void main() { 
 		vec3 N = normalize(texture(normal0, texCoord).xyz * 2.0f - 1.0f);
 
@@ -136,6 +162,7 @@
 		if (lampsActivated){
 			for (int i = 1 ; i < n_lights ; i++){
 				total_light += calcPointLight(i,N);
+//				total_light += calcSpotLight(i,N);
 			}
 		}
 
