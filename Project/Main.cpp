@@ -274,7 +274,7 @@ int main(int argc, char* argv[])
 
 	glm::vec3 light_pos = glm::vec3(-7.0, 3.0, 2.0);
 	//LIGHTS PARAMETERS
-	double moonSpeed = 0.05;	
+	double moonSpeed = 0.1;	
 	double moonDist = 100.0;
 	//must be less than MAX_LIGHTS_NUMBER defined in textureLight.frag
 	std::vector<glm::vec3> lights_positions = {
@@ -339,7 +339,7 @@ int main(int argc, char* argv[])
 	glm::mat4 inverseModelRoom = glm::transpose(glm::inverse(modelRoom));
 
 	glm::mat4 modelSapin = glm::mat4(1.0);				//Z	  //X  //Y
-	modelSapin = glm::translate(modelSapin, glm::vec3(-5.0, 0.0, -5.0));
+	modelSapin = glm::translate(modelSapin, glm::vec3(-5.0, 0.5, -5.0));
 	modelSapin = glm::scale(modelSapin, glm::vec3(3.0, 3.0, 3.0));
 	glm::mat4 inversemodelSapin = glm::transpose(glm::inverse(modelSapin));
 
@@ -426,12 +426,12 @@ int main(int argc, char* argv[])
 	lightShader.setLightsPos(lights_number,lights_positions);
 	lightShader.setFloat("shininess", 32.0f);
 	lightShader.setVector3f("materialColour", materialColour);
-	lightShader.setFloat("lights[0].constant", 1.0);
-	lightShader.setFloat("lights[0].linear", 0.0);
-	lightShader.setFloat("lights[0].quadratic", 0.0);
+	lightShader.setFloat("lights[0].constant", 1.0f);
+	lightShader.setFloat("lights[0].linear", 0.0f);
+	lightShader.setFloat("lights[0].quadratic", 0.0f);
 	lightShader.setFloat("lights[0].ambient_strength", ambient);
-	lightShader.setFloat("lights[0].diffuse_strength", 0.9);
-	lightShader.setFloat("lights[0].specular_strength", 0.9);
+	lightShader.setFloat("lights[0].diffuse_strength", 0.9f);
+	lightShader.setFloat("lights[0].specular_strength", 0.5f);
 
 
 	//Texture objects generation
@@ -481,7 +481,7 @@ int main(int argc, char* argv[])
 	FrameBuffer framebufferCube(1024,1024);
 
 	//Framebuffer for shadow map - from tutorial 25 of Victor Gordan - Youtube
-	ShadowFrameBuffer framebufferShadow(2048,2048);
+	ShadowFrameBuffer framebufferShadow(2*2048,2*2048);
 
 
 //	Camera cameraCube(glm::vec3(0.0, 4.0, -15.0));
@@ -542,8 +542,11 @@ int main(int argc, char* argv[])
 		*/
 		//
 		auto delta =  + glm::vec3(0.0, 0.0, 6 * std::sin(now));
-//		lights_positions[0] =  glm::vec3(20.0,6.0f + 2.5f * std::sin(now),4.0f);; //TODO: uncomment to move the moon
-		lights_positions[0] =  2.0f*glm::vec3(30.0,30.0f+30.0f*std::sin(now), 10.0f);;
+		lights_positions[0] =  glm::vec3(50.0,50.0f + 45.0f * std::sin(0.25f*now),20.0f); //TODO: uncomment to move the moon
+/*		lights_positions[0] = glm::vec3(
+			100.0f* std::sin(moonSpeed*(now - init_now)),
+			100.0f* std::cos(moonSpeed*(now - init_now)),
+			40.0f * std::sin(moonSpeed*(now - init_now)));*/
 		modelMoon = glm::mat4(1.0);
 		modelMoon = glm::translate(modelMoon, lights_positions[0]);
 		modelMoon = glm::scale(modelMoon, glm::vec3(1.0));
@@ -717,10 +720,13 @@ int main(int argc, char* argv[])
 		framebufferShadow.BindFB();
 
 		//glm::vec3 pos = camera.Position; // lights_positions[0];
-		glm::mat4 orthoProj = glm::ortho(-15.0f, 15.0f, -15.0f, 15.0f, -10.0f, 150.0f);
+		float far = 200.0f;//moonDist + 15.0f;
+		float near = 1.0f;//moonDist - 15.0f;
+		float ymin = glm::max(lights_positions[0].y,-15.0f);
+		glm::mat4 orthoProj = glm::ortho(-15.0f, 15.0f, -15.0f, 15.0f, near, far);
 //		glm::mat4 orthoProj = camera.GetProjectionMatrix();
 //		glm::vec3 upDirLight = glm::normalize(glm::cross(glm::cross(-1.0f * lights_positions[0], glm::vec3(0.0f, 1.0f, 0.0f)), -1.0f * lights_positions[0]));
-		glm::vec3 upDirLight = glm::vec3(0.0f,1.0f,0.0f);
+		glm::vec3 upDirLight = glm::vec3(0.0f, 1.0f, 0.0f);
 		glm::mat4 dirLightView = glm::lookAt(lights_positions[0], glm::vec3(0.0f, 0.0f, 0.0f), upDirLight);
 //		glm::mat4 dirLightView = glm::lookAt(lights_positions[0], glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0f, 1.0f, 0.0f));
 //		glm::mat4 dirLightView = glm::lookAt(lights_positions[0], glm::vec3(0.0), upDirLight);
@@ -730,15 +736,10 @@ int main(int argc, char* argv[])
 		shadowShader.use();
 		shadowShader.setMatrix4("lightProj", dirLightProj);
 
-
 		shadowShader.setMatrix4("M", modelSapin);
 		sapin.draw();
-		shadowShader.setMatrix4("M", modelRoom);
-		room.draw();
 		shadowShader.setMatrix4("M", modelSol);
 		ground.draw();
-
-
 		shadowShader.setMatrix4("M", modelChaise);
 		chaise.draw();
 		shadowShader.setMatrix4("M", modelMeuble);
@@ -749,6 +750,8 @@ int main(int argc, char* argv[])
 		woodfloor.draw();
 		shadowShader.setMatrix4("M", modelWoodParvis);
 		woodparvis.draw();
+		shadowShader.setMatrix4("M", modelRoom);
+		room.draw();
 
 		framebufferShadow.Unbind(width, height);
 		/*
@@ -895,7 +898,8 @@ int main(int argc, char* argv[])
 		
 		// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 		framebufferMirror.Unbind();
-		
+		glEnable(GL_DEPTH_TEST);
+
 		// clear all relevant buffers
 		glClearColor(0.6f, 0.6f, 0.6f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -972,7 +976,9 @@ int main(int argc, char* argv[])
 
 
 		//room (for objects without bump mapping)
+		glEnable(GL_DEPTH_TEST);
 		lightShader.use();
+
 		lightShader.setVector3f("emitted", glm::vec3(0.0));
 		
 		//to VS
@@ -1028,8 +1034,8 @@ int main(int argc, char* argv[])
 		//		shaderBump.setFloat("light.ambient_strength",ambient + moonAmbientValue);
 		//		shaderBump.setVector3f("lightPos", delta);
 		shaderBump.setMatrix4("M", modelRoom);
-//		shaderBump.setMatrix4("itM", inverseModelRoom);
 		shaderBump.setMatrix4("itM", inverseModelRoom);
+		shaderBump.setMatrix4("itM", glm::mat4(1.0));
 		shaderBump.setMatrix4("R", glm::mat4(1.0));
 		shaderBump.setMatrix4("V", view);
 		shaderBump.setMatrix4("P", perspective);

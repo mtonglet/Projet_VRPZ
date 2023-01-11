@@ -19,19 +19,20 @@
 	{ 
 		//c'est quoi R ?!
 		vec4 frag_coord = R*M*vec4(position, 1.0); 
-//		vec4 frag_coord = M*vec4(position, 1.0); 
-		gl_Position = P*V*frag_coord;
+
 		v_tex = tex_coord; 
+//		v_frag_coord = frag_coord.xyz; 
+		v_frag_coord = vec3(frag_coord);//.xyz; 
+		v_normal = transpose(inverse(mat3(M))) * normal;
+//		v_normal = vec3(itM * vec4(normal, 1.0));
+		frag_pos_light = dir_light_proj * M * vec4(position,1.0);
 
-		v_normal = vec3(itM * vec4(normal, 1.0));
-		v_frag_coord = frag_coord.xyz; 
-//		frag_pos_light = dir_light_proj * vec4(position,1.0);
-		frag_pos_light = dir_light_proj * vec4(v_frag_coord,1.0);
 
+		gl_Position = P*V*frag_coord;
 
-
+//		frag_pos_light = dir_light_proj * vec4(position,1.0);//not position
+//		v_normal = vec3(itM * vec4(normal, 1.0));
 //		v_frag_coord = vec3(M * vec4(position, 1.0));
-//		v_normal = transpose(inverse(mat3(M))) * normal;
 //		v_tex = tex_coord;
 //		dir_light_proj = lightSpaceMatrix * vec4(v_frag_coord, 1.0);
 //		gl_Position = P * V * vec4(v_frag_coord, 1.0);
