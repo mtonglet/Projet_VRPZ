@@ -37,7 +37,9 @@
 	uniform sampler2D normal0;
 	uniform sampler2D shadow_map;
 
-
+	//shadcube
+	uniform samplerCube shadow_cube_map;
+	uniform float far_back;
 	
 //GOOD ONE THAT WORKS !!
 //	float specularCalculation(vec3 N, vec3 L, vec3 V ){ 
@@ -74,7 +76,30 @@
 	}
 
 
-	
+	float shadowCubeCalculation(float dotNL){
+		float shadow = 0.0f;
+		vec3 light_to_frag = fragCoord - lights[1];
+		float cur_depth = length(light_to_frag);
+		float bias = max(0.0005f, (1.0f-dotNL) * 0.5f);
+		
+		int rad = 2;
+		float pixel = 1.0f / 1024.0f;
+		for(int x=-rad ; x<=rad ; x++){
+			for(int y=-rad ; y<=rad ; x++){
+				for(int z=-rad ; z<=rad ; y++){
+					float closest_depth = texture(shadow_cube_map,light_to_frag + pixel*vec3(x,y,z)).x;
+					closest_depth *= far_back;
+					if (cur_depth > closest_depth + bias){
+						shadow += 1.0f;
+					}
+				}			
+			}
+		}
+		shadow /= pow((2*rad+1),3);
+		return shadow;
+	}
+
+
 	float shadowCalculation(float dotNL){
 		float shad = 0.0f;
 		vec3 light_coords = u_frag_pos_light.xyz/u_frag_pos_light.w;
@@ -123,7 +148,9 @@
 		float diffuse = light_param.diffuse_strength * max(dot(N,L),0.0);
 		float distance = length(lights[i] - fragCoord) + length(u_view_pos - fragCoord);
 		float attenuation = 1 / (light_param.constant + light_param.linear * distance + light_param.quadratic * distance * distance);
-		float light =  ambiant + attenuation * (diffuse + specular);
+
+		float shad = shadowCubeCalculation(dot(N,L));
+		float light =  ambiant + attenuation * (diffuse + specular)*(1.0f - shad);
 		if (dot(N,L) <=0){
 			light = ambiant;
 		}

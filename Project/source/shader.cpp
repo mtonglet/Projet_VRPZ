@@ -1,5 +1,6 @@
 
 #include "../headers/shader.h"
+#include "../headers/camera.h"
 
 
 
@@ -190,6 +191,9 @@ void Shader::setLightsPosBump(const int nLights, std::vector<glm::vec3>& array) 
         this->setVector3f(name.c_str(), array[i]);
     }
 }
+
+
+
 void Shader::setMatrix4(const GLchar* name, const glm::mat4& matrix) {
     glUniformMatrix4fv(glGetUniformLocation(ID, name), 1, GL_FALSE, glm::value_ptr(matrix));
 } 

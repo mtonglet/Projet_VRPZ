@@ -16,6 +16,7 @@ public:
 	unsigned int ID;
 	unsigned int shadowMapping;
 	unsigned int mapWidth, mapHeight;
+	GLenum texType;
 
 	ShadowFrameBuffer(unsigned int mapWidth = 2048,unsigned int mapHeight=2048, GLenum typeTex=GL_TEXTURE_2D);
 	

@@ -12,15 +12,18 @@
 #include <map>
 
 #include "headers/Texture.h"
-#include "headers/camera.h"
 #include "headers/CubeMap.h"
 #include "headers/FrameBuffer.h"
 #include "headers/Emitter.h"
 #include "headers/shader.h"
 #include "headers/object.h"
 #include "headers/Element.h"
+#include "headers/camera.h"
 
 
+
+const int DIR_SHADOW_MAPPING_RESOLUTION = 1024 ;//4096 is a good value to prevent some rendering bugs
+const int POINT_SHADOW_MAPPING_RESOLUTION = 1024;
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -29,6 +32,8 @@ GLuint currentTextSlot = 0;
 
 const int width = 1024;
 const int height = 1024;
+
+int main(int argc, char* argv[]);
 
 void processInput(GLFWwindow* window);
 
@@ -40,7 +45,7 @@ void renderShadowMapTest();
 float lastX = width / 2.0f;
 float lastY = height / 2.0f;
 bool firstMouse = true;
-bool lampsActivated = false;
+bool lampsActivated = true;
 bool inKeyA = false;
 float fasterMoon = 0.0;
 
@@ -193,7 +198,6 @@ int main(int argc, char* argv[])
 	char pathDebugShadowV[] = PATH_TO_SHADER "/debug_shadow.vert";
 	Shader shadowDebugShader = Shader(pathDebugShadowV, pathDebugShadowF);
 	
-
 	char pathS[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
 	Object sphere(pathS);
 	sphere.makeObject(shader);
@@ -278,11 +282,11 @@ int main(int argc, char* argv[])
 	//length must be less than MAX_LIGHTS_NUMBER defined in textureLight.frag
 	std::vector<glm::vec3> lights_positions = {
 		glm::vec3(0.0,moonDist,0.0), //moon
-		glm::vec3(-7.0, 10.0, 2.0), //moving in front of the paint
-		glm::vec3(8.8, 8.8, 8.8),
-		glm::vec3(-8.8,8.8, 8.8),
-		glm::vec3(-8.8,8.8,-8.8),
-		glm::vec3(8.8, 8.8,-8.8)
+		glm::vec3(-7.0, 8.0, 2.0) //moving in front of the paint
+//		glm::vec3(8.8, 8.8, 8.8),
+//		glm::vec3(-8.8,8.8, 8.8),
+//		glm::vec3(-8.8,8.8,-8.8),
+//		glm::vec3(8.8, 8.8,-8.8)
 	};
 	const int lights_number = lights_positions.size();
 
@@ -292,7 +296,7 @@ int main(int argc, char* argv[])
 	//							             amb   diff   spec  cst  linear  quadr
 	const float default_lights_params[] = { 0.05f, 0.35f, 0.2f , 1.0f, 0.05f, 0.0f };//for point lights
 //	const float default_lights_params[] = { 0.05f, 0.45f, 0.4f , 1.0f, 0.0f, 0.0f };//for spot lights
-	const float moon_light_params[] =     { 0.2f , 0.1f, 0.3f , 1.0f, 0.0f, 0.0f };
+	const float moon_light_params[] =     { 0.2f , 0.35f, 0.3f , 1.0f, 0.0f, 0.0f };//diff tor reduce
 
 	glm::mat4 modelS = glm::mat4(1.0);
 //	glm::vec3 mirrorSpherePos = glm::vec3(0.0, 4.0, -15.0);
@@ -431,7 +435,7 @@ int main(int argc, char* argv[])
 	lightShader.use();
 	lightShader.setVector3f("emitted", glm::vec3(0.0));
 	lightShader.setLightsParams(lights_number, default_lights_params);
-	//lightShader.setLightsParams(1, moon_light_params);
+	lightShader.setLightsParams(1, moon_light_params);
 	lightShader.setLightsPos(lights_number,lights_positions);
 	lightShader.setFloat("shininess", 32.0f);
 	lightShader.setVector3f("materialColour", materialColour);
@@ -485,10 +489,34 @@ int main(int argc, char* argv[])
 	CubeMap cubeRef = CubeMap(1024, 1024, 1);
 	FrameBuffer framebufferCube(1024,1024);
 
-	//Framebuffer for shadow map - from tutorial 25 of Victor Gordan - Youtube
-	ShadowFrameBuffer directionalFramebufferShadow(1024,1024);
+	//------------------SHADOWS------------------//
+	//directional light
+	ShadowFrameBuffer directionalFBShadow(DIR_SHADOW_MAPPING_RESOLUTION, DIR_SHADOW_MAPPING_RESOLUTION);
 
+	//points lights (multiples -> not possible yet, limited to 1)
+//	std::vector<ShadowFrameBuffer> pointFBShadow; 
+//	pointFBShadow.push_back(ShadowFrameBuffer(1024, 1024, GL_TEXTURE_CUBE_MAP));
+//	std::vector<Camera> pointLightsCams;
+//	pointLightsCams.push_back(Camera(lights_positions[1]));
+	ShadowFrameBuffer pointFBShadow = ShadowFrameBuffer(1024, 1024, GL_TEXTURE_CUBE_MAP);
+	Camera camCubeShadow = Camera(lights_positions[1]);
 
+	float far = 100.0f;
+	char pathPoShadowF[] = PATH_TO_SHADER "/shadowCubeMap.frag";
+	char pathPoShadowV[] = PATH_TO_SHADER "/shadowCubeMap.vert";
+	char pathPoShadowG[] = PATH_TO_SHADER "/shadowCubeMap.geom";
+	Shader cubeShadowShader = Shader(pathPoShadowV, pathPoShadowG, pathPoShadowF);
+	cubeShadowShader.use();
+	glm::mat4 P = glm::perspective(90.0f, 1.0f, 0.1f, far);
+
+	cubeShadowShader.setMatrix4("VPshadows[0]", P * camCubeShadow.GetViewCubeMatrix(0));
+	cubeShadowShader.setMatrix4("VPshadows[1]", P * camCubeShadow.GetViewCubeMatrix(1));
+	cubeShadowShader.setMatrix4("VPshadows[2]", P * camCubeShadow.GetViewCubeMatrix(2));
+	cubeShadowShader.setMatrix4("VPshadows[3]", P * camCubeShadow.GetViewCubeMatrix(3));
+	cubeShadowShader.setMatrix4("VPshadows[4]", P * camCubeShadow.GetViewCubeMatrix(4));
+	cubeShadowShader.setMatrix4("VPshadows[5]", P * camCubeShadow.GetViewCubeMatrix(5));
+
+	//--------------MIRROR SPHERES--------------//
 //	Camera cameraCube(glm::vec3(0.0, 4.0, -15.0));
 	Camera cameraCube(mirrorSpherePos);
 	glm::mat4 projectionCube = cameraCube.GetProjectionMatrixCube(90.0f, 0.01f, 200.0f);
@@ -521,18 +549,18 @@ int main(int argc, char* argv[])
 		double now = glfwGetTime();
 
 		//moving lights
-//		lights_positions[0] = glm::vec3(50.0, 50.0f + 35.0f * std::sin(0.5f * now), 20.0f); //TODO: uncomment to move the moon
-		lights_positions[0] = glm::vec3(
+		lights_positions[0] = glm::vec3(50.0, 50.0f + 35.0f * std::sin(now), 20.0f); //TODO: uncomment to move the moon
+/*		lights_positions[0] = glm::vec3(
 			100.0f* std::sin(moonSpeed*(now - init_now)),
 			100.0f* std::cos(moonSpeed*(now - init_now)),
-			40.0f * std::sin(moonSpeed*(now - init_now)));
+			40.0f * std::sin(moonSpeed*(now - init_now)));*/
 		modelMoon = glm::mat4(1.0);
 		modelMoon = glm::translate(modelMoon, lights_positions[0]);//0
 		modelMoon = glm::scale(modelMoon, glm::vec3(3.5));//2.5
 		modelMoon = glm::rotate(modelMoon, 3.14159265358979f, glm::vec3(0.0, 1.0, 0.0));
 		inverseModelMoon = glm::transpose(glm::inverse(modelMoon));
 
-		lights_positions[1] = glm::vec3(-8.8, 7.0, 8.8* std::sin(now));
+		//lights_positions[1] = glm::vec3(-8.8, 7.0, 8.8* std::sin(now));
 
 		std::vector<glm::mat4> modelsPhysicalLamps = {};
 		for (int i = 1; i < lights_number; i++) {
@@ -546,7 +574,6 @@ int main(int argc, char* argv[])
 		if (firstLoop) {
 ////////////////////////////////////////////////////////////////////////////////////////////
 // Pass 0 :
-			firstLoop = false; //UNCOMMENT/COMMENT
 			//draw the cubeMap 
 			framebufferCube.Bind(0);
 
@@ -713,7 +740,7 @@ int main(int argc, char* argv[])
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //Zero pass: Draw scene and compute shadow maps
-		directionalFramebufferShadow.BindFB();
+		directionalFBShadow.BindFB();
 
 		//glm::vec3 pos = camera.Position; // lights_positions[0];
 		float far = 200.0f;//moonDist + 15.0f;
@@ -749,7 +776,7 @@ int main(int argc, char* argv[])
 		shadowShader.setMatrix4("M", modelRoom);
 		room.draw();
 
-		directionalFramebufferShadow.Unbind(width, height);
+		directionalFBShadow.Unbind(width, height);
 		/*
 		//DEBUGGING CODE to uncomment
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -759,6 +786,32 @@ int main(int argc, char* argv[])
 		renderShadowMapTest();
 		//all that follows should be commented for visualization in OpenGL
 		/**/
+		if(firstLoop){
+	
+			pointFBShadow.BindFB();
+			cubeShadowShader.use();
+			cubeShadowShader.setFloat("far_plane", far);
+			cubeShadowShader.setVector3f("light_pos", lights_positions[1]);
+
+			cubeShadowShader.setMatrix4("M", modelSapin);
+			sapin.draw();
+			cubeShadowShader.setMatrix4("M", modelSol);
+			ground.draw();
+			cubeShadowShader.setMatrix4("M", modelChaise);
+			chaise.draw();
+			cubeShadowShader.setMatrix4("M", modelMeuble);
+			meuble.draw();
+			cubeShadowShader.setMatrix4("M", modelPeinture);
+			peinture.draw();
+			cubeShadowShader.setMatrix4("M", modelWoodParvis);
+			woodparvis.draw();
+			cubeShadowShader.setMatrix4("M", modelRoom);
+			room.draw();
+
+			pointFBShadow.Unbind(width, height);
+
+		}
+
 
 		
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -1000,7 +1053,7 @@ int main(int argc, char* argv[])
 		lightShader.setVector3f("emitted", glm::vec3(0.0));//objects do not emit light by default
 		//for(every shadow maps in every frame_buffer_shadow):
 		lightShader.setTexUnit("shadow_map", 2);
-		directionalFramebufferShadow.BindTex(2);
+		directionalFBShadow.BindTex(2);
 
 		//Bind correct slot for textures...
 		lightShader.setTexUnit("tex0", 0);
@@ -1079,7 +1132,11 @@ int main(int argc, char* argv[])
 		shaderBump.setLightsPosBump(lights_number, lights_positions);
 		shaderBump.setMatrix4("dir_light_proj", dirLightProj);//shadows
 		shaderBump.setTexUnit("shadow_map", 2);
-		directionalFramebufferShadow.BindTex(2);//1 & 2 already taken
+		directionalFBShadow.BindTex(2);//1 & 2 already taken
+
+		//shadadd
+		shaderBump.setTexUnit("shadow_cube_map", 3);
+		pointFBShadow.BindTex(3);//0, 1 & 2 already taken
 
 		shaderBump.setInteger("lampsActivated", lampsActivated);
 
@@ -1157,7 +1214,7 @@ int main(int argc, char* argv[])
 			glClearColor(0.2f, 0.5f, 0.8f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 			//render the shadow map
-			directionalFramebufferShadow.BindFB();
+			directionalFBShadow.BindFB();
 
 			//glm::mat4 orthoProj = glm::ortho(-12.0f, 12.0f, -12.0f, 12.0f, 0.1f, 150.0f);
 			//glm::mat4 dirLightView = glm::lookAt(lights_positions[0], glm::vec3(0.0, 0.5, 0.0), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -1186,7 +1243,7 @@ int main(int argc, char* argv[])
 			shadowShader.setMatrix4("M", modelWoodParvis);
 			woodparvis.draw();
 
-			directionalFramebufferShadow.Unbind(width, height);
+			directionalFBShadow.Unbind(width, height);
 
 			glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1204,6 +1261,8 @@ int main(int argc, char* argv[])
 		}
 		//glfwPollEvents();
 		/**/
+		firstLoop = false; //UNCOMMENT/COMMENT
+
 	}
 
 	//clean up ressource

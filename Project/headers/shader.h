@@ -41,6 +41,7 @@ public:
     void setLightsParams(const int maxLightsNumber, const float(&params)[6]);
     void setLightsParamsBump(const float(&params)[6]);
 
+
 private:
  //   std::vector<Element> attachedElements;
     GLuint compileShader(std::string shaderCode, GLenum shaderType);
