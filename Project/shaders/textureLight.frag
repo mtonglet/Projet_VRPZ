@@ -9,8 +9,7 @@
 
 	out vec4 FragColor;
 
-	struct Light{
-		vec3 light_pos; 
+	struct LightParams{
 		float ambient_strength; 
 		float diffuse_strength; 
 		float specular_strength; 
@@ -25,9 +24,14 @@
 	uniform float shininess;
 	uniform vec3 u_view_pos;
 	uniform vec3 emitted;
-	uniform Light lights[MAX_LIGHTS_NUMBER];
+	uniform vec3 lights[MAX_LIGHTS_NUMBER];
 	uniform sampler2D shadow_map;
 	uniform sampler2D tex0;
+
+	uniform LightParams spot_light_param;
+	uniform LightParams dir_light_param;
+	uniform LightParams point_light_param;
+	LightParams light_param;
 	
 
 	float specularCalculation(vec3 N, vec3 L, vec3 V , int i){ 
@@ -37,14 +41,14 @@
 			float cosTheta = dot(R , V); 
 			spec = pow(max(cosTheta,0.0), 32.0); 
 		}
-		return lights[i].specular_strength * spec;
+		return light_param.specular_strength * spec;
 	}
 
 	float shadowCalculation(float dotNL){
 		float shad = 0.0f;
 		vec3 light_coords = frag_pos_light.xyz/frag_pos_light.w;
 
-		int rad = 2; //at least 1 -> 
+		int rad = 2; //for kernel dimension
 
 		if (light_coords.z <= 1.0f){
 			light_coords = (light_coords + 1.0f) / 2.0f;
@@ -67,34 +71,36 @@
 	}
 
 	float calcDirLight(vec3 N){
+		light_param=dir_light_param;
 		vec3 li_coords = frag_pos_light.xyz/ frag_pos_light.w; 
 
-		vec3 L = normalize(lights[0].light_pos); 
+		vec3 L = normalize(lights[0]); 
 		vec3 V = normalize(u_view_pos - v_frag_coord); 
 		float specular = specularCalculation( N, L, V, 0); 
-		float diffuse = lights[0].diffuse_strength * max(dot(N,L),0.0);
+		float diffuse = light_param.diffuse_strength * max(dot(N,L),0.0);
 
 		float shad = shadowCalculation(dot(N,L));      //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-		float light = lights[0].ambient_strength + (diffuse + specular)*(1.0f - shad);
+		float light = light_param.ambient_strength + (diffuse + specular)*(1.0f - shad);
 
 		if (dot(N,L) <= 0){
-			light = lights[0].ambient_strength ;//+ diffuse + specular; //
+			light = light_param.ambient_strength ;//+ diffuse + specular; //
 		}
 
 		return light;
 	}
 
 	float calcPointLight(int i, vec3 N){
-		vec3 L = normalize(lights[i].light_pos - v_frag_coord) ; 
+		light_param=point_light_param;
+		vec3 L = normalize(lights[i] - v_frag_coord) ; 
 		vec3 V = normalize(u_view_pos - v_frag_coord);
-		float ambiant = lights[i].ambient_strength;
+		float ambiant = light_param.ambient_strength;
 		float specular = specularCalculation( N, L, V, i); 
-		float diffuse = lights[i].diffuse_strength * max(dot(N,L),0.0);
-		float distance = length(lights[i].light_pos - v_frag_coord) + length(u_view_pos - v_frag_coord);
-		float attenuation = 1 / (lights[i].constant + lights[i].linear * distance + lights[i].quadratic * distance * distance);
+		float diffuse = light_param.diffuse_strength * max(dot(N,L),0.0);
+		float distance = length(lights[i] - v_frag_coord) + length(u_view_pos - v_frag_coord);
+		float attenuation = 1 / (light_param.constant + light_param.linear * distance + light_param.quadratic * distance * distance);
 		//todo : add some 'emitted' light for the moon
-		//float light = lights[i].ambient_strength + attenuation * (diffuse + specular);
+		//float light = light_param.ambient_strength + attenuation * (diffuse + specular);
 
 		float light =  ambiant + attenuation * (diffuse + specular);
 		if (dot(N,L) <=0){
@@ -105,20 +111,21 @@
 	}
 
 	float calcSpotLight(int i, vec3 N){
+		light_param=spot_light_param;
 		float innerAngle = 1.0f; //in cosinus value
 		float outerAngle = 0.9f;
 
-		vec3 L = normalize(lights[i].light_pos - v_frag_coord) ;
+		vec3 L = normalize(lights[i] - v_frag_coord) ;
 		vec3 V = normalize(u_view_pos - v_frag_coord);
-		float ambiant = 0;//lights[i].ambient_strength;
+		float ambiant = 0; 
 		float specular = specularCalculation( N, L, V, i); 
-		float diffuse = lights[i].diffuse_strength * max(dot(N,L),0.0);
-		float distance = length(lights[i].light_pos - v_frag_coord) + length(u_view_pos - v_frag_coord);
-		float attenuation = 1 / (lights[i].constant + lights[i].linear * distance + lights[i].quadratic * distance * distance);
+		float diffuse = light_param.diffuse_strength * max(dot(N,L),0.0);
+		float distance = length(lights[i] - v_frag_coord) + length(u_view_pos - v_frag_coord);
+		float attenuation = 1 / (light_param.constant + light_param.linear * distance + light_param.quadratic * distance * distance);
 
 //		float angle = dot(vec3(0.0f, -1.0f, 0.0f), - L);
 		//to make spotlights pointing towards the origin
-		vec3 lightDir = normalize(-lights[i].light_pos)+vec3(0.0f,1.0f,0.0f);
+		vec3 lightDir = normalize(-lights[i])+vec3(0.0f,1.0f,0.0f);
 		float angle = dot(normalize(lightDir), - L);
 
 		float intensity = clamp((angle - outerAngle)/(innerAngle - outerAngle), 0.0f, 1.0f);
@@ -140,7 +147,7 @@
 
 		if (lampsActivated && length(emitted)==0.0){
 			for (int i = 1 ; i < n_lights ; i++){
-				total_light += vec3(calcPointLight(i,N));
+//				total_light += vec3(calcPointLight(i,N));
 //				total_light += vec3(calcSpotLight(i,N));
 			}
 		}

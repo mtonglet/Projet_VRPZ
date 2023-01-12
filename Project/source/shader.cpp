@@ -151,13 +151,16 @@ void Shader::setLightsParams(const int maxLightsNumber, const float(&params)[6])
         this->setFloat(param.c_str(), params[5]);
     }
 }
-void Shader::setLightsParamsBump(const float(&params)[6]) {
+void Shader::setLightsParamsBump(const float(&params)[6],const std::string type) {
+    std::vector<std::string> types_lights{"dir","spot","point"};
 
-    std::string name = "light_param.";
-
-    std::string param;
+    if (!std::count(types_lights.begin(), types_lights.end(), type)) {
+        std::cout << "ERROR:: wrong type specified in 'Shader::setLightsParamsBump'" <<std::endl;
+    }
+    
+    std::string name = type + "_light_param.",param;
     param = name + "ambient_strength";
-    this->setFloat(param.c_str(), 0.5f*params[0]);
+    this->setFloat(param.c_str(), params[0]);
     param = name + "diffuse_strength";
     this->setFloat(param.c_str(), params[1]);
     param = name + "specular_strength";
