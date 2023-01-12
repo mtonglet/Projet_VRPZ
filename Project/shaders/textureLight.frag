@@ -28,7 +28,7 @@
 	uniform sampler2D tex0;
 	uniform sampler2D shadow_map;
 	uniform samplerCube shadow_cube_map;
-	uniform float far_back;
+	uniform float far_back_cube;
 
 	uniform LightParams spot_light_param;
 	uniform LightParams dir_light_param;
@@ -82,7 +82,7 @@
 		float bias = max(0.0005f, (1.0f-dotNL) * 0.5f);
 
 		float closest_depth = texture(shadow_cube_map,light_to_frag).r;
-		closest_depth *= far_back;
+		closest_depth *= far_back_cube;
 		if (cur_depth > closest_depth + bias){
 			shadow += 1.0f;
 		}
@@ -121,7 +121,7 @@
 		float distance = length(lights[i] - v_frag_coord) + length(u_view_pos - v_frag_coord);
 		float attenuation = 1 / (light_param.constant + light_param.linear * distance + light_param.quadratic * distance * distance);
 
-		float shad = 0;//shadowCubeCalculation(i, dot(N,L));
+		float shad = shadowCubeCalculation(i, dot(N,L));
 
 		float light =  ambiant + attenuation * (diffuse + specular)*(1.0f-shad);
 		if (dot(N,L) <=0){

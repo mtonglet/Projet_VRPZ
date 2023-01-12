@@ -482,7 +482,7 @@ int main(int argc, char* argv[])
 //	pointFBShadow.push_back(ShadowFrameBuffer(1024, 1024, GL_TEXTURE_CUBE_MAP));
 //	std::vector<Camera> pointLightsCams;
 //	pointLightsCams.push_back(Camera(lights_positions[1]));
-	ShadowFrameBuffer pointFBShadow = ShadowFrameBuffer(1024, 1024, GL_TEXTURE_CUBE_MAP);
+	ShadowFrameBuffer pointFBShadow = ShadowFrameBuffer(4096, 4096, GL_TEXTURE_CUBE_MAP);
 	Camera camCubeShadow = Camera(lights_positions[1]);
 
 	float farBackCubeShadMap = 30.0f;
@@ -491,7 +491,7 @@ int main(int argc, char* argv[])
 	char pathPoShadowG[] = PATH_TO_SHADER "/shadowCubeMap.geom";
 	Shader cubeShadowShader = Shader(pathPoShadowV, pathPoShadowG, pathPoShadowF);
 	cubeShadowShader.use();
-	glm::mat4 cubeShadProj = glm::perspective(glm::radians(90.0f), 1.0f, 2.0f, farBackCubeShadMap);
+	glm::mat4 cubeShadProj = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, farBackCubeShadMap);
 //	glm::mat4 P = camCubeShadow.GetProjectionMatrixCube(90.0f,2.0f,farBackCubeShadMap);
 
 	cubeShadowShader.setMatrix4("VPshadows[0]", cubeShadProj * camCubeShadow.GetViewCubeMatrix(0));
@@ -799,28 +799,29 @@ int main(int argc, char* argv[])
 		//all that follows should be commented for visualization in OpenGL
 		/**/
 
-	
-		pointFBShadow.BindFB();
-		cubeShadowShader.use();
-		cubeShadowShader.setFloat("far_back_cube", farBackCubeShadMap);
-		cubeShadowShader.setVector3f("light_pos", lights_positions[1]);
+		if(firstLoop){
+			pointFBShadow.BindFB();
+			cubeShadowShader.use();
+			cubeShadowShader.setFloat("far_back_cube", farBackCubeShadMap);
+			cubeShadowShader.setVector3f("light_pos", lights_positions[1]);
 
-		cubeShadowShader.setMatrix4("M", modelSapin);
-		sapin.draw();
-		cubeShadowShader.setMatrix4("M", modelSol);
-		ground.draw();
-		cubeShadowShader.setMatrix4("M", modelChaise);
-		chaise.draw();
-		cubeShadowShader.setMatrix4("M", modelMeuble);
-		meuble.draw();
-		cubeShadowShader.setMatrix4("M", modelPeinture);
-		peinture.draw();
-		cubeShadowShader.setMatrix4("M", modelWoodParvis);
-		woodparvis.draw();
-		cubeShadowShader.setMatrix4("M", modelRoom);
-		room.draw();
+			cubeShadowShader.setMatrix4("M", modelSapin);
+			sapin.draw();
+			cubeShadowShader.setMatrix4("M", modelSol);
+			ground.draw();
+			cubeShadowShader.setMatrix4("M", modelChaise);
+			chaise.draw();
+			cubeShadowShader.setMatrix4("M", modelMeuble);
+			meuble.draw();
+			cubeShadowShader.setMatrix4("M", modelPeinture);
+			peinture.draw();
+			cubeShadowShader.setMatrix4("M", modelWoodParvis);
+			woodparvis.draw();
+			cubeShadowShader.setMatrix4("M", modelRoom);
+			room.draw();
 
-		pointFBShadow.Unbind(width, height);
+			pointFBShadow.Unbind(width, height);
+		}
 
 
 
