@@ -108,13 +108,6 @@ void Shader::use() {
 }
 
 
-//Unfinished
-//void Shader::drawElements() {
-//    this->use();
-//    for (Element e : this->attachedElements) {
-//        e.display();
-//    }
-//}
 void Shader::setInteger(const GLchar* name, GLint value) {
     glUniform1i(glGetUniformLocation(ID, name), value);
 }
@@ -132,25 +125,6 @@ void Shader::setVector3f(const GLchar* name, const glm::vec3& value) {
 }
 
 
-void Shader::setLightsParams(const int maxLightsNumber, const float(&params)[6]) {
-    for (int i = 0; i < maxLightsNumber; i++) {
-        std::string name = "lights[" + std::to_string(i) + "].";
-
-        std::string param;
-        param = name + "ambient_strength";
-        this->setFloat(param.c_str(), params[0]);
-        param = name + "diffuse_strength";
-        this->setFloat(param.c_str(), params[1]);
-        param = name + "specular_strength";
-        this->setFloat(param.c_str(), params[2]);
-        param = name + "constant";
-        this->setFloat(param.c_str(), params[3]);
-        param = name + "linear";
-        this->setFloat(param.c_str(), params[4]);
-        param = name + "quadratic";
-        this->setFloat(param.c_str(), params[5]);
-    }
-}
 void Shader::setLightsParamsBump(const float(&params)[6],const std::string type) {
     std::vector<std::string> types_lights{"dir","spot","point"};
 

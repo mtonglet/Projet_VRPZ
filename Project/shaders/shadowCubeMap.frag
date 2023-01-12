@@ -3,9 +3,9 @@
 
 	in vec4 v_frag_coord;
 
-	uniform float far_plane;
+	uniform float far_back_cube;
 	uniform vec3 light_pos;
 
 	void main() { 
-		gl_FragDepth = length(v_frag_coord.xyz - light_pos) / far_plane;
+		gl_FragDepth = length(v_frag_coord.xyz - light_pos) / far_back_cube;
 	}

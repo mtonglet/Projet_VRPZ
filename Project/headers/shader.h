@@ -38,7 +38,6 @@ public:
     void setUniformParticleSize(const GLchar* name, const float particleSize);
     void setLightsPos(const int nLights, std::vector<glm::vec3> &array);
     void setLightsPosBump(const int nLights, std::vector<glm::vec3>& array);
-    void setLightsParams(const int maxLightsNumber, const float(&params)[6]);
     void setLightsParamsBump(const float(&params)[6],const std::string type="dir");
 
 
