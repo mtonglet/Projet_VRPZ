@@ -761,7 +761,7 @@ int main(int argc, char* argv[])
 		glm::mat4 dirLightProj = orthoProj * dirLightView;
 
 		shadowShader.use();
-		shadowShader.setMatrix4("lightProj", dirLightProj);
+		shadowShader.setMatrix4("light_proj", dirLightProj);
 
 		shadowShader.setMatrix4("M", modelSapin);
 		sapin.draw();
@@ -781,7 +781,7 @@ int main(int argc, char* argv[])
 		room.draw();
 
 		directionalFBShadow.Unbind(width, height);
-		/**/
+		/*
 		//DEBUGGING CODE to uncomment
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		shadowDebugShader.use();
@@ -789,7 +789,7 @@ int main(int argc, char* argv[])
 		glBindTexture(GL_TEXTURE_2D, directionalFBShadow.shadowMapping);
 		renderShadowMapTest();
 		//all that follows should be commented for visualization in OpenGL
-		/*
+		/**/
 		if(firstLoop && false){
 	
 			pointFBShadow.BindFB();
