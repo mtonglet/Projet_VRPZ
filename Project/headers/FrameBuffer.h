@@ -14,10 +14,10 @@ class ShadowFrameBuffer
 public:
 	//GLuint ID;
 	unsigned int ID;
-	unsigned int shadowMapTex;
+	unsigned int shadowMapping;
 	unsigned int mapWidth, mapHeight;
 
-	ShadowFrameBuffer(unsigned int mapWidth = 2048,unsigned int mapHeight=2048);
+	ShadowFrameBuffer(unsigned int mapWidth = 2048,unsigned int mapHeight=2048, GLenum typeTex=GL_TEXTURE_2D);
 	
 	void BindFB();
 	void BindTex(GLuint unit);

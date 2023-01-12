@@ -19,17 +19,8 @@
 		float quadratic;
 	};
 
-	struct LightParams{
-		float ambient_strength; 
-		float diffuse_strength; 
-		float specular_strength; 
-		float constant;
-		float linear;
-		float quadratic;
-	};
 
 	uniform bool lampsActivated;
-	uniform bool withNormalMap;
 	uniform int n_lights;
 	uniform float shininess;
 	uniform vec3 u_view_pos;
@@ -37,8 +28,6 @@
 	uniform Light lights[MAX_LIGHTS_NUMBER];
 	uniform sampler2D shadow_map;
 	uniform sampler2D tex0;
-	uniform sampler2D normal0;
-	uniform LightParams light_param;
 	
 
 	float specularCalculation(vec3 N, vec3 L, vec3 V , int i){ 
@@ -143,9 +132,7 @@
 
 	void main() { 
 		vec3 N = normalize(v_normal);
-		if(withNormalMap){
-			//N = normalize(texture(normal0, v_tex).xyz * 2.0f - 1.0f);
-		}
+
 
 		vec3 total_light = vec3(calcDirLight(N));
 

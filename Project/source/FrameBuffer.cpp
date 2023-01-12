@@ -1,23 +1,38 @@
 #include "../headers/FrameBuffer.h"
 
 
-ShadowFrameBuffer::ShadowFrameBuffer(unsigned int mapWidth, unsigned int mapHeight) {
+ShadowFrameBuffer::ShadowFrameBuffer(unsigned int mapWidth, unsigned int mapHeight, GLenum typeTex) {
 	this->mapWidth = mapWidth;
-	this->mapHeight= mapHeight;
+	this->mapHeight = mapHeight;
 
 	glGenFramebuffers(1, &ID);
-	glGenTextures(1, &shadowMapTex);
-	glBindTexture(GL_TEXTURE_2D, shadowMapTex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, mapWidth, mapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	float clampColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };// Prevents darkness outside the frustrum
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, clampColor);
+	glGenTextures(1, &shadowMapping);
+
+	glBindTexture(typeTex, shadowMapping);
+	if (typeTex == GL_TEXTURE_2D) {
+		glTexImage2D(typeTex, 0, GL_DEPTH_COMPONENT, mapWidth, mapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		glTexParameteri(typeTex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		glTexParameteri(typeTex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+		float clampColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };// Prevents darkness outside the frustrum
+		glTexParameterfv(typeTex, GL_TEXTURE_BORDER_COLOR, clampColor);
+	}
+	else if (typeTex == GL_TEXTURE_CUBE_MAP) {
+		for (int i = 0; i < 6; i++) {
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, mapWidth, mapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		}
+		glTexParameteri(typeTex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(typeTex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(typeTex, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	}
+	else {
+		std::cout << "ERROR::SHADOWFRAMEBUFFER:: 'typeTex' should be a 2D or a CubeMap GL_enum!" << std::endl;
+	}
+
+	glTexParameteri(typeTex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(typeTex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, ID);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMapTex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, typeTex, shadowMapping, 0);
 	glDrawBuffer(GL_NONE);// Needed since we don't touch the color buffer
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -34,7 +49,7 @@ void ShadowFrameBuffer::BindFB() {
 
 void ShadowFrameBuffer::BindTex(GLuint unit) {
 	glActiveTexture(GL_TEXTURE0 + unit);
-	glBindTexture(GL_TEXTURE_2D, shadowMapTex);
+	glBindTexture(GL_TEXTURE_2D, shadowMapping);
 }
 
 
@@ -48,7 +63,7 @@ void ShadowFrameBuffer::Unbind(int winWidth, int winHeight) {
 
 void ShadowFrameBuffer::InitRenderTest() {
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, this->shadowMapTex);
+	glBindTexture(GL_TEXTURE_2D, this->shadowMapping);
 }
 
 FrameBuffer::FrameBuffer(unsigned int width, unsigned int height, unsigned int nbCol) {
