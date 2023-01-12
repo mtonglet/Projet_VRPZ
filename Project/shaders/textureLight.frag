@@ -31,6 +31,8 @@
 	uniform LightParams spot_light_param;
 	uniform LightParams dir_light_param;
 	uniform LightParams point_light_param;
+	uniform float lampRefl;
+	
 	LightParams light_param;
 	
 
@@ -80,8 +82,8 @@
 		float diffuse = light_param.diffuse_strength * max(dot(N,L),0.0);
 
 		float shad = shadowCalculation(dot(N,L));      //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-		float light = light_param.ambient_strength + (diffuse + specular)*(1.0f - shad);
+		
+		float light = 0.0f;//light_param.ambient_strength + diffuse + specular)*(1.0f - shad);
 
 		if (dot(N,L) <= 0){
 			light = light_param.ambient_strength ;//+ diffuse + specular; //
@@ -99,8 +101,7 @@
 		float diffuse = light_param.diffuse_strength * max(dot(N,L),0.0);
 		float distance = length(lights[i] - v_frag_coord) + length(u_view_pos - v_frag_coord);
 		float attenuation = 1 / (light_param.constant + light_param.linear * distance + light_param.quadratic * distance * distance);
-		//todo : add some 'emitted' light for the moon
-		//float light = light_param.ambient_strength + attenuation * (diffuse + specular);
+
 
 		float light =  ambiant + attenuation * (diffuse + specular);
 		if (dot(N,L) <=0){
@@ -145,9 +146,9 @@
 
 		total_light  +=  emitted;
 
-		if (lampsActivated && length(emitted)==0.0){
+		if (lampsActivated && (length(emitted)==0.0)){
 			for (int i = 1 ; i < n_lights ; i++){
-//				total_light += vec3(calcPointLight(i,N));
+				total_light += vec3(calcPointLight(i,N));
 //				total_light += vec3(calcSpotLight(i,N));
 			}
 		}

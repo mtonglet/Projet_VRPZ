@@ -36,6 +36,7 @@
 	uniform sampler2D tex0; 
 	uniform sampler2D normal0;
 	uniform sampler2D shadow_map;
+	uniform float lampRefl;
 
 
 	//shadcube
@@ -131,7 +132,9 @@
 		float distance = length(lights[i] - fragCoord) + length(u_view_pos - fragCoord);
 		float attenuation = 1 / (light_param.constant + light_param.linear * distance + light_param.quadratic * distance * distance);
 
-		float shad = shadowCubeCalculation(dot(N,L));
+		//float shad = shadowCubeCalculation(dot(N,L));
+		float shad = 0.0;
+
 		float light =  ambiant + attenuation * (diffuse + specular)*(1.0f - shad);
 		if (dot(N,L) <=0){
 			light = ambiant;
@@ -169,11 +172,11 @@
 
 		float total_light = calcDirLight(N);
 
-		//total_light  +=  Emitted;
+		//total_light += emitted;
 
 		if (lampsActivated){
 			for (int i = 1 ; i < n_lights ; i++){
-//				total_light += calcPointLight(i,N);
+				total_light += calcPointLight(i,N);
 //				total_light += calcSpotLight(i,N);
 			}
 		}

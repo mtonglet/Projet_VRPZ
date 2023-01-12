@@ -45,7 +45,8 @@ void renderShadowMapTest();
 float lastX = width / 2.0f;
 float lastY = height / 2.0f;
 bool firstMouse = true;
-bool lampsActivated = true;
+bool lampsActivated = false;
+bool lampDecreasing = false;
 bool inKeyA = false;
 float fasterMoon = 0.0;
 
@@ -276,11 +277,16 @@ int main(int argc, char* argv[])
 		}
 	};
 
-	//LIGHTS PARAMETERS
-	double moonSpeed = 0.1;	
+	//--------------LIGHT PARAMS---------------//
+
+	/*	Refraction indices :
+	Air:      1.0	|	Water:    1.33	|
+	Ice:      1.309	|	Glass:    1.52	|	Diamond:  2.42*/
+
+	double moonSpeed = 0.1;
 	double moonDist = 100.0;
-	//length must be less than MAX_LIGHTS_NUMBER defined in textureLight.frag
-	std::vector<glm::vec3> lights_positions = {
+	
+	std::vector<glm::vec3> lights_positions = {//length must be less than MAX_LIGHTS_NUMBER defined in textureLight.frag
 		glm::vec3(0.0,moonDist,0.0), //moon
 		glm::vec3(-7.0, 8.0, 2.0) //moving in front of the paint
 //		glm::vec3(8.8, 8.8, 8.8),
@@ -294,13 +300,15 @@ int main(int argc, char* argv[])
 	float diffuse = 0.3;
 	float specular = 0.2;
 	//							             amb   diff   spec  cst  linear  quadr
-	const float default_lights_params[] = { 0.05f, 0.35f, 0.2f , 1.0f, 0.0f, 0.0f };//for point lights
+	const float default_lights_params[] = { 0.15f, 0.35f, 0.2f , 1.0f, 0.0f, 0.0f };//for point lights
 //	const float default_lights_params[] = { 0.05f, 0.45f, 0.4f , 1.0f, 0.0f, 0.0f };//for spot lights
 	const float moon_light_params[] =     { 0.2f , 0.1f, 0.3f , 1.0f, 0.0f, 0.0f };//for directional lights
 //	const float moon_light_params[] = { 0.0f , 0.0f, 0.0f , 0.0f, 0.0f, 0.0f };//diff tor reduce
 
+
+	//---------------MODELS MATRICES------------------//
+
 	glm::mat4 modelS = glm::mat4(1.0);
-//	glm::vec3 mirrorSpherePos = glm::vec3(0.0, 4.0, -15.0);
 	glm::vec3 mirrorSpherePos = glm::vec3(5.0, 4.0, 0.0); // position of the sphere
 	modelS = glm::translate(modelS, mirrorSpherePos); // position of the sphere
 	modelS = glm::scale(modelS, glm::vec3(0.8, 0.8, 0.8));	
@@ -313,11 +321,9 @@ int main(int argc, char* argv[])
 	glm::vec3 moonColor = 0.9f * glm::vec3(1.0,1.0,0.9);
 	glm::mat4 inverseModelMoon = glm::transpose(glm::inverse(modelMoon));
 
-//	elem_moon.initialize(0.0,50.0,0.0,2.0);
 
 	glm::mat4 modelBunny = glm::mat4(1.0);
 	modelBunny = glm::translate(modelBunny, glm::vec3(5.0, 4.0, -20.0)); // position of the colored bunny
-//	modelBunny = glm::translate(modelBunny, glm::vec3(20.0, 4.0, 5.0)); // position of the colored bunny
 	modelBunny = glm::scale(modelBunny, glm::vec3(0.8, 0.8, 0.8));
 	glm::mat4 inverseModelBunny = glm::transpose(glm::inverse(modelBunny));
 
@@ -389,7 +395,8 @@ int main(int argc, char* argv[])
 
 	glm::vec3 materialColour = glm::vec3(0.5f, 0.6, 0.8);
 
-	//Rendering
+	//----------------SHADERS------------------//
+	// 
 	// /!\ dont .use() another shader before having put all uniforms on this one
 
 	//BUMP
@@ -400,28 +407,6 @@ int main(int argc, char* argv[])
 	shaderBump.setLightsParamsBump(moon_light_params, "dir");
 	shaderBump.setLightsParamsBump(default_lights_params, "point");
 
-	/*
-	shaderBump.setFloat("light_param.constant", 1.0);
-	shaderBump.setFloat("light_param.linear", 0.0);
-	shaderBump.setFloat("light_param.quadratic", 0.0);
-	shaderBump.setFloat("light_param.ambient_strength", ambient);
-	shaderBump.setFloat("light_param.diffuse_strength", 0.3);
-	shaderBump.setFloat("light_param.specular_strength", 0.2);
-	*/
-
-
-/*	shaderBump.setFloat("light.ambient_strength", ambient);
-	shaderBump.setFloat("light.diffuse_strength", diffuse);
-	shaderBump.setFloat("light.specular_strength", specular);
-	shaderBump.setFloat("light.constant", 1.0);
-	shaderBump.setFloat("light.linear", 0.00014);
-	shaderBump.setFloat("light.quadratic", 0.0007);
-*/
-
-
-	/*	Refraction indices :
-	Air:      1.0	|	Water:    1.33	|
-	Ice:      1.309	|	Glass:    1.52	|	Diamond:  2.42*/
 	shader.use();
 	shader.setFloat("refractionIndice", 1.52);
 	shader.setFloat("shininess", 32.0f);
@@ -442,9 +427,8 @@ int main(int argc, char* argv[])
 	lightShader.setFloat("shininess", 32.0f);
 	lightShader.setVector3f("materialColour", materialColour);
 
+	//----------------TEXTURES------------------//
 
-
-	//Texture objects generation
 	char pathim[] = PATH_TO_TEXTURE "/Sand.jpg";
 	Texture GNDTex(pathim, "");
 	
@@ -483,16 +467,15 @@ int main(int argc, char* argv[])
 
 	std::string PathCM( PATH_TO_TEXTURE "/cubemaps/yokohama3/sky2_");
 	//cube map creation 
-	CubeMap skybox(PathCM);
-	
+	CubeMap skybox(PathCM);	
 	//Frame buffer creation for mirror
 	FrameBuffer framebufferMirror(width, height);
-
 	//Framebuffer for cubemap
 	CubeMap cubeRef = CubeMap(1024, 1024, 1);
 	FrameBuffer framebufferCube(1024,1024);
 
 	//------------------SHADOWS------------------//
+	
 	//directional light
 	ShadowFrameBuffer directionalFBShadow(4096, 4096); //4096 to avoid some rendering bugs
 
@@ -513,7 +496,6 @@ int main(int argc, char* argv[])
 	glm::mat4 P = glm::perspective(90.0f, 1.0f, 0.1f, far);
 //	glm::mat4 P = camCubeShadow
 
-
 	cubeShadowShader.setMatrix4("VPshadows[0]", P * camCubeShadow.GetViewCubeMatrix(0));
 	cubeShadowShader.setMatrix4("VPshadows[1]", P * camCubeShadow.GetViewCubeMatrix(1));
 	cubeShadowShader.setMatrix4("VPshadows[2]", P * camCubeShadow.GetViewCubeMatrix(2));
@@ -522,6 +504,7 @@ int main(int argc, char* argv[])
 	cubeShadowShader.setMatrix4("VPshadows[5]", P * camCubeShadow.GetViewCubeMatrix(5));
 
 	//--------------MIRROR SPHERES--------------//
+	// 
 //	Camera cameraCube(glm::vec3(0.0, 4.0, -15.0));
 	Camera cameraCube(mirrorSpherePos);
 	glm::mat4 projectionCube = cameraCube.GetProjectionMatrixCube(90.0f, 0.01f, 200.0f);
@@ -534,10 +517,11 @@ int main(int argc, char* argv[])
 	// Enables the Depth Buffer
 	glEnable(GL_DEPTH_TEST);
 
-	
+
+	//------------------TIMING------------------//
+	float lampEmissionIntensity = 0.999f;
 	bool firstLoop = true;
 	glfwSwapInterval(1);
-
 	double init_now = glfwGetTime();
 	double init_t = 0.0;
 	float df = 0;
@@ -546,12 +530,39 @@ int main(int argc, char* argv[])
 	}
 
 	bool renderDebuggingWindow = false;
+	//---------------------------------------//
+	//-------------      W      -------------//
+	//-------------      H      -------------//
+	//-------------      I      -------------//
+	//-------------      L      -------------//
+	//-------------      E      -------------//
+	//-------------             -------------//
+	//-------------      |      -------------//
+	//-------------      V      -------------//
+	//---------------------------------------//
+
 	while (!glfwWindowShouldClose(window)) {
 		glfwMakeContextCurrent(window);
 		processInput(window);
 		view = camera.GetViewMatrix();
 		glfwPollEvents();
 		double now = glfwGetTime();
+
+////////////////////////////////////////////////////////////////////////////////////////////
+// Model handling :
+		std::cout << lampsActivated << " - " << lampEmissionIntensity << std::endl;
+		//decreasing lamp intensity
+		if (lampsActivated) {
+			lampEmissionIntensity = 1.0f;
+		}
+		else {
+			lampDecreasing = true;
+			lampEmissionIntensity *= 0.94f;
+			if (std::max(lampEmissionIntensity,0.001f) == 0.001f) {
+				lampDecreasing = false;
+			}
+		}
+		glm::vec3 lampEmission = lampEmissionIntensity * glm::vec3(1.0f, 0.98f, 0.41f);;
 
 		//moving lights
 		lights_positions[0] = glm::vec3(90.0, 40.0f + 38.0f * std::sin(now), 36.0f); //TODO: uncomment to move the moon
@@ -576,9 +587,9 @@ int main(int argc, char* argv[])
 		}
 
 
-		if (firstLoop) {
 ////////////////////////////////////////////////////////////////////////////////////////////
 // Pass 0 :
+		if (firstLoop) {
 			//draw the cubeMap 
 			framebufferCube.Bind(0);
 
@@ -645,7 +656,7 @@ int main(int argc, char* argv[])
 				//room (for objects without bump mapping)
 				lightShader.use();
 				lightShader.setVector3f("emitted", glm::vec3(0.0));
-				lightShader.setInteger("lampsActivated", lampsActivated);
+				lightShader.setInteger("lampsActivated", lampsActivated || lampDecreasing);
 				//lightShader.setFloat("lights[2].ambient_strength", moonAmbientValue);
 				lightShader.setMatrix4("M", modelRoom);
 				lightShader.setMatrix4("itM", inverseModelRoom); //should be modified with regards to R 
@@ -713,7 +724,7 @@ int main(int argc, char* argv[])
 				shaderBump.setMatrix4("V", viewCube);
 				shaderBump.setMatrix4("P", projectionCube);
 				shaderBump.setVector3f("u_view_pos", cameraCube.Position);
-				shaderBump.setInteger("lampsActivated", lampsActivated);
+				shaderBump.setInteger("lampsActivated", lampsActivated || lampDecreasing);
 				//shaderBump.setVector3f("light.light_pos", delta);
 
 
@@ -885,7 +896,7 @@ int main(int argc, char* argv[])
 		shaderBump.setMatrix4("V", view);
 		shaderBump.setMatrix4("P", perspective);
 		shaderBump.setVector3f("u_view_pos", camera.Position);
-		shaderBump.setInteger("lampsActivated", lampsActivated);
+		shaderBump.setInteger("lampsActivated", lampsActivated || lampDecreasing);
 
 
 		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
@@ -903,7 +914,7 @@ int main(int argc, char* argv[])
 		//room (for objects without bump mapping)
 		lightShader.use();
 		lightShader.setVector3f("emitted", glm::vec3(0.0));
-		lightShader.setInteger("lampsActivated", lampsActivated);
+		lightShader.setInteger("lampsActivated", lampsActivated || lampDecreasing);
 		//lightShader.setFloat("lights[2].ambient_strength", moonAmbientValue);
 		lightShader.setMatrix4("M", modelRoom);
 		lightShader.setMatrix4("itM", inverseModelRoom); //should be modified with regards to R 
@@ -967,7 +978,7 @@ int main(int argc, char* argv[])
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 // Second pass : draw normal scene + mirror with texture from 1st pass
-		// 
+
 		//draw bunny
 		
 		classicShader.use();
@@ -1039,7 +1050,6 @@ int main(int argc, char* argv[])
 		//room (for objects without bump mapping)
 		glEnable(GL_DEPTH_TEST);
 		lightShader.use();
-		lightShader.setVector3f("emitted", glm::vec3(0.0));
 		
 		//to VS
 		lightShader.setMatrix4("R", glm::mat4(1.0));
@@ -1049,11 +1059,12 @@ int main(int argc, char* argv[])
 		lightShader.setMatrix4("dir_light_proj", dirLightProj);//shadows
 
 		//to FS
-		lightShader.setInteger("lampsActivated", lampsActivated);
+		lightShader.setInteger("lampsActivated", lampsActivated || lampDecreasing);
 		lightShader.setLightsPosBump(lights_number, lights_positions);
 		lightShader.setFloat("shininess", 32.0f);
 		lightShader.setVector3f("u_view_pos", camera.Position);
 		lightShader.setVector3f("emitted", glm::vec3(0.0));//objects do not emit light by default
+		lightShader.setFloat("lampRefl", 0.2f*lampEmissionIntensity);
 		//for(every shadow maps in every frame_buffer_shadow):
 		lightShader.setTexUnit("shadow_map", 2);
 		directionalFBShadow.BindTex(2);
@@ -1094,7 +1105,9 @@ int main(int argc, char* argv[])
 		moon.draw();
 
 		whiteTex.Bind(0);
-		lightShader.setVector3f("emitted", glm::vec3(1.0f,0.98f,0.41f));
+
+		lightShader.setVector3f("emitted", lampEmission*lampEmissionIntensity);
+
 		for (glm::mat4 lamp : modelsPhysicalLamps) {
 			lightShader.setMatrix4("M", lamp);
 			//handle "itM"
@@ -1133,6 +1146,7 @@ int main(int argc, char* argv[])
 		shaderBump.setVector3f("u_view_pos", camera.Position);
 		shaderBump.setLightsPosBump(lights_number, lights_positions);
 		shaderBump.setMatrix4("dir_light_proj", dirLightProj);//shadows
+		shaderBump.setFloat("lampRefl", lampEmissionIntensity);
 		shaderBump.setTexUnit("shadow_map", 2);
 		directionalFBShadow.BindTex(2);//1 & 2 already taken
 
@@ -1143,7 +1157,7 @@ int main(int argc, char* argv[])
 
 		}
 		
-		shaderBump.setInteger("lampsActivated", lampsActivated);
+		shaderBump.setInteger("lampsActivated", lampsActivated || lampDecreasing);
 
 
 		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
