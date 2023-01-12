@@ -83,7 +83,7 @@
 
 		float shad = shadowCalculation(dot(N,L));      //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		
-		float light = 0.0f;//light_param.ambient_strength + diffuse + specular)*(1.0f - shad);
+		float light = light_param.ambient_strength + (diffuse + specular)*(1.0f - shad);
 
 		if (dot(N,L) <= 0){
 			light = light_param.ambient_strength ;//+ diffuse + specular; //

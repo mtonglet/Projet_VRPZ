@@ -115,7 +115,7 @@
 		float diffuse = light_param.diffuse_strength * max(dot(N,L),0.0);
 		float shad = shadowCalculation(dot(N,L));
 
-		float light = light_param.ambient_strength + (diffuse + specular)*(1.0f - shad);
+		float light = light_param.ambient_strength + (diffuse + specular)*(1.0f - shad);//*lampRefl;
 		if (dot(N,L) <= 0){
 			light = light_param.ambient_strength ; //
 		}

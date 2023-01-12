@@ -45,7 +45,7 @@ void renderShadowMapTest();
 float lastX = width / 2.0f;
 float lastY = height / 2.0f;
 bool firstMouse = true;
-bool lampsActivated = false;
+bool lampsActivated = true;
 bool lampDecreasing = false;
 bool inKeyA = false;
 float fasterMoon = 0.0;
@@ -656,7 +656,7 @@ int main(int argc, char* argv[])
 				//room (for objects without bump mapping)
 				lightShader.use();
 				lightShader.setVector3f("emitted", glm::vec3(0.0));
-				lightShader.setInteger("lampsActivated", lampsActivated || lampDecreasing);
+				lightShader.setInteger("lampsActivated", lampsActivated);
 				//lightShader.setFloat("lights[2].ambient_strength", moonAmbientValue);
 				lightShader.setMatrix4("M", modelRoom);
 				lightShader.setMatrix4("itM", inverseModelRoom); //should be modified with regards to R 
@@ -724,7 +724,7 @@ int main(int argc, char* argv[])
 				shaderBump.setMatrix4("V", viewCube);
 				shaderBump.setMatrix4("P", projectionCube);
 				shaderBump.setVector3f("u_view_pos", cameraCube.Position);
-				shaderBump.setInteger("lampsActivated", lampsActivated || lampDecreasing);
+				shaderBump.setInteger("lampsActivated", lampsActivated);
 				//shaderBump.setVector3f("light.light_pos", delta);
 
 
@@ -896,7 +896,7 @@ int main(int argc, char* argv[])
 		shaderBump.setMatrix4("V", view);
 		shaderBump.setMatrix4("P", perspective);
 		shaderBump.setVector3f("u_view_pos", camera.Position);
-		shaderBump.setInteger("lampsActivated", lampsActivated || lampDecreasing);
+		shaderBump.setInteger("lampsActivated", lampsActivated);
 
 
 		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
@@ -914,7 +914,7 @@ int main(int argc, char* argv[])
 		//room (for objects without bump mapping)
 		lightShader.use();
 		lightShader.setVector3f("emitted", glm::vec3(0.0));
-		lightShader.setInteger("lampsActivated", lampsActivated || lampDecreasing);
+		lightShader.setInteger("lampsActivated", lampsActivated);
 		//lightShader.setFloat("lights[2].ambient_strength", moonAmbientValue);
 		lightShader.setMatrix4("M", modelRoom);
 		lightShader.setMatrix4("itM", inverseModelRoom); //should be modified with regards to R 
@@ -1059,12 +1059,12 @@ int main(int argc, char* argv[])
 		lightShader.setMatrix4("dir_light_proj", dirLightProj);//shadows
 
 		//to FS
-		lightShader.setInteger("lampsActivated", lampsActivated || lampDecreasing);
+		lightShader.setInteger("lampsActivated", lampsActivated);
 		lightShader.setLightsPosBump(lights_number, lights_positions);
 		lightShader.setFloat("shininess", 32.0f);
 		lightShader.setVector3f("u_view_pos", camera.Position);
 		lightShader.setVector3f("emitted", glm::vec3(0.0));//objects do not emit light by default
-		lightShader.setFloat("lampRefl", 0.2f*lampEmissionIntensity);
+		//lightShader.setFloat("lampRefl", 0.2f*lampEmissionIntensity);
 		//for(every shadow maps in every frame_buffer_shadow):
 		lightShader.setTexUnit("shadow_map", 2);
 		directionalFBShadow.BindTex(2);
@@ -1146,7 +1146,7 @@ int main(int argc, char* argv[])
 		shaderBump.setVector3f("u_view_pos", camera.Position);
 		shaderBump.setLightsPosBump(lights_number, lights_positions);
 		shaderBump.setMatrix4("dir_light_proj", dirLightProj);//shadows
-		shaderBump.setFloat("lampRefl", lampEmissionIntensity);
+		//shaderBump.setFloat("lampRefl", lampEmissionIntensity);
 		shaderBump.setTexUnit("shadow_map", 2);
 		directionalFBShadow.BindTex(2);//1 & 2 already taken
 
@@ -1157,7 +1157,7 @@ int main(int argc, char* argv[])
 
 		}
 		
-		shaderBump.setInteger("lampsActivated", lampsActivated || lampDecreasing);
+		shaderBump.setInteger("lampsActivated", lampsActivated);
 
 
 		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
