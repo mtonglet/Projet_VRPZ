@@ -12,6 +12,7 @@ out vec3 u_view_pos;
 out vec3 lights[10];
 //out int n_lights;
 out vec4 u_frag_pos_light;
+out mat3 invTBN;
 
 in DATA
 {

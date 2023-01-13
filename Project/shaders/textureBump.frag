@@ -12,9 +12,6 @@
 	in vec4 u_frag_pos_light;
 
 
-	uniform int n_lights;
-
-
 	//In GLSL you can use structures to better organize your code
 	//light
 	struct LightParams{
@@ -26,6 +23,7 @@
 		float quadratic;
 	};
 
+	uniform int n_lights;
 	uniform float shininess; 
 	uniform LightParams spot_light_param;
 	uniform LightParams dir_light_param;
