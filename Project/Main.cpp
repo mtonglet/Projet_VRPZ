@@ -298,9 +298,9 @@ int main(int argc, char* argv[])
 
 
 	//							             amb   diff   spec  cst  linear  quadr
-	const float default_lights_params[] = { 0.8f/(1+lights_number), 0.35f, 10.4f , 1.0f, 0.0f, 0.0f };//for point lights
+	const float default_lights_params[] = { 0.8f/(1+lights_number), 0.35f, 0.4f , 1.0f, 0.0f, 0.0f };//for point lights
 //	const float default_lights_params[] = { 0.05f, 0.45f, 0.4f , 1.0f, 0.0f, 0.0f };//for spot lights
-	const float moon_light_params[] =     { 0.2f , 0.1f, 20.3f , 1.0f, 0.0f, 0.0f };//for directional lights
+	const float moon_light_params[] =     { 0.2f , 0.1f, 0.3f , 1.0f, 0.0f, 0.0f };//for directional lights
 //	const float moon_light_params[] = { 0.0f , 0.0f, 0.0f , 0.0f, 0.0f, 0.0f };//diff tor reduce
 
 
@@ -398,6 +398,7 @@ int main(int argc, char* argv[])
 	// /!\ dont .use() another shader before having put all uniforms on this one
 
 	//BUMP
+	const float light_params_bump[6] = {0.2,0.5,0.8,1.0,0.00014,0.0007};
 	shaderBump.use();
 	shaderBump.setFloat("shininess", 32.0f);
 	//shaderBump.setVector3f("materialColour", materialColour);
@@ -573,7 +574,7 @@ int main(int argc, char* argv[])
 		modelMoon = glm::rotate(modelMoon, 3.14159265358979f, glm::vec3(0.0, 1.0, 0.0));
 		inverseModelMoon = glm::transpose(glm::inverse(modelMoon));
 
-		lights_positions[1] = glm::vec3(-7.0, 7.0, 7.0 *std::sin(now));
+		//lights_positions[1] = glm::vec3(-7.0, 7.0, 7.0 *std::sin(now));
 
 		std::vector<glm::mat4> modelsPhysicalLamps = {};
 		for (int i = 1; i < lights_number; i++) {
@@ -799,7 +800,7 @@ int main(int argc, char* argv[])
 		//all that follows should be commented for visualization in OpenGL
 		/**/
 
-		if(firstLoop || lampsActivated){//set || or && (2nd to save perfs)
+		if(firstLoop){//set || or && (2nd to save perfs)
 			pointFBShadow.BindFB();
 			cubeShadowShader.use();
 			cubeShadowShader.setFloat("far_back_cube", farBackCubeShadMap);
@@ -1138,7 +1139,7 @@ int main(int argc, char* argv[])
 		shaderBump.setTexUnit("shadow_map", 2);
 		directionalFBShadow.BindTex(2);
 		shaderBump.setTexUnit("shadow_cube_map",3);
-		directionalFBShadow.BindTex(3);
+		pointFBShadow.BindTex(3);
 		//"lampRef" not used
 
 		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program

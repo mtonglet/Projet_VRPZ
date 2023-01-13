@@ -50,9 +50,9 @@
 	}
 
 
-	float shadowCubeCalculation(float dotNL){
+	float shadowCubeCalculation(int i, float dotNL){
 		float shadow = 0.0f;
-		vec3 light_to_frag = fragCoord - lights[1];
+		vec3 light_to_frag = invTBN*(fragCoord - lights[i]);
 		float cur_depth = length(light_to_frag);
 		float bias = max(0.0005f, (1.0f-dotNL) * 0.5f);
 		
@@ -133,7 +133,7 @@
 		float distance = length(lights[i] - fragCoord) + length(u_view_pos - fragCoord);
 		float attenuation = 1 / (light_param.constant + light_param.linear * distance + light_param.quadratic * distance * distance);
 
-		float shad = shadowCubeCalculation(dot(N,L));
+		float shad = shadowCubeCalculation(i, dot(N,L));
 
 		float light =  ambiant + attenuation * (diffuse + specular)*(1.0f - shad);
 		if (dot(N,L) <=0){
@@ -167,13 +167,11 @@
 	}
 
 	void main() { 
-		light_param=dir_light_param;
-		vec3 N = normalize(texture(normal0, texCoord).xyz * 2.0f - 1.0f);
+		vec3 N = normalize(texture(normal0, texCoord).rgb * 2.0f - 1.0f);
 
 		float total_light = calcDirLight(N);
 
 		//total_light += emitted;
-		light_param=point_light_param;
 
 		if (lampsActivated){
 			for (int i = 1 ; i < n_lights ; i++){
