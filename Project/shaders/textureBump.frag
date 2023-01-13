@@ -10,6 +10,7 @@
 	in vec3 u_view_pos;
 	in vec3 lights[10];
 	in vec4 u_frag_pos_light;
+	in mat3 invTBN;
 
 
 	//In GLSL you can use structures to better organize your code
@@ -53,7 +54,7 @@
 		float shadow = 0.0f;
 		vec3 light_to_frag = fragCoord - lights[1];
 		float cur_depth = length(light_to_frag);
-		float bias = max(0.0005f, (1.0f-dotNL) * 0.005f);
+		float bias = max(0.0005f, (1.0f-dotNL) * 0.5f);
 		
 //		int rad = 2;
 //		float pixel = 1.0f / 1024.0f;
@@ -69,7 +70,7 @@
 //			}
 //		}
 //		shadow /= pow((2*rad+1),3);
-		float closest_depth = texture(shadow_cube_map,light_to_frag).x;
+		float closest_depth = texture(shadow_cube_map,light_to_frag).r;
 		closest_depth *= far_back_cube;
 		if (cur_depth > closest_depth + bias){
 			shadow += 1.0f;
@@ -79,8 +80,10 @@
 	}
 
 
-	float shadowCalculation(float dotNL){
+	float shadowOrthoCalculation(float dotNL){
 		float shad = 0.0f;
+//		vec4 tmp = TBN*u_frag_pos_light;
+//		vec3 light_coords = tmp.xyz/tmp.w;
 		vec3 light_coords = u_frag_pos_light.xyz/u_frag_pos_light.w;
 
 		int rad = 2; //at least 1 -> 
@@ -89,7 +92,7 @@
 			light_coords = (light_coords + 1.0f) / 2.0f;
 
 			float current_depth = light_coords.z;
-			float bias = max(0.00005f, (1.0f-dotNL) * 0.0005f);
+			float bias = 0.00005;//max(0.00005f, (1.0f-dotNL) * 0.0005f);
 
 			vec2 pixel_dims = 1.0f / textureSize(shadow_map, 0);
 			for(int x=-rad ; x<=rad ; x++){
@@ -111,7 +114,7 @@
 		vec3 V = normalize(u_view_pos - fragCoord); 
 		float specular = specularCalculation( N, L, V, 0); 
 		float diffuse = light_param.diffuse_strength * max(dot(N,L),0.0);
-		float shad = shadowCalculation(dot(N,L));
+		float shad = shadowOrthoCalculation(dot(N,L));
 
 		float light = light_param.ambient_strength + (diffuse + specular)*(1.0f - shad);//*lampRefl;
 		if (dot(N,L) <= 0){
@@ -131,7 +134,6 @@
 		float attenuation = 1 / (light_param.constant + light_param.linear * distance + light_param.quadratic * distance * distance);
 
 		float shad = shadowCubeCalculation(dot(N,L));
-		//float shad = 0.0;
 
 		float light =  ambiant + attenuation * (diffuse + specular)*(1.0f - shad);
 		if (dot(N,L) <=0){
@@ -165,12 +167,13 @@
 	}
 
 	void main() { 
-		light_param=point_light_param;
+		light_param=dir_light_param;
 		vec3 N = normalize(texture(normal0, texCoord).xyz * 2.0f - 1.0f);
 
 		float total_light = calcDirLight(N);
 
 		//total_light += emitted;
+		light_param=point_light_param;
 
 		if (lampsActivated){
 			for (int i = 1 ; i < n_lights ; i++){
@@ -179,7 +182,7 @@
 			}
 		}
 
-		FragColor = vec4(vec3(texture(tex0, texCoord)) * total_light, 1.0); 
+		FragColor = vec4(vec3(texture(tex0, texCoord)) * vec3(total_light), 1.0); 
 	}
 
 

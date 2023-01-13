@@ -48,6 +48,7 @@ void main()
 
     mat3 TBN = mat3(T,B,N);
     TBN = transpose(TBN);
+    invTBN = inverse(TBN);
 
     gl_Position = data_in[0].projection * gl_in[0].gl_Position;
 //    n_lights = data_in[0].n_lights;

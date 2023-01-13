@@ -298,9 +298,9 @@ int main(int argc, char* argv[])
 
 
 	//							             amb   diff   spec  cst  linear  quadr
-	const float default_lights_params[] = { 0.8f/(1+lights_number), 0.35f, 0.4f , 1.0f, 0.00002f, 0.0003f };//for point lights
+	const float default_lights_params[] = { 0.8f/(1+lights_number), 0.35f, 10.4f , 1.0f, 0.0f, 0.0f };//for point lights
 //	const float default_lights_params[] = { 0.05f, 0.45f, 0.4f , 1.0f, 0.0f, 0.0f };//for spot lights
-	const float moon_light_params[] =     { 0.2f , 0.1f, 0.3f , 1.0f, 0.0f, 0.0f };//for directional lights
+	const float moon_light_params[] =     { 0.2f , 0.1f, 20.3f , 1.0f, 0.0f, 0.0f };//for directional lights
 //	const float moon_light_params[] = { 0.0f , 0.0f, 0.0f , 0.0f, 0.0f, 0.0f };//diff tor reduce
 
 
@@ -484,12 +484,12 @@ int main(int argc, char* argv[])
 //	pointLightsCams.push_back(Camera(lights_positions[1]));
 	ShadowFrameBuffer pointFBShadow = ShadowFrameBuffer(4096, 4096, GL_TEXTURE_CUBE_MAP);
 
-	float farBackCubeShadMap = 30.0f;
 	char pathPoShadowF[] = PATH_TO_SHADER "/shadowCubeMap.frag";
 	char pathPoShadowV[] = PATH_TO_SHADER "/shadowCubeMap.vert";
 	char pathPoShadowG[] = PATH_TO_SHADER "/shadowCubeMap.geom";
 	Shader cubeShadowShader = Shader(pathPoShadowV, pathPoShadowG, pathPoShadowF);
 	cubeShadowShader.use();
+	float farBackCubeShadMap = 30.0f; //INCREASE to avoid frustrum visibility outside
 	glm::mat4 cubeShadProj = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, farBackCubeShadMap);
 //	glm::mat4 P = camCubeShadow.GetProjectionMatrixCube(90.0f,2.0f,farBackCubeShadMap);
 
@@ -799,7 +799,7 @@ int main(int argc, char* argv[])
 		//all that follows should be commented for visualization in OpenGL
 		/**/
 
-		if(firstLoop && lampsActivated){
+		if(firstLoop || lampsActivated){//set || or && (2nd to save perfs)
 			pointFBShadow.BindFB();
 			cubeShadowShader.use();
 			cubeShadowShader.setFloat("far_back_cube", farBackCubeShadMap);
@@ -1124,7 +1124,8 @@ int main(int argc, char* argv[])
 		shaderBump.setMatrix4("V", view);
 		shaderBump.setMatrix4("P", perspective);
 		shaderBump.setMatrix4("itM", glm::mat4(1.0));
-		shaderBump.setMatrix4("dir_light_proj", dirLightProj);//shadows
+		shaderBump.setMatrix4("dir_light_proj",dirLightProj);//shadows
+		//putting  glm::mat4(1.0)) instead of dirLightProj above render bump maps.
 
 		//To VG, VS & VF
 		shaderBump.setLightsPosBump(lights_number, lights_positions);
