@@ -25,7 +25,7 @@ class Emitter
         //~Emitter();
         glm::vec3 randomPos();
         glm::vec3 randomPos(int x, int y, int z);
-        float randomLife();
+        float randomLife(int num);
 
         void update(const float dt, const int name);
         void draw(Shader shader);

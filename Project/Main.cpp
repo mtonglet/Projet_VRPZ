@@ -1186,7 +1186,7 @@ int main(int argc, char* argv[])
 
 		emitter.draw(emitterShader);
 
-		emitter_fire.update(0.01f, 2);
+		emitter_fire.update(0.04f, 2);
 
 		emitterShader.use();
 		emitterShader.setMatrix4("P", perspective);
