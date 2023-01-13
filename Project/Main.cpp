@@ -1124,7 +1124,7 @@ int main(int argc, char* argv[])
 		shaderBump.setMatrix4("V", view);
 		shaderBump.setMatrix4("P", perspective);
 		shaderBump.setMatrix4("itM", glm::mat4(1.0));
-		shaderBump.setMatrix4("dir_light_proj", glm::mat4(1.0));// dirLightProj);//shadows
+		shaderBump.setMatrix4("dir_light_proj", dirLightProj);//shadows
 
 		//To VG, VS & VF
 		shaderBump.setLightsPosBump(lights_number, lights_positions);
