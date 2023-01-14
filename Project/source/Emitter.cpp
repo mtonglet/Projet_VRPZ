@@ -13,7 +13,7 @@ Emitter::Emitter(int name)
 
         for (int i = 0; i < particles.size(); ++i) {
             particles[i].position = randomPos();
-            std::cout << particles[i].position.x << std::endl;
+           //std::cout << particles[i].position.x << std::endl;
             particles[i].lifetime = randomLife(13);
         }
 

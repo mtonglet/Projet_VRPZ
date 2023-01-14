@@ -1,5 +1,5 @@
 #version 330 core
-#define MAX_LIGHTS_NUMBER 10
+#define MAX_LIGHTS_NUMBER 3
 	out vec4 FragColor;
 	precision mediump float;
 
@@ -39,7 +39,7 @@
 
 
 	//shadcube
-	uniform samplerCube shadow_cube_map[MAX_LIGHTS_NUMBER];
+	uniform samplerCube shadow_cube_map[MAX_LIGHTS_NUMBER-1]; //
 	uniform float far_back_cube;
 	
 	float specularCalculation(vec3 N, vec3 L, vec3 V , int i){ 
@@ -56,25 +56,26 @@
 		float cur_depth = length(light_to_frag);
 		float bias = max(0.005f, (1.0f-dotNL) * 0.5f);
 		
-		int rad = 1;
-		float pixel = 1.0f / 1024.0f;
-		for(int x=-rad ; x<=rad ; x++){
-			for(int y=-rad ; y<=rad ; y++){
-				for(int z=-rad ; z<=rad ; z++){
-					float closest_depth = texture(shadow_cube_map[i-1],light_to_frag + pixel*vec3(x,y,z)).x;
-					closest_depth *= far_back_cube;
-					if (cur_depth > closest_depth + bias){
-						shadow += 1.0f;
-					}
-				}			
-			}
+		//int rad = 1;
+		//float pixel = 1.0f / 1024.0f;
+		//for(int x=-rad ; x<=rad ; x++){
+		//	for(int y=-rad ; y<=rad ; y++){
+		//		for(int z=-rad ; z<=rad ; z++){
+		//			float closest_depth = texture(shadow_cube_map[i-1],light_to_frag + pixel*vec3(x,y,z)).x;
+		//			closest_depth *= far_back_cube;
+		//			if (cur_depth > closest_depth + bias){
+		//				shadow += 1.0f;
+		//			}
+		//		}			
+		//	}
+		//}
+		//shadow /= pow((2*rad+1),3);
+
+		float closest_depth = texture(shadow_cube_map[i-1],light_to_frag).r;
+		closest_depth *= far_back_cube;
+		if (cur_depth > closest_depth + bias){
+			shadow += 1.0f;
 		}
-		shadow /= pow((2*rad+1),3);
-//		float closest_depth = texture(shadow_cube_map[i-1],light_to_frag).r;
-//		closest_depth *= far_back_cube;
-//		if (cur_depth > closest_depth + bias){
-//			shadow += 1.0f;
-//		}
 		
 		return shadow;
 	}
@@ -167,20 +168,28 @@
 	}
 
 	void main() { 
+		
 		vec3 N = normalize(texture(normal0, texCoord).rgb * 2.0f - 1.0f);
-
-		float total_light = calcDirLight(N);
+		
+		vec3 total_light = vec3(calcDirLight(N));
 
 		//total_light += emitted;
 
-		if (lampsActivated){
+		//if (lampsActivated && Normal.x < 5.0f){
 			for (int i = 1 ; i < n_lights ; i++){
-				total_light += calcPointLight(i,N);
-//				total_light += calcSpotLight(i,N);
+				if (lampsActivated || i==1 && Normal.x < 5.0f){
+					if(i == 1){
+					total_light += vec3(calcPointLight(i,N)) * vec3(0.6,0.21,0.09);
+//					total_light += vec3(calcSpotLight(i,N)) * vec3(0.6,0.21,0.09);
+					}
+					else{
+					total_light += vec3(calcPointLight(i,N));
+//					total_light += vec3(calcSpotLight(i,N));
+					}
+				}
 			}
-		}
 
-		FragColor = vec4(vec3(texture(tex0, texCoord)) * vec3(total_light), 1.0); 
+		FragColor = vec4(vec3(texture(tex0, texCoord)) * total_light, 1.0); 
 	}
 
 
