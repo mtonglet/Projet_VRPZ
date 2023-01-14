@@ -39,7 +39,7 @@
 
 
 	//shadcube
-	uniform samplerCube shadow_cube_map;
+	uniform samplerCube shadow_cube_map[MAX_LIGHTS_NUMBER];
 	uniform float far_back_cube;
 	
 	float specularCalculation(vec3 N, vec3 L, vec3 V , int i){ 
@@ -54,14 +54,14 @@
 		float shadow = 0.0f;
 		vec3 light_to_frag = invTBN*(fragCoord - lights[i]);
 		float cur_depth = length(light_to_frag);
-		float bias = max(0.0005f, (1.0f-dotNL) * 0.5f);
+		float bias = max(0.005f, (1.0f-dotNL) * 0.5f);
 		
 //		int rad = 2;
 //		float pixel = 1.0f / 1024.0f;
 //		for(int x=-rad ; x<=rad ; x++){
 //			for(int y=-rad ; y<=rad ; y++){
 //				for(int z=-rad ; z<=rad ; z++){
-//					float closest_depth = texture(shadow_cube_map,light_to_frag + pixel*vec3(x,y,z)).x;
+//					float closest_depth = texture(shadow_cube_map[i-1],light_to_frag + pixel*vec3(x,y,z)).x;
 //					closest_depth *= far_back_cube;
 //					if (cur_depth > closest_depth + bias){
 //						shadow += 1.0f;
@@ -70,7 +70,7 @@
 //			}
 //		}
 //		shadow /= pow((2*rad+1),3);
-		float closest_depth = texture(shadow_cube_map,light_to_frag).r;
+		float closest_depth = texture(shadow_cube_map[i-1],light_to_frag).r;
 		closest_depth *= far_back_cube;
 		if (cur_depth > closest_depth + bias){
 			shadow += 1.0f;

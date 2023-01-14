@@ -288,8 +288,8 @@ int main(int argc, char* argv[])
 	
 	std::vector<glm::vec3> lights_positions = {//length must be less than MAX_LIGHTS_NUMBER defined in textureLight.frag
 		glm::vec3(0.0,moonDist,0.0), //moon
+		glm::vec3(0.0, 2.5, -4.0), //fire 
 		glm::vec3(-7.0, 8.0, 2.0) //moving in front of the paint
-//		glm::vec3(8.8, 8.8, 8.8),
 //		glm::vec3(-8.8,8.8, 8.8),
 //		glm::vec3(-8.8,8.8,-8.8),
 //		glm::vec3(8.8, 8.8,-8.8)
@@ -298,10 +298,11 @@ int main(int argc, char* argv[])
 
 
 	//							             amb   diff   spec  cst  linear  quadr
-	const float default_lights_params[] = { 0.8f/(1+lights_number), 0.35f, 0.4f , 1.0f, 0.0f, 0.0f };//for point lights
+	const float default_lights_params[] = { 0.2f/(lights_number-1), 0.3f/(lights_number-1), 
+											0.45f /(lights_number-1) , 1.0f, 0.0f, 0.0f };//for point lights
 //	const float default_lights_params[] = { 0.05f, 0.45f, 0.4f , 1.0f, 0.0f, 0.0f };//for spot lights
 	const float moon_light_params[] =     { 0.2f , 0.1f, 0.3f , 1.0f, 0.0f, 0.0f };//for directional lights
-//	const float moon_light_params[] = { 0.0f , 0.0f, 0.0f , 0.0f, 0.0f, 0.0f };//diff tor reduce
+//	const float moon_light_params[] = { 0.0f , 0.0f, 0.0f , 0.0f, 0.0f, 0.0f };
 
 
 	//---------------MODELS MATRICES------------------//
@@ -483,27 +484,19 @@ int main(int argc, char* argv[])
 //	pointFBShadow.push_back(ShadowFrameBuffer(1024, 1024, GL_TEXTURE_CUBE_MAP));
 //	std::vector<Camera> pointLightsCams;
 //	pointLightsCams.push_back(Camera(lights_positions[1]));
-	ShadowFrameBuffer pointFBShadow = ShadowFrameBuffer(4096, 4096, GL_TEXTURE_CUBE_MAP);
+	std::vector<ShadowFrameBuffer> pointFBShadows;
+	for (int i= 1; i < lights_number; i++) {
+		pointFBShadows.push_back(ShadowFrameBuffer(4096, 4096, GL_TEXTURE_CUBE_MAP));
+	}
+	float farBackCubeShadMap; //INCREASE to avoid frustrum visibility outside
 
 	char pathPoShadowF[] = PATH_TO_SHADER "/shadowCubeMap.frag";
 	char pathPoShadowV[] = PATH_TO_SHADER "/shadowCubeMap.vert";
 	char pathPoShadowG[] = PATH_TO_SHADER "/shadowCubeMap.geom";
 	Shader cubeShadowShader = Shader(pathPoShadowV, pathPoShadowG, pathPoShadowF);
-	cubeShadowShader.use();
-	float farBackCubeShadMap = 30.0f; //INCREASE to avoid frustrum visibility outside
-	glm::mat4 cubeShadProj = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, farBackCubeShadMap);
-//	glm::mat4 P = camCubeShadow.GetProjectionMatrixCube(90.0f,2.0f,farBackCubeShadMap);
-
-	Camera camCubeShadow = Camera(lights_positions[1]);
-	cubeShadowShader.setMatrix4("VPshadows[0]", cubeShadProj * camCubeShadow.GetViewCubeMatrix(0));
-	cubeShadowShader.setMatrix4("VPshadows[1]", cubeShadProj * camCubeShadow.GetViewCubeMatrix(1));
-	cubeShadowShader.setMatrix4("VPshadows[2]", cubeShadProj * camCubeShadow.GetViewCubeMatrix(2));
-	cubeShadowShader.setMatrix4("VPshadows[3]", cubeShadProj * camCubeShadow.GetViewCubeMatrix(3));
-	cubeShadowShader.setMatrix4("VPshadows[4]", cubeShadProj * camCubeShadow.GetViewCubeMatrix(4));
-	cubeShadowShader.setMatrix4("VPshadows[5]", cubeShadProj * camCubeShadow.GetViewCubeMatrix(5));
 
 	//--------------MIRROR SPHERES--------------//
-	// 
+
 //	Camera cameraCube(glm::vec3(0.0, 4.0, -15.0));
 	Camera cameraCube(mirrorSpherePos);
 	glm::mat4 projectionCube = cameraCube.GetProjectionMatrixCube(90.0f, 0.01f, 200.0f);
@@ -577,7 +570,7 @@ int main(int argc, char* argv[])
 		//lights_positions[1] = glm::vec3(-7.0, 7.0, 7.0 *std::sin(now));
 
 		std::vector<glm::mat4> modelsPhysicalLamps = {};
-		for (int i = 1; i < lights_number; i++) {
+		for (int i = 2; i < lights_number; i++) {
 			modelLamp = glm::mat4(1.0);
 			modelLamp = glm::translate(modelLamp, lights_positions[i]);
 			modelLamp = glm::scale(modelLamp, glm::vec3(0.25));
@@ -800,42 +793,45 @@ int main(int argc, char* argv[])
 		//all that follows should be commented for visualization in OpenGL
 		/**/
 
-		if(firstLoop){//set || or && (2nd to save perfs)
-			pointFBShadow.BindFB();
+		if(firstLoop){
+			farBackCubeShadMap = 30.0f;
+			glm::mat4 cubeShadProj = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, farBackCubeShadMap);
 			cubeShadowShader.use();
 			cubeShadowShader.setFloat("far_back_cube", farBackCubeShadMap);
-			cubeShadowShader.setVector3f("light_pos", lights_positions[1]);
-			/*Uncomment to render shadows for moving light*/
-			camCubeShadow = Camera(lights_positions[1]);
-			cubeShadowShader.setMatrix4("VPshadows[0]", cubeShadProj* camCubeShadow.GetViewCubeMatrix(0));
-			cubeShadowShader.setMatrix4("VPshadows[1]", cubeShadProj* camCubeShadow.GetViewCubeMatrix(1));
-			cubeShadowShader.setMatrix4("VPshadows[2]", cubeShadProj* camCubeShadow.GetViewCubeMatrix(2));
-			cubeShadowShader.setMatrix4("VPshadows[3]", cubeShadProj* camCubeShadow.GetViewCubeMatrix(3));
-			cubeShadowShader.setMatrix4("VPshadows[4]", cubeShadProj* camCubeShadow.GetViewCubeMatrix(4));
-			cubeShadowShader.setMatrix4("VPshadows[5]", cubeShadProj* camCubeShadow.GetViewCubeMatrix(5));
-			/**/
 
-			cubeShadowShader.setMatrix4("M", modelSapin);
-			sapin.draw();
-			cubeShadowShader.setMatrix4("M", modelSol);
-			ground.draw();
-			cubeShadowShader.setMatrix4("M", modelChaise);
-			chaise.draw();
-			cubeShadowShader.setMatrix4("M", modelMeuble);
-			meuble.draw();
-			cubeShadowShader.setMatrix4("M", modelPeinture);
-			peinture.draw();
-			cubeShadowShader.setMatrix4("M", modelWoodParvis);
-			woodparvis.draw();
-			cubeShadowShader.setMatrix4("M", modelRoom);
-			room.draw();
+			for (int i_pl = 0; i_pl < lights_number-1; i_pl++) {
+				Camera camCubeShadow = Camera(lights_positions[i_pl+1]);//0 is taken by the moon
+				//	glm::mat4 P = camCubeShadow.GetProjectionMatrixCube(90.0f,2.0f,farBackCubeShadMap);
 
-			pointFBShadow.Unbind(width, height);
+				pointFBShadows[i_pl].BindFB();
+				cubeShadowShader.setVector3f("light_pos", lights_positions[i_pl+1]);
+				/*Uncomment to render shadows for moving light*/
+				camCubeShadow = Camera(lights_positions[i_pl+1]);
+				for (int face = 0; face < 6; face++) {
+					//send View*Proj matrice to Geometry shader for shadows cube maps
+					std::string VPf = "VPshadows[" + std::to_string(face) + "]";
+					cubeShadowShader.setMatrix4(VPf.c_str(), cubeShadProj* camCubeShadow.GetViewCubeMatrix(face));
+				}
+				cubeShadowShader.setMatrix4("M", modelSapin);
+				sapin.draw();
+				cubeShadowShader.setMatrix4("M", modelSol);
+				ground.draw();
+				cubeShadowShader.setMatrix4("M", modelChaise);
+				chaise.draw();
+				cubeShadowShader.setMatrix4("M", modelMeuble);
+				meuble.draw();
+				cubeShadowShader.setMatrix4("M", modelPeinture);
+				peinture.draw();
+				cubeShadowShader.setMatrix4("M", modelWoodParvis);
+				woodparvis.draw();
+				cubeShadowShader.setMatrix4("M", modelRoom);
+				room.draw();
+
+				pointFBShadows[i_pl].Unbind(width, height);			
+			}
 		}
 
 
-
-		
 ////////////////////////////////////////////////////////////////////////////////////////////
 //First pass: Draw reversed Scene 
 		// 
@@ -1063,9 +1059,13 @@ int main(int argc, char* argv[])
 		//for(every shadow maps in every frame_buffer_shadow):
 		lightShader.setTexUnit("shadow_map", 1);
 		directionalFBShadow.BindTex(1);
-		lightShader.setTexUnit("shadow_cube_map", 2);
-		pointFBShadow.BindTex(2);//0, 1 & 2 already taken
 
+		for (int pointLight = 0; pointLight < lights_number - 1; pointLight++) {
+			std::string map = "shadow_cube_map[" + std::to_string(pointLight)+"]";
+			lightShader.setTexUnit(map.c_str(),2 + pointLight);
+			pointFBShadows[pointLight].BindTex(2 + pointLight); 
+			//slots 0 & 1 already taken, from 2 for shadow maps
+		}
 
 		//Bind correct slot for textures...
 		lightShader.setTexUnit("tex0", 0);
@@ -1138,8 +1138,17 @@ int main(int argc, char* argv[])
 		shaderBump.setInteger("lampsActivated", lampsActivated);
 		shaderBump.setTexUnit("shadow_map", 2);
 		directionalFBShadow.BindTex(2);
-		shaderBump.setTexUnit("shadow_cube_map",3);
-		pointFBShadow.BindTex(3);
+		
+		for (int pointLight = 0; pointLight < lights_number - 1; pointLight++) {
+			std::string map = "shadow_cube_map[" + std::to_string(pointLight) + "]";
+			shaderBump.setTexUnit(map.c_str(), 3 + pointLight);
+			pointFBShadows[pointLight].BindTex(3 + pointLight);
+			//slots 0 & 1 & 2 already taken, from 3 for shadow cube-maps
+		}
+		/* /
+		shaderBump.setTexUnit("shadow_cube_map", 3);
+		pointFBShadows[0].BindTex(3);
+		*/
 		//"lampRef" not used
 
 		// Assigns a value(the unit of the texture) to the uniform; NOTE: Must always be done after activating the Shader Program
