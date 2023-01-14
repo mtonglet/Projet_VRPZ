@@ -259,6 +259,18 @@ int main(int argc, char* argv[])
 	Object woodparvis(pathWoodParvis);
 	woodparvis.makeObject(lightShader);
 
+	char pathFirePlace[] = PATH_TO_OBJECTS "/fireplace.obj";
+	Object fireplace(pathFirePlace);
+	fireplace.makeObject(lightShader);
+
+	char pathLampePlafond[] = PATH_TO_OBJECTS "/lampe_plafond.obj";
+	Object lampeplafond(pathLampePlafond);
+	lampeplafond.makeObject(lightShader);
+	Object lampeplafond2(pathLampePlafond);
+	lampeplafond2.makeObject(lightShader);
+	Object lampeplafond3(pathLampePlafond);
+	lampeplafond3.makeObject(lightShader);
+
 	Emitter emitter = Emitter(1);
 	Emitter emitter_fire = Emitter(2);
 
@@ -384,6 +396,26 @@ int main(int argc, char* argv[])
 	modelWoodParvis = glm::scale(modelWoodParvis, glm::vec3(3.0, 3.0, 3.0));
 	glm::mat4 inversemodelWoodParvis = glm::transpose(glm::inverse(modelWoodParvis));
 
+	glm::mat4 modelLampePlafond = glm::mat4(1.0);				//Z	  //X  //Y
+	modelLampePlafond = glm::translate(modelLampePlafond, glm::vec3(2.0, 0.0, 0.0));
+	modelLampePlafond = glm::scale(modelLampePlafond, glm::vec3(3.0, 3.0, 3.0));
+	glm::mat4 inversemodelLampePlafond = glm::transpose(glm::inverse(modelLampePlafond));
+
+	glm::mat4 modelLampePlafond2 = glm::mat4(1.0);				//Z	  //X  //Y
+	modelLampePlafond2 = glm::translate(modelLampePlafond2, glm::vec3(-2.0, 0.0, -2.0));
+	modelLampePlafond2 = glm::scale(modelLampePlafond2, glm::vec3(3.0, 3.0, 3.0));
+	glm::mat4 inversemodelLampePlafond2 = glm::transpose(glm::inverse(modelLampePlafond2));
+
+	glm::mat4 modelLampePlafond3 = glm::mat4(1.0);				//Z	  //X  //Y
+	modelLampePlafond3 = glm::translate(modelLampePlafond3, glm::vec3(-2.0, 0.0, 2.0));
+	modelLampePlafond3 = glm::scale(modelLampePlafond3, glm::vec3(3.0, 3.0, 3.0));
+	glm::mat4 inversemodelLampePlafond3 = glm::transpose(glm::inverse(modelLampePlafond3));
+
+	glm::mat4 modelFirePlace = glm::mat4(1.0);				//Z	  //X  //Y
+	modelFirePlace = glm::translate(modelFirePlace, glm::vec3(0.0, 0.0, 0.0));
+	modelFirePlace = glm::scale(modelFirePlace, glm::vec3(3.0, 3.0, 3.0));
+	glm::mat4 inversemodelFirePlace = glm::transpose(glm::inverse(modelFirePlace));
+
 	glm::mat4 view = camera.GetViewMatrix();
 	glm::mat4 perspective = camera.GetProjectionMatrixCube(45.0f, 0.01f, 200.0f);
 
@@ -429,7 +461,7 @@ int main(int argc, char* argv[])
 
 	//----------------TEXTURES------------------//
 
-	char pathim[] = PATH_TO_TEXTURE "/Sand.jpg";
+	char pathim[] = PATH_TO_TEXTURE "/text_snow.jpg";
 	Texture GNDTex(pathim, "");
 	
 	char pathimG[] = PATH_TO_TEXTURE "/GroundTex.png";
@@ -458,6 +490,12 @@ int main(int argc, char* argv[])
 
 	char pathimWoodParvis[] = PATH_TO_TEXTURE "/texture_woodparvis.jpeg";
 	Texture woodParvisTex(pathimWoodParvis, "");
+
+	char pathimLampePlafond[] = PATH_TO_TEXTURE "/text_lampe.jpg";
+	Texture lampePlafondTex(pathimLampePlafond, "");
+
+	char pathimFirePlace[] = PATH_TO_TEXTURE "/text_fireplace.jpg";
+	Texture firePlaceTex(pathimFirePlace, "");
 	
 	char pathMoonTex[] = PATH_TO_TEXTURE "/moon_texture_hd_001.jpg";
 	Texture moonTex(pathMoonTex, "");
@@ -680,6 +718,18 @@ int main(int argc, char* argv[])
 
 				woodParvisTex.Bind(1);
 				woodparvis.draw();
+
+				firePlaceTex.Bind(1);
+				fireplace.draw();
+
+				lampePlafondTex.Bind(1);
+				lampeplafond.draw();
+
+				lampePlafondTex.Bind(1);
+				lampeplafond2.draw();
+
+				lampePlafondTex.Bind(1);
+				lampeplafond3.draw();
 
 				lightShader.setMatrix4("M", modelSol);
 				GNDTex.Bind(1);
@@ -941,6 +991,18 @@ int main(int argc, char* argv[])
 
 		woodParvisTex.Bind(0);
 		woodparvis.draw();
+
+		firePlaceTex.Bind(0);
+		fireplace.draw();
+
+		lampePlafondTex.Bind(0);
+		lampeplafond.draw();
+
+		lampePlafondTex.Bind(0);
+		lampeplafond2.draw();
+
+		lampePlafondTex.Bind(0);
+		lampeplafond3.draw();
 		
 		lightShader.setMatrix4("M", modelSol);
 		GNDTex.Bind(0);
@@ -1082,8 +1144,19 @@ int main(int argc, char* argv[])
 		lightShader.setMatrix4("M", modelPeinture);
 		peintureTex.Bind(0);
 		peinture.draw();
-
-		//sol trop foncé
+		lightShader.setMatrix4("M", modelFirePlace);
+		firePlaceTex.Bind(0);
+		fireplace.draw();
+		lightShader.setMatrix4("M", modelLampePlafond);
+		lampePlafondTex.Bind(0);
+		lampeplafond.draw();
+		lightShader.setMatrix4("M", modelLampePlafond2);
+		lampePlafondTex.Bind(0);
+		lampeplafond2.draw();
+		lightShader.setMatrix4("M", modelLampePlafond3);
+		lampePlafondTex.Bind(0);
+		lampeplafond3.draw();
+		//sol trop foncï¿½
 		//lightShader.setFloat("lights[1].ambient_strength", ambient*1.8f);
 		//lightShader.setFloat("lights[2].ambient_strength", ambient * 1.8f);
 		lightShader.setMatrix4("M", modelSol);
