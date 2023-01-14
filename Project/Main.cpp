@@ -243,6 +243,22 @@ int main(int argc, char* argv[])
 	Object boule1(pathBoule1);
 	boule1.makeObject(lightShader);
 
+	char pathBoule2[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
+	Object boule2(pathBoule2);
+	boule2.makeObject(lightShader);
+
+	char pathBoule3[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
+	Object boule3(pathBoule3);
+	boule3.makeObject(lightShader);
+
+	char pathBoule4[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
+	Object boule4(pathBoule4);
+	boule4.makeObject(lightShader);
+
+	char pathBoule5[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
+	Object boule5(pathBoule5);
+	boule5.makeObject(lightShader);
+
 	char pathChaise[] = PATH_TO_OBJECTS "/chaise_salon.obj";
 	Object chaise(pathChaise);
 	chaise.makeObject(lightShader);
@@ -376,9 +392,29 @@ int main(int argc, char* argv[])
 	glm::mat4 inversemodelSapin = glm::transpose(glm::inverse(modelSapin));
 
 	glm::mat4 modelBoule1 = glm::mat4(1.0);				//Z	  //X  //Y
-	modelBoule1 = glm::translate(modelBoule1, glm::vec3(-6.5, 2.0, -3.5));
-	modelBoule1 = glm::scale(modelBoule1, glm::vec3(0.5, 0.5, 0.5));
+	modelBoule1 = glm::translate(modelBoule1, glm::vec3(-3.2, 0.6, -3.5));
+	modelBoule1 = glm::scale(modelBoule1, glm::vec3(0.3, 0.3, 0.3));
 	glm::mat4 inversemodelBoule1 = glm::transpose(glm::inverse(modelBoule1));
+
+	glm::mat4 modelBoule2 = glm::mat4(1.0);				//Z	  //X  //Y
+	modelBoule2 = glm::translate(modelBoule2, glm::vec3(-6.5, 2.0, -3.5));
+	modelBoule2 = glm::scale(modelBoule2, glm::vec3(0.34, 0.34, 0.34));
+	glm::mat4 inversemodelBoule2 = glm::transpose(glm::inverse(modelBoule2));
+
+	glm::mat4 modelBoule3 = glm::mat4(1.0);				//Z	  //X  //Y
+	modelBoule3 = glm::translate(modelBoule3, glm::vec3(-4.0, 3.5, -3.5));
+	modelBoule3 = glm::scale(modelBoule3, glm::vec3(0.34, 0.34, 0.34));
+	glm::mat4 inversemodelBoule3 = glm::transpose(glm::inverse(modelBoule3));
+
+	glm::mat4 modelBoule4 = glm::mat4(1.0);				//Z	  //X  //Y
+	modelBoule4 = glm::translate(modelBoule4, glm::vec3(-6.2, 4.8, -4.8));
+	modelBoule4 = glm::scale(modelBoule4, glm::vec3(0.34, 0.34, 0.34));
+	glm::mat4 inversemodelBoule4 = glm::transpose(glm::inverse(modelBoule4));
+
+	glm::mat4 modelBoule5 = glm::mat4(1.0);				//Z	  //X  //Y
+	modelBoule5 = glm::translate(modelBoule5, glm::vec3(-5.0, 6.2, -4.1 ));
+	modelBoule5 = glm::scale(modelBoule5, glm::vec3(0.26, 0.26, 0.26));
+	glm::mat4 inversemodelBoule5 = glm::transpose(glm::inverse(modelBoule5));
 
 	glm::mat4 modelChaise = glm::mat4(1.0);				//Z	  //X  //Y
 	modelChaise = glm::translate(modelChaise, glm::vec3(3.0, 0.0, -26.0));
@@ -484,8 +520,20 @@ int main(int argc, char* argv[])
 	char pathimSapin[] = PATH_TO_TEXTURE "/sapinrep.jpg";
 	Texture sapinTex(pathimSapin, "");
 
-	char pathimBoule1[] = PATH_TO_TEXTURE "/text_snow.jpg";
+	char pathimBoule1[] = PATH_TO_TEXTURE "/red-xmas.jpg";
 	Texture boule1Tex(pathimBoule1, "");
+
+	char pathimBoule2[] = PATH_TO_TEXTURE "/red-glitter.jpg";
+	Texture boule2Tex(pathimBoule2, "");
+
+	char pathimBoule3[] = PATH_TO_TEXTURE "/gold-glitter.jpg";
+	Texture boule3Tex(pathimBoule3, "");
+
+	char pathimBoule4[] = PATH_TO_TEXTURE "/gold-star.jpg";
+	Texture boule4Tex(pathimBoule4, "");
+
+	char pathimBoule5[] = PATH_TO_TEXTURE "/red-xmas.jpg";
+	Texture boule5Tex(pathimBoule5, "");
 
 	char pathNormal[] = PATH_TO_TEXTURE "/woodBump.png";
 	Texture normalMap(pathNormal, "normal");
@@ -721,6 +769,18 @@ int main(int argc, char* argv[])
 				boule1Tex.Bind(1);
 				boule1.draw();
 
+				boule2Tex.Bind(1);
+				boule2.draw();
+
+				boule3Tex.Bind(1);
+				boule3.draw();
+
+				boule4Tex.Bind(1);
+				boule4.draw();
+
+				boule5Tex.Bind(1);
+				boule5.draw();
+
 				chaiseTex.Bind(1);
 				chaise.draw();
 
@@ -834,6 +894,14 @@ int main(int argc, char* argv[])
 		sapin.draw();
 		shadowShader.setMatrix4("M", modelBoule1);
 		boule1.draw();
+		shadowShader.setMatrix4("M", modelBoule2);
+		boule2.draw();
+		shadowShader.setMatrix4("M", modelBoule3);
+		boule3.draw();
+		shadowShader.setMatrix4("M", modelBoule4);
+		boule4.draw();
+		shadowShader.setMatrix4("M", modelBoule5);
+		boule5.draw();
 		shadowShader.setMatrix4("M", modelSol);
 		ground.draw();
 		shadowShader.setMatrix4("M", modelChaise);
@@ -891,6 +959,14 @@ int main(int argc, char* argv[])
 				sapin.draw();
 				cubeShadowShader.setMatrix4("M", modelBoule1);
 				boule1.draw();
+				cubeShadowShader.setMatrix4("M", modelBoule2);
+				boule2.draw();
+				cubeShadowShader.setMatrix4("M", modelBoule3);
+				boule3.draw();
+				cubeShadowShader.setMatrix4("M", modelBoule4);
+				boule4.draw();
+				cubeShadowShader.setMatrix4("M", modelBoule5);
+				boule5.draw();
 				cubeShadowShader.setMatrix4("M", modelSol);
 				ground.draw();
 				cubeShadowShader.setMatrix4("M", modelChaise);
@@ -1014,6 +1090,18 @@ int main(int argc, char* argv[])
 
 		boule1Tex.Bind(0);
 		boule1.draw();
+
+		boule2Tex.Bind(0);
+		boule2.draw();
+
+		boule3Tex.Bind(0);
+		boule3.draw();
+
+		boule4Tex.Bind(0);
+		boule4.draw();
+
+		boule5Tex.Bind(0);
+		boule5.draw();
 
 		chaiseTex.Bind(0);
 		chaise.draw();
@@ -1176,6 +1264,18 @@ int main(int argc, char* argv[])
 		lightShader.setMatrix4("M", modelBoule1);
 		boule1Tex.Bind(0);
 		boule1.draw();
+		lightShader.setMatrix4("M", modelBoule2);
+		boule2Tex.Bind(0);
+		boule2.draw();
+		lightShader.setMatrix4("M", modelBoule3);
+		boule3Tex.Bind(0);
+		boule3.draw();
+		lightShader.setMatrix4("M", modelBoule4);
+		boule4Tex.Bind(0);
+		boule4.draw();
+		lightShader.setMatrix4("M", modelBoule5);
+		boule5Tex.Bind(0);
+		boule5.draw();
 		lightShader.setMatrix4("M", modelChaise);
 		chaiseTex.Bind(0);
 		chaise.draw();
