@@ -851,7 +851,7 @@ int main(int argc, char* argv[])
 		woodparvis.draw();
 		shadowShader.setMatrix4("M", modelRoom);
 		//room.draw(shadowShader,false,false);
-		roomShadow.draw(shadowShader);
+		roomShadow.draw();
 		shadowShader.setMatrix4("M", modelPeinture);
 		peinture.draw();
 
