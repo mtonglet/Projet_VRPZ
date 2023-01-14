@@ -56,25 +56,25 @@
 		float cur_depth = length(light_to_frag);
 		float bias = max(0.005f, (1.0f-dotNL) * 0.5f);
 		
-//		int rad = 2;
-//		float pixel = 1.0f / 1024.0f;
-//		for(int x=-rad ; x<=rad ; x++){
-//			for(int y=-rad ; y<=rad ; y++){
-//				for(int z=-rad ; z<=rad ; z++){
-//					float closest_depth = texture(shadow_cube_map[i-1],light_to_frag + pixel*vec3(x,y,z)).x;
-//					closest_depth *= far_back_cube;
-//					if (cur_depth > closest_depth + bias){
-//						shadow += 1.0f;
-//					}
-//				}			
-//			}
-//		}
-//		shadow /= pow((2*rad+1),3);
-		float closest_depth = texture(shadow_cube_map[i-1],light_to_frag).r;
-		closest_depth *= far_back_cube;
-		if (cur_depth > closest_depth + bias){
-			shadow += 1.0f;
+		int rad = 1;
+		float pixel = 1.0f / 1024.0f;
+		for(int x=-rad ; x<=rad ; x++){
+			for(int y=-rad ; y<=rad ; y++){
+				for(int z=-rad ; z<=rad ; z++){
+					float closest_depth = texture(shadow_cube_map[i-1],light_to_frag + pixel*vec3(x,y,z)).x;
+					closest_depth *= far_back_cube;
+					if (cur_depth > closest_depth + bias){
+						shadow += 1.0f;
+					}
+				}			
+			}
 		}
+		shadow /= pow((2*rad+1),3);
+//		float closest_depth = texture(shadow_cube_map[i-1],light_to_frag).r;
+//		closest_depth *= far_back_cube;
+//		if (cur_depth > closest_depth + bias){
+//			shadow += 1.0f;
+//		}
 		
 		return shadow;
 	}

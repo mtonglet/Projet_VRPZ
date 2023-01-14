@@ -166,8 +166,8 @@
 
 		total_light  +=  emitted;
 
-		if (lampsActivated && (length(emitted)==0.0)){
-			for (int i = 1 ; i < n_lights ; i++){
+		for (int i = 1 ; i < n_lights ; i++){
+			if (lampsActivated || i==1){
 				total_light += vec3(calcPointLight(i,N));
 //				total_light += vec3(calcSpotLight(i,N));
 			}

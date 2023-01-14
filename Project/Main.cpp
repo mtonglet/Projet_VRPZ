@@ -300,8 +300,10 @@ int main(int argc, char* argv[])
 	
 	std::vector<glm::vec3> lights_positions = {//length must be less than MAX_LIGHTS_NUMBER defined in textureLight.frag
 		glm::vec3(0.0,moonDist,0.0), //moon
-		glm::vec3(0.0, 2.5, -4.0), //fire 
-		glm::vec3(-7.0, 8.0, 2.0) //moving in front of the paint
+		glm::vec3(0.0, 2.5, 7.0), //fire 
+		glm::vec3(2.0, 8.2, 0.0), //moving in front of the paint
+		glm::vec3(-2.0, 8.2, -2.0), //moving in front of the paint
+		glm::vec3(-2.0, 8.2, 2.0) //moving in front of the paint
 //		glm::vec3(-8.8,8.8, 8.8),
 //		glm::vec3(-8.8,8.8,-8.8),
 //		glm::vec3(8.8, 8.8,-8.8)
@@ -594,14 +596,14 @@ int main(int argc, char* argv[])
 		glm::vec3 lampEmission = lampEmissionIntensity * glm::vec3(1.0f, 0.98f, 0.41f);;
 
 		//moving lights
-		lights_positions[0] = glm::vec3(90.0, 40.0f + 38.0f * std::sin(now), 36.0f); //TODO: uncomment to move the moon
-/*		lights_positions[0] = glm::vec3(
+//		lights_positions[0] = glm::vec3(90.0, 40.0f + 38.0f * std::sin(now), 36.0f); //TODO: uncomment to move the moon
+		lights_positions[0] = glm::vec3(
 			100.0f* std::sin(moonSpeed*(now - init_now)),
 			100.0f* std::cos(moonSpeed*(now - init_now)),
-			40.0f * std::sin(moonSpeed*(now - init_now)));*/
+			40.0f * std::sin(moonSpeed*(now - init_now)));
 		modelMoon = glm::mat4(1.0);
 		modelMoon = glm::translate(modelMoon, lights_positions[0]);//0
-		modelMoon = glm::scale(modelMoon, glm::vec3(3.5));//2.5
+		modelMoon = glm::scale(modelMoon, glm::vec3(2.5));//2.5
 		modelMoon = glm::rotate(modelMoon, 3.14159265358979f, glm::vec3(0.0, 1.0, 0.0));
 		inverseModelMoon = glm::transpose(glm::inverse(modelMoon));
 
@@ -785,8 +787,6 @@ int main(int argc, char* argv[])
 			framebufferCube.Unbind();
 		}
 
-		
-
 		//bind the frambuffer for the reversed scene
 		framebufferMirror.Bind(0);
 		glEnable(GL_DEPTH_TEST);
@@ -831,6 +831,14 @@ int main(int argc, char* argv[])
 		woodparvis.draw();
 		shadowShader.setMatrix4("M", modelRoom);
 		room.draw();
+		lightShader.setMatrix4("M", modelFirePlace);
+		fireplace.draw();
+		lightShader.setMatrix4("M", modelLampePlafond);
+		lampeplafond.draw();
+		lightShader.setMatrix4("M", modelLampePlafond2);
+		lampeplafond2.draw();
+		lightShader.setMatrix4("M", modelLampePlafond3);
+		lampeplafond3.draw();
 
 		directionalFBShadow.Unbind(width, height);
 		/*
@@ -876,6 +884,14 @@ int main(int argc, char* argv[])
 				woodparvis.draw();
 				cubeShadowShader.setMatrix4("M", modelRoom);
 				room.draw();
+				lightShader.setMatrix4("M", modelFirePlace);
+				fireplace.draw();
+				lightShader.setMatrix4("M", modelLampePlafond);
+				lampeplafond.draw();
+				lightShader.setMatrix4("M", modelLampePlafond2);
+				lampeplafond2.draw();
+				lightShader.setMatrix4("M", modelLampePlafond3);
+				lampeplafond3.draw();
 
 				pointFBShadows[i_pl].Unbind(width, height);			
 			}
