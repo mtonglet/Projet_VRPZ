@@ -16,10 +16,10 @@
             color_frag = vec4(1.0, 1.0, 1.0, 0.0);
         }
         if (position.x < 2.0){
-            color_frag = vec4(1.0, position.x/1.5, 0.0, 1.0 - position.y);
+            color_frag = vec4(1.0,  (1.5-position.x)/position.y, 0.0, 1.0 - position.y);
         }
         if (position.x <= 0.0){
-            color_frag = vec4(1.0, -position.x/1.5, 0.0, 1.0 - position.y);
+            color_frag = vec4(1.0, (1.5+position.x)/position.y, 0.0, 1.0 - position.y);
         }
         lifetime = position.w;
     }

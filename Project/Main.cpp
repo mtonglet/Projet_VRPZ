@@ -239,6 +239,10 @@ int main(int argc, char* argv[])
 	Object sapin(pathSapin);
 	sapin.makeObject(lightShader);
 
+	char pathBoule1[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
+	Object boule1(pathBoule1);
+	boule1.makeObject(lightShader);
+
 	char pathChaise[] = PATH_TO_OBJECTS "/chaise_salon.obj";
 	Object chaise(pathChaise);
 	chaise.makeObject(lightShader);
@@ -371,6 +375,11 @@ int main(int argc, char* argv[])
 	modelSapin = glm::scale(modelSapin, glm::vec3(3.0, 3.0, 3.0));
 	glm::mat4 inversemodelSapin = glm::transpose(glm::inverse(modelSapin));
 
+	glm::mat4 modelBoule1 = glm::mat4(1.0);				//Z	  //X  //Y
+	modelBoule1 = glm::translate(modelBoule1, glm::vec3(-6.5, 2.0, -3.5));
+	modelBoule1 = glm::scale(modelBoule1, glm::vec3(0.5, 0.5, 0.5));
+	glm::mat4 inversemodelBoule1 = glm::transpose(glm::inverse(modelBoule1));
+
 	glm::mat4 modelChaise = glm::mat4(1.0);				//Z	  //X  //Y
 	modelChaise = glm::translate(modelChaise, glm::vec3(3.0, 0.0, -26.0));
 	modelChaise = glm::scale(modelChaise, glm::vec3(4.0, 4.0, 4.0));
@@ -474,6 +483,9 @@ int main(int argc, char* argv[])
 	 
 	char pathimSapin[] = PATH_TO_TEXTURE "/sapinrep.jpg";
 	Texture sapinTex(pathimSapin, "");
+
+	char pathimBoule1[] = PATH_TO_TEXTURE "/text_snow.jpg";
+	Texture boule1Tex(pathimBoule1, "");
 
 	char pathNormal[] = PATH_TO_TEXTURE "/woodBump.png";
 	Texture normalMap(pathNormal, "normal");
@@ -706,6 +718,9 @@ int main(int argc, char* argv[])
 				sapinTex.Bind(1);
 				sapin.draw();
 
+				boule1Tex.Bind(1);
+				boule1.draw();
+
 				chaiseTex.Bind(1);
 				chaise.draw();
 
@@ -817,6 +832,8 @@ int main(int argc, char* argv[])
 
 		shadowShader.setMatrix4("M", modelSapin);
 		sapin.draw();
+		shadowShader.setMatrix4("M", modelBoule1);
+		boule1.draw();
 		shadowShader.setMatrix4("M", modelSol);
 		ground.draw();
 		shadowShader.setMatrix4("M", modelChaise);
@@ -872,6 +889,8 @@ int main(int argc, char* argv[])
 				}
 				cubeShadowShader.setMatrix4("M", modelSapin);
 				sapin.draw();
+				cubeShadowShader.setMatrix4("M", modelBoule1);
+				boule1.draw();
 				cubeShadowShader.setMatrix4("M", modelSol);
 				ground.draw();
 				cubeShadowShader.setMatrix4("M", modelChaise);
@@ -992,6 +1011,9 @@ int main(int argc, char* argv[])
 		// Binds texture so that is appears in rendering to the right unit
 		sapinTex.Bind(0);
 		sapin.draw();
+
+		boule1Tex.Bind(0);
+		boule1.draw();
 
 		chaiseTex.Bind(0);
 		chaise.draw();
@@ -1151,6 +1173,9 @@ int main(int argc, char* argv[])
 		lightShader.setMatrix4("M", modelSapin);
 		sapinTex.Bind(0);
 		sapin.draw();
+		lightShader.setMatrix4("M", modelBoule1);
+		boule1Tex.Bind(0);
+		boule1.draw();
 		lightShader.setMatrix4("M", modelChaise);
 		chaiseTex.Bind(0);
 		chaise.draw();
@@ -1289,7 +1314,7 @@ int main(int argc, char* argv[])
 		emitterShader.use();
 		emitterShader.setMatrix4("P", perspective);
 		emitterShader.setMatrix4("V", view);
-		emitterShader.setUniformParticleSize("particleSize", 0.1f);
+		emitterShader.setUniformParticleSize("particleSize", 0.2f);
 
 		emitter_fire.draw(emitterShader);
 		

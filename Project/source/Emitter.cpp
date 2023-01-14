@@ -47,12 +47,12 @@ Emitter::Emitter(int name)
     }
     if (name == 2) {
         srand(static_cast <unsigned> (time(0)));
-        particles.resize(1000);
+        particles.resize(1100);
 
         for (int i = 0; i < particles.size(); ++i) {
             particles[i].position = randomPos(0.0, 0.1, 7.0);
            // std::cout << particles[i].position.x << std::endl;
-            particles[i].lifetime = randomLife(2);
+            particles[i].lifetime = randomLife(4);
         }
 
         std::vector<float> vertices;
@@ -100,7 +100,7 @@ glm::vec3 Emitter::randomPos(int x, int y, int z)
 {
     glm::vec3 randomPosition;
     //srand(time(NULL));
-    randomPosition.x = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) * 3 + x - 1.5;
+    randomPosition.x = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) * 4 + x - 2.0;
     randomPosition.y = y;
     randomPosition.z = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) * 2 + z;
 
@@ -136,12 +136,12 @@ void Emitter::update(const float dt, const int name)
             }
             if (particles[i].position[0] > 0.3f)
             {
-                particles[i].lifetime -= dt * (particles[i].position[0] - 0.3);
+                particles[i].lifetime -= (dt/1.5) * (particles[i].position[0] - 0.3);
 
             }
             if (particles[i].position[0] < -0.3f)
             {
-                particles[i].lifetime -= dt * (-particles[i].position[0] - 0.3);
+                particles[i].lifetime -= (dt /1.5) * (-particles[i].position[0] - 0.3);
 
             }
             particles[i].position += glm::vec3(0.0f, dt * 2.0f, 0.0f);
