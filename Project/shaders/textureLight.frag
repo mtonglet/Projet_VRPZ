@@ -168,8 +168,15 @@
 
 		for (int i = 1 ; i < n_lights ; i++){
 			if (lampsActivated || i==1){
-				total_light += vec3(calcPointLight(i,N));
-//				total_light += vec3(calcSpotLight(i,N));
+				if(i == 1){
+					total_light += vec3(calcPointLight(i,N)) * 1.5 * vec3(0.4,0.21,0.09);
+//					total_light += vec3(calcSpotLight(i,N)) * 1.5 * vec3(0.4,0.21,0.09);
+				}
+				else{
+					total_light += vec3(calcPointLight(i,N));
+//					total_light += vec3(calcSpotLight(i,N));
+				}
+				
 			}
 		}
 

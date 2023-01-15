@@ -24,6 +24,7 @@
 		float quadratic;
 	};
 
+	uniform float ratioTexture;
 	uniform int n_lights;
 	uniform float shininess; 
 	uniform LightParams spot_light_param;
@@ -118,9 +119,9 @@
 		float shad = shadowOrthoCalculation(dot(N,L));
 
 		float light = light_param.ambient_strength + (diffuse + specular)*(1.0f - shad);//*lampRefl;
-		if (dot(N,L) <= 0){
-			light = light_param.ambient_strength ; //
-		}
+		//if (dot(N,L) <= 0){
+		//	light = light_param.ambient_strength ; //
+		//}
 		return light;
 	}
 
@@ -137,9 +138,9 @@
 		float shad = shadowCubeCalculation(i, dot(N,L));
 
 		float light =  ambiant + attenuation * (diffuse + specular)*(1.0f - shad);
-		if (dot(N,L) <=0){
-			light = ambiant;
-		}
+		//if (dot(N,L) <=0){
+		//	light = ambiant;
+		//}
 		return light;
 	}
 
@@ -161,15 +162,16 @@
 		float intensity = clamp((angle - outerAngle)/(innerAngle - outerAngle), 0.0f, 1.0f);
 
 		float light =  ambiant + attenuation * intensity * (diffuse + specular);
-		if (dot(N,L) <=0){
-			light = ambiant;
-		}
+		//if (dot(N,L) <=0){
+		//	light = ambiant;
+		//}
 		return light;	
 	}
 
 	void main() { 
 		
-		vec3 N = normalize(texture(normal0, texCoord).rgb * 2.0f - 1.0f);
+		
+		vec3 N = normalize(texture(normal0, ratioTexture * texCoord).rgb * 2.0f - 1.0f);
 		
 		vec3 total_light = vec3(calcDirLight(N));
 
@@ -179,8 +181,8 @@
 			for (int i = 1 ; i < n_lights ; i++){
 				if (lampsActivated || i==1 && Normal.x < 5.0f){
 					if(i == 1){
-					total_light += vec3(calcPointLight(i,N)) * vec3(0.6,0.21,0.09);
-//					total_light += vec3(calcSpotLight(i,N)) * vec3(0.6,0.21,0.09);
+					total_light += vec3(calcPointLight(i,N)) * 1.5 * vec3(0.6,0.21,0.09);
+//					total_light += vec3(calcSpotLight(i,N)) * 1.5 * vec3(0.6,0.21,0.09);
 					}
 					else{
 					total_light += vec3(calcPointLight(i,N));
@@ -189,7 +191,7 @@
 				}
 			}
 
-		FragColor = vec4(vec3(texture(tex0, texCoord)) * total_light, 1.0); 
+		FragColor = vec4(vec3(texture(tex0, ratioTexture * texCoord)) * total_light, 1.0); 
 	}
 
 
