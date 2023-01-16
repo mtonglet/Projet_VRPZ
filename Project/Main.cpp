@@ -27,6 +27,7 @@ const int POINT_SHADOW_MAPPING_RESOLUTION = 512;
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "headers/Ball.h"
 
 GLuint currentTextSlot = 0;
 
@@ -49,6 +50,7 @@ bool lampsActivated = true;
 bool lampDecreasing = false;
 bool inKeyA = false;
 float fasterMoon = 0.0;
+bool ballfall = true;
 
 void loadCubemapFace(const char* file, const GLenum& targetCube);
 
@@ -259,6 +261,10 @@ int main(int argc, char* argv[])
 	Object boule5(pathBoule5);
 	boule5.makeObject(lightShader);
 
+	char pathBouletest[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
+	Object bouletest(pathBouletest);
+	bouletest.makeObject(lightShader);
+
 	char pathChaise[] = PATH_TO_OBJECTS "/chaise_salon.obj";
 	Object chaise(pathChaise);
 	chaise.makeObject(lightShader);
@@ -293,6 +299,7 @@ int main(int argc, char* argv[])
 
 	Emitter emitter = Emitter(1);
 	Emitter emitter_fire = Emitter(2);
+	Ball crazyball = Ball();
 
 	double prev = 0;
 	int deltaFrame = 0;
@@ -385,6 +392,7 @@ int main(int argc, char* argv[])
 	modelRoom = glm::translate(modelRoom, glm::vec3(0.0, 0.0, 0.0));
 	modelRoom = glm::scale(modelRoom, glm::vec3(3.0, 3.0, 3.0));
 	glm::mat4 inverseModelRoom = glm::transpose(glm::inverse(modelRoom));
+	//std::cout << "room " << room.vertices[0].x << std::endl;
 
 	glm::mat4 modelSapin = glm::mat4(1.0);				//Z	  //X  //Y
 	modelSapin = glm::translate(modelSapin, glm::vec3(-5.0, 0.5, -5.0));
@@ -395,7 +403,7 @@ int main(int argc, char* argv[])
 	modelBoule1 = glm::translate(modelBoule1, glm::vec3(-3.2, 0.6, -3.5));
 	modelBoule1 = glm::scale(modelBoule1, glm::vec3(0.3, 0.3, 0.3));
 	glm::mat4 inversemodelBoule1 = glm::transpose(glm::inverse(modelBoule1));
-
+	
 	glm::mat4 modelBoule2 = glm::mat4(1.0);				//Z	  //X  //Y
 	modelBoule2 = glm::translate(modelBoule2, glm::vec3(-6.5, 2.0, -3.5));
 	modelBoule2 = glm::scale(modelBoule2, glm::vec3(0.34, 0.34, 0.34));
@@ -415,6 +423,11 @@ int main(int argc, char* argv[])
 	modelBoule5 = glm::translate(modelBoule5, glm::vec3(-5.0, 6.2, -4.1 ));
 	modelBoule5 = glm::scale(modelBoule5, glm::vec3(0.26, 0.26, 0.26));
 	glm::mat4 inversemodelBoule5 = glm::transpose(glm::inverse(modelBoule5));
+
+	glm::mat4 modelBouletest = glm::mat4(1.0);				//Z	  //X  //Y
+	modelBouletest = glm::translate(modelBouletest, glm::vec3(-5.0, 0.5, -1.1));
+	modelBouletest = glm::scale(modelBouletest, glm::vec3(0.26, 0.26, 0.26));
+	glm::mat4 inversemodelBouletest = glm::transpose(glm::inverse(modelBouletest));
 
 	glm::mat4 modelChaise = glm::mat4(1.0);				//Z	  //X  //Y
 	modelChaise = glm::translate(modelChaise, glm::vec3(3.0, 0.0, -26.0));
@@ -534,6 +547,9 @@ int main(int argc, char* argv[])
 
 	char pathimBoule5[] = PATH_TO_TEXTURE "/red-xmas.jpg";
 	Texture boule5Tex(pathimBoule5, "");
+
+	char pathimBouletest[] = PATH_TO_TEXTURE "/red-glitter.jpg";
+	Texture bouletestTex(pathimBouletest, "");
 
 	char pathNormal[] = PATH_TO_TEXTURE "/woodBump.png";
 	Texture normalMap(pathNormal, "normal");
@@ -781,6 +797,9 @@ int main(int argc, char* argv[])
 				boule5Tex.Bind(1);
 				boule5.draw();
 
+				bouletestTex.Bind(1);
+				bouletest.draw();
+
 				chaiseTex.Bind(1);
 				chaise.draw();
 
@@ -902,6 +921,8 @@ int main(int argc, char* argv[])
 		boule4.draw();
 		shadowShader.setMatrix4("M", modelBoule5);
 		boule5.draw();
+		shadowShader.setMatrix4("M", modelBouletest);
+		bouletest.draw();
 		shadowShader.setMatrix4("M", modelSol);
 		ground.draw();
 		shadowShader.setMatrix4("M", modelChaise);
@@ -967,6 +988,8 @@ int main(int argc, char* argv[])
 				boule4.draw();
 				cubeShadowShader.setMatrix4("M", modelBoule5);
 				boule5.draw();
+				cubeShadowShader.setMatrix4("M", modelBouletest);
+				bouletest.draw();
 				cubeShadowShader.setMatrix4("M", modelSol);
 				ground.draw();
 				cubeShadowShader.setMatrix4("M", modelChaise);
@@ -1102,6 +1125,10 @@ int main(int argc, char* argv[])
 
 		boule5Tex.Bind(0);
 		boule5.draw();
+
+
+		bouletestTex.Bind(0);
+		bouletest.draw();
 
 		chaiseTex.Bind(0);
 		chaise.draw();
@@ -1267,6 +1294,14 @@ int main(int argc, char* argv[])
 		lightShader.setMatrix4("M", modelBoule2);
 		boule2Tex.Bind(0);
 		boule2.draw();
+
+		if (!ballfall) {
+			crazyball.Stuck = ballfall;
+			modelBoule3[3] = crazyball.Move(0.05, modelBoule3[3]);
+			if (crazyball.Stuck) {
+				ballfall = true;
+			}
+		}
 		lightShader.setMatrix4("M", modelBoule3);
 		boule3Tex.Bind(0);
 		boule3.draw();
@@ -1276,6 +1311,9 @@ int main(int argc, char* argv[])
 		lightShader.setMatrix4("M", modelBoule5);
 		boule5Tex.Bind(0);
 		boule5.draw();
+		lightShader.setMatrix4("M", modelBouletest);
+		bouletestTex.Bind(0);
+		bouletest.draw();
 		lightShader.setMatrix4("M", modelChaise);
 		chaiseTex.Bind(0);
 		chaise.draw();
@@ -1495,6 +1533,14 @@ void processInput(GLFWwindow* window) {
 	}
 	else {
 		fasterMoon = 0.0;
+	}
+
+	//Pressing F leaves the ball fall
+	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
+		ballfall = false;
+	}
+	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS) {
+		ballfall = true;
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {

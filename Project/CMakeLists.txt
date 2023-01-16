@@ -14,7 +14,7 @@ add_compile_definitions(PATH_TO_SHADER="${CMAKE_CURRENT_SOURCE_DIR}/shaders")
 add_compile_definitions(PATH_TO_HEADER="${CMAKE_CURRENT_SOURCE_DIR}/headers")
 add_compile_definitions(PATH_TO_SOURCE="${CMAKE_CURRENT_SOURCE_DIR}/source")
 
-add_executable(${PROJECT_NAME}_Main ${SOURCES_EX_01})
+add_executable(${PROJECT_NAME}_Main ${SOURCES_EX_01} "headers/Ball.h" "source/Ball.cpp")
 target_link_libraries(${PROJECT_NAME}_Main PUBLIC OpenGL::GL glfw glad)
 
 
