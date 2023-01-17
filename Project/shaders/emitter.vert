@@ -1,6 +1,8 @@
 #version 330 core
     layout(location = 0) in vec3 vertex_position;
     layout(location = 4) in vec4 position;
+
+
     uniform mat4 V;
     uniform mat4 P;
     uniform float particleSize;

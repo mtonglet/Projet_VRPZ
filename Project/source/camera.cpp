@@ -146,6 +146,17 @@ void Camera::ProcessKeyboardMovement(Camera_Movement direction, float deltaTime)
         this->Position += this->Right * velocity;
     if (this->Position.y <= 0.5 && useMouse)
         this->Position.y = 0.5;
+    if (this->Position.y >= 8.5 && useMouse)
+        this->Position.y = 8.5;
+    if (this->Position.z <= -8.5 && useMouse)
+        this->Position.z = -8.5;
+    if (this->Position.z >= 8.5 && useMouse)
+        this->Position.z = 8.5;
+    if (this->Position.x <= -8.5 && useMouse)
+        this->Position.x = -8.5;
+    if (this->Position.x >= 8.5 && useMouse)
+        this->Position.x = 8.5;
+    
 }
 
 void Camera::ProcessKeyboardRotation(float YawRot, float PitchRot, float deltaTime, GLboolean constrainPitch)

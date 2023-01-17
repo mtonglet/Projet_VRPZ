@@ -207,7 +207,66 @@ public:
 	void draw() {
 
 		glBindVertexArray(this->VAO);
+		
 		glDrawArrays(GL_TRIANGLES, 0, numVertices);
+
+	}
+	void draw(Shader shader) {
+
+		//define VBO and VAO as active buffer and active vertex array
+		glBindVertexArray(this->VAO);
+		glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+
+		auto att_pos = glGetAttribLocation(shader.ID, "position");
+		glEnableVertexAttribArray(att_pos);
+		glVertexAttribPointer(att_pos, 3, GL_FLOAT, false, 8 * sizeof(float), (void*)0);
+
+
+		
+		auto att_tex = glGetAttribLocation(shader.ID, "tex_coord");
+		glEnableVertexAttribArray(att_tex);
+		glVertexAttribPointer(att_tex, 2, GL_FLOAT, false, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+
+		
+
+		auto att_col = glGetAttribLocation(shader.ID, "normal");
+		glEnableVertexAttribArray(att_col);
+		glVertexAttribPointer(att_col, 3, GL_FLOAT, false, 8 * sizeof(float), (void*)(5 * sizeof(float)));
+
+
+		glDrawArrays(GL_TRIANGLES, 0, numVertices);
+		//desactive the buffer
+		//glBindBuffer(GL_ARRAY_BUFFER, 0);
+		//glBindVertexArray(0);
+
+	}
+	void draw(Shader shader, bool texture, bool normal) {
+
+		//define VBO and VAO as active buffer and active vertex array
+		glBindVertexArray(this->VAO);
+		glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+
+		auto att_pos = glGetAttribLocation(shader.ID, "position");
+		glEnableVertexAttribArray(att_pos);
+		glVertexAttribPointer(att_pos, 3, GL_FLOAT, false, 8 * sizeof(float), (void*)0);
+
+
+		if (texture){
+			auto att_tex = glGetAttribLocation(shader.ID, "tex_coord");
+			glEnableVertexAttribArray(att_tex);
+			glVertexAttribPointer(att_tex, 2, GL_FLOAT, false, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+		}
+		
+		if (normal) {
+			auto att_col = glGetAttribLocation(shader.ID, "normal");
+			glEnableVertexAttribArray(att_col);
+			glVertexAttribPointer(att_col, 3, GL_FLOAT, false, 8 * sizeof(float), (void*)(5 * sizeof(float)));
+		}
+		
+		glDrawArrays(GL_TRIANGLES, 0, numVertices);
+		//desactive the buffer
+		//glBindBuffer(GL_ARRAY_BUFFER, 0);
+		//glBindVertexArray(0);
 
 	}
 };

@@ -1,6 +1,6 @@
 #version 330 core	
 	precision mediump float;
-	const int MAX_LIGHTS_NUMBER = 10;
+	const int MAX_LIGHTS_NUMBER = 3;
 	const float PI = 3.14159265358979f;
 	in vec2 v_tex; 
 	in vec3 v_frag_coord;
@@ -27,7 +27,7 @@
 	uniform vec3 lights[MAX_LIGHTS_NUMBER];
 	uniform sampler2D tex0;
 	uniform sampler2D shadow_map;
-	uniform samplerCube shadow_cube_map[MAX_LIGHTS_NUMBER];
+	uniform samplerCube shadow_cube_map[MAX_LIGHTS_NUMBER-1];
 	uniform float far_back_cube;
 
 	uniform LightParams spot_light_param;
@@ -168,8 +168,15 @@
 
 		for (int i = 1 ; i < n_lights ; i++){
 			if (lampsActivated || i==1){
-				total_light += vec3(calcPointLight(i,N));
-//				total_light += vec3(calcSpotLight(i,N));
+				if(i == 1){
+					total_light += vec3(calcPointLight(i,N)) * 1.5 * vec3(0.4,0.21,0.09);
+//					total_light += vec3(calcSpotLight(i,N)) * 1.5 * vec3(0.4,0.21,0.09);
+				}
+				else{
+					total_light += vec3(calcPointLight(i,N));
+//					total_light += vec3(calcSpotLight(i,N));
+				}
+				
 			}
 		}
 

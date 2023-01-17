@@ -15,5 +15,8 @@
 		//TexCoords = (P*V*M*vec4(position, 1.0)).xy/2+0.5;
 		TexCoords = (gl_Position.xy / gl_Position.w +1.0)/2.0;///2+0.5;
 		//TexCoords = tex_coord; 
+		if(tex_coord.x > 5 && normal.x > 5){
+		TexCoords  = vec2(1.0);
+		}
 	}
 
