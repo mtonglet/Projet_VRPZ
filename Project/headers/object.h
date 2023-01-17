@@ -6,6 +6,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include "shader.h"
 
 
 #include <glad/glad.h>

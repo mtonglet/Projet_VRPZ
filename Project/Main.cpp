@@ -351,9 +351,9 @@ int main(int argc, char* argv[])
 
 	//------*-------BALLS POSITIONS------------------//
 	std::vector<glm::vec3> ball_positions = {//length must be less than MAX_LIGHTS_NUMBER defined in textureLight.frag
-		glm::vec3(-3.0, 0.5, -3.0),
-		glm::vec3(-3.0, 2.5, -3.0),
-		glm::vec3(-3.0, 4.5, -3.0),
+		glm::vec3(-4.3, 2.0, -3.3),
+		glm::vec3(-5.0, 3.5, -3.5),
+		glm::vec3(-3.8, 4.8, -4.8),
 		glm::vec3(3.0, 3.0, 3.0)
 	};
 	std::vector<glm::vec3> ball_color = {//length must be less than MAX_LIGHTS_NUMBER defined in textureLight.frag
