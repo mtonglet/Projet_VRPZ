@@ -51,6 +51,7 @@ bool lampDecreasing = false;
 bool inKeyA = false;
 float fasterMoon = 0.0;
 bool ballfall = true;
+bool ballfallreset = false;
 
 void loadCubemapFace(const char* file, const GLenum& targetCube);
 
@@ -430,6 +431,7 @@ int main(int argc, char* argv[])
 	modelBoule3 = glm::translate(modelBoule3, glm::vec3(-4.0, 3.5, -3.5));
 	modelBoule3 = glm::scale(modelBoule3, glm::vec3(0.34, 0.34, 0.34));
 	glm::mat4 inversemodelBoule3 = glm::transpose(glm::inverse(modelBoule3));
+	glm::vec3 position_initiale = (modelBoule3[3]);
 
 	glm::mat4 modelBoule4 = glm::mat4(1.0);				//Z	  //X  //Y
 	modelBoule4 = glm::translate(modelBoule4, glm::vec3(-6.2, 4.8, -4.8));
@@ -442,7 +444,7 @@ int main(int argc, char* argv[])
 	glm::mat4 inversemodelBoule5 = glm::transpose(glm::inverse(modelBoule5));
 
 	glm::mat4 modelBouletest = glm::mat4(1.0);				//Z	  //X  //Y
-	modelBouletest = glm::translate(modelBouletest, glm::vec3(-5.0, 0.5, -1.1));
+	modelBouletest = glm::translate(modelBouletest, glm::vec3(-5.0, 0.3, -0.4));
 	modelBouletest = glm::scale(modelBouletest, glm::vec3(0.26, 0.26, 0.26));
 	glm::mat4 inversemodelBouletest = glm::transpose(glm::inverse(modelBouletest));
 
@@ -1326,12 +1328,19 @@ int main(int argc, char* argv[])
 		boule2Tex.Bind(0);
 		boule2.draw();
 
-		if (!ballfall) {
+		
+		if (ballfall == false) {
 			crazyball.Stuck = ballfall;
-			modelBoule3[3] = crazyball.Move(0.05, modelBoule3[3]);
-			if (crazyball.Stuck) {
+			modelBoule3[3] = crazyball.Move(0.04, modelBoule3[3]);
+			if (crazyball.Stuck == true) {
 				ballfall = true;
 			}
+		}
+		if (ballfallreset == true) {
+			crazyball.Reset();
+			modelBoule3[3] = glm::vec4(position_initiale, 1.0);
+			ballfallreset = false;
+			ballfall = true;
 		}
 		lightShader.setMatrix4("M", modelBoule3);
 		boule3Tex.Bind(0);
@@ -1568,9 +1577,11 @@ void processInput(GLFWwindow* window) {
 	//Pressing F leaves the ball fall
 	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
 		ballfall = false;
+		
 	}
 	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS) {
-		ballfall = true;
+		ballfallreset = true;
+		
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
